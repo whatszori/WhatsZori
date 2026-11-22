@@ -25,6 +25,8 @@ const (
 type Options struct {
 	ThemesDir  string
 	PluginsDir string
+	// Media serves /wz-media/<pk>; nil answers 404
+	Media http.Handler
 	// HTMLAttrs is added to the index page's <html> tag, so data-theme is right before any CSS
 	// or script runs and a dark window doesn't flash light.
 	HTMLAttrs func() map[string]string
@@ -48,8 +50,11 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 				}
 				serveFile(w, r, o.PluginsDir, rest, false)
 			case strings.HasPrefix(p, MediaPrefix):
-				// placeholder until the media store exists
-				http.NotFound(w, r)
+				if o.Media == nil {
+					http.NotFound(w, r)
+					return
+				}
+				o.Media.ServeHTTP(w, r)
 			case p == "/wails/custom.js":
 				// the Wails runtime always probes for this optional script; answer instead of
 				// leaving a 404 in the console on every start
