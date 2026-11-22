@@ -1,5 +1,8 @@
 import type {
   Chat,
+  ChatInfo,
+  GroupMember,
+  MediaRef,
   EditVersion,
   JID,
   MediaInfo,
@@ -541,4 +544,102 @@ function addShowcase(db: MockDB, now: number, pk: () => string): void {
   // generated history ends before the showcase, so these counts match the tail
   db.chats.get(anna)!.unread = 2;
   db.chats.get(design)!.unread = 3;
+}
+
+const ABOUT_EN = [
+  'Available',
+  'Busy',
+  'At the gym',
+  'Out of office until Monday',
+  'Coffee first',
+  'Urgent calls only',
+];
+const ABOUT_RU = ['На связи', 'Занят', 'В отпуске', 'Пишите, перезвоню'];
+const ABOUT_JA = ['よろしくお願いします', '仕事中', '旅行中'];
+const GROUP_ABOUT: Record<string, string> = {
+  'Design team':
+    'Design reviews, screenshots and the occasional meme. Specs live in the shared drive.',
+  'Product launch': 'Coordination for the November launch. Decisions go in the pinned doc.',
+  Семья: 'Семейный чат',
+  'Weekend hiking': 'Routes, carpools and weather. Saturday mornings.',
+};
+
+function pickBy<T>(seed: string, list: readonly T[]): T {
+  let h = 0;
+  for (const c of seed) h = (Math.imul(h, 31) + c.codePointAt(0)!) >>> 0;
+  return list[h % list.length];
+}
+
+// fake but stable numbers, with a country code that matches the name's script
+export function phoneFor(name: string): string {
+  let h = 7;
+  for (const c of name) h = (Math.imul(h, 131) + c.codePointAt(0)!) >>> 0;
+  // re-mix per digit, otherwise every group repeats the same tail
+  const digit = () => {
+    h = (Math.imul(h ^ (h >>> 13), 0x5bd1e995) + 0x6b43a9b5) >>> 0;
+    return (h >>> 8) % 10;
+  };
+  const d = (n: number) => Array.from({ length: n }, digit).join('');
+  if (/\p{Script=Cyrillic}/u.test(name)) return `+7 9${d(2)} ${d(3)}-${d(2)}-${d(2)}`;
+  if (/\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}/u.test(name))
+    return `+81 90 ${d(4)} ${d(4)}`;
+  const cc = pickBy(name, ['+1', '+44', '+49', '+33']);
+  return `${cc} ${d(3)} ${d(3)} ${d(4)}`;
+}
+
+function aboutFor(name: string): string {
+  if (/\p{Script=Cyrillic}/u.test(name)) return pickBy(name, ABOUT_RU);
+  if (/\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}/u.test(name))
+    return pickBy(name, ABOUT_JA);
+  return pickBy(name, ABOUT_EN);
+}
+
+export function buildChatInfo(db: MockDB, jid: JID): ChatInfo {
+  const chat = db.chats.get(jid);
+  if (!chat) throw new Error(`unknown chat ${jid}`);
+  const list = db.messages.get(jid) ?? [];
+  const media = list.filter((m) => (m.kind === 'image' || m.kind === 'video') && !m.contentUnknown);
+  const recentMedia: MediaRef[] = media
+    .slice(-6)
+    .reverse()
+    .map((m) => ({
+      pk: m.pk,
+      kind: m.kind,
+      width: m.media?.width,
+      height: m.media?.height,
+      duration: m.media?.duration,
+    }));
+
+  const base = {
+    jid,
+    mediaCount: media.length,
+    docCount: list.filter((m) => m.kind === 'document').length,
+    linkCount: list.filter((m) => /https?:\/\/|www\./.test(m.text)).length,
+    recentMedia,
+    deletedKept: list.filter((m) => m.deleted && !m.contentUnknown).length,
+    edited: list.filter((m) => m.editedAt).length,
+  };
+
+  if (!chat.isGroup) return { ...base, about: aboutFor(chat.name), phone: phoneFor(chat.name) };
+
+  const others = db.members.get(jid) ?? [];
+  // the first listed member created the group and is its admin; you're an admin of some groups
+  const meAdmin = pickBy(chat.name, [true, false, false]);
+  const members: GroupMember[] = [
+    { jid: db.me.jid, name: 'You', phone: db.me.phone, isMe: true, isAdmin: meAdmin },
+    ...others.map((p, i) => ({
+      jid: p.jid,
+      name: p.name,
+      phone: phoneFor(p.name),
+      isMe: false,
+      isAdmin: i === 0,
+    })),
+  ];
+  return {
+    ...base,
+    about: GROUP_ABOUT[chat.name] ?? '',
+    members,
+    createdAt: (list[0]?.timestamp ?? chat.lastActivity) - 3 * 86_400_000,
+    createdBy: others[0]?.name,
+  };
 }

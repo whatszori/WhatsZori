@@ -10,6 +10,46 @@ export interface Me {
   phone: string;
 }
 
+// what other people see about you; separate from Me, which is just the account identity
+export interface Profile {
+  name: string;
+  about: string;
+  phone: string;
+}
+
+export interface GroupMember {
+  jid: JID;
+  name: string;
+  phone: string;
+  isMe: boolean;
+  isAdmin: boolean;
+}
+
+export interface MediaRef {
+  pk: MessagePK;
+  kind: MessageKind;
+  width?: number;
+  height?: number;
+  duration?: number;
+}
+
+export interface ChatInfo {
+  jid: JID;
+  // 1:1: the contact's "about" line; group: the description (empty = none)
+  about: string;
+  phone?: string;
+  members?: GroupMember[];
+  createdAt?: number;
+  createdBy?: string;
+  mediaCount: number;
+  docCount: number;
+  linkCount: number;
+  recentMedia: MediaRef[];
+  // what anti-delete and edit history have kept locally for this chat
+  deletedKept: number;
+  edited: number;
+}
+
 export interface AuthStatus {
   state: AuthState;
   me: Me | null;

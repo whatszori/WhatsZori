@@ -4,6 +4,8 @@ import type {
   BackendEventName,
   BackendEvents,
   Chat,
+  ChatInfo,
+  Profile,
   EditVersion,
   GhostSettings,
   JID,
@@ -28,6 +30,13 @@ export interface ChatService {
   setPinned(jid: JID, pinned: boolean): Promise<void>;
   setArchived(jid: JID, archived: boolean): Promise<void>;
   setMuted(jid: JID, muted: boolean): Promise<void>;
+  getInfo(jid: JID): Promise<ChatInfo>;
+}
+
+export interface ProfileService {
+  get(): Promise<Profile>;
+  setName(name: string): Promise<void>;
+  setAbout(about: string): Promise<void>;
 }
 
 export interface MessageService {
@@ -56,6 +65,7 @@ export interface Backend {
   auth: AuthService;
   chats: ChatService;
   messages: MessageService;
+  profile: ProfileService;
   privacy: PrivacyService;
   settings: SettingsService;
   on<E extends BackendEventName>(

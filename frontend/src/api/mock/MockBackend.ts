@@ -5,6 +5,8 @@ import type {
   BackendEventName,
   BackendEvents,
   Chat,
+  ChatInfo,
+  Profile,
   ConnState,
   EditVersion,
   GhostSettings,
@@ -15,7 +17,7 @@ import type {
   Reaction,
   SearchHit,
 } from '../types';
-import { createMockDB, preview, refreshChatPreview, type MockDB } from './data';
+import { buildChatInfo, createMockDB, preview, refreshChatPreview, type MockDB } from './data';
 import { DEFAULT_GHOST, DEFAULT_SETTINGS } from '../defaults';
 import { Emitter } from './emitter';
 import { Simulator } from './simulator';
@@ -38,7 +40,12 @@ const QR_TTL = 20_000;
 
 const clone = <T>(v: T): T => structuredClone(v);
 
-function readStore(): Partial<{ loggedIn: boolean; settings: AppSettings; ghost: GhostSettings }> {
+function readStore(): Partial<{
+  loggedIn: boolean;
+  settings: AppSettings;
+  ghost: GhostSettings;
+  profile: Profile;
+}> {
   try {
     return JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}');
   } catch {
@@ -52,6 +59,7 @@ export class MockBackend implements Backend {
   private auth_: AuthStatus = { state: 'logged-out', me: null };
   private settings_: AppSettings;
   private ghost_: GhostSettings;
+  private profile_: Profile;
   private byPk = new Map<MessagePK, Message>();
   private qrTimer: number | undefined;
   private loginTimer: number | undefined;
@@ -65,6 +73,12 @@ export class MockBackend implements Backend {
     const stored = opts.persist ? readStore() : {};
     this.settings_ = { ...clone(DEFAULT_SETTINGS), ...stored.settings };
     this.ghost_ = { ...DEFAULT_GHOST, ...stored.ghost };
+    this.profile_ = {
+      name: 'Alex Morgan',
+      about: 'Available',
+      phone: this.db.me.phone,
+      ...stored.profile,
+    };
     if (stored.loggedIn) {
       this.auth_ = { state: 'logged-in', me: this.db.me };
       window.setTimeout(() => this.setConn('connected'), 700);
@@ -86,6 +100,7 @@ export class MockBackend implements Backend {
         loggedIn: this.auth_.state === 'logged-in',
         settings: this.settings_,
         ghost: this.ghost_,
+        profile: this.profile_,
       }),
     );
   }
@@ -196,6 +211,29 @@ export class MockBackend implements Backend {
     setPinned: (jid: JID, pinned: boolean) => this.patchChat(jid, { pinned }),
     setArchived: (jid: JID, archived: boolean) => this.patchChat(jid, { archived }),
     setMuted: (jid: JID, muted: boolean) => this.patchChat(jid, { muted }),
+    getInfo: async (jid: JID): Promise<ChatInfo> => {
+      await this.wait();
+      return clone(buildChatInfo(this.db, jid));
+    },
+  };
+
+  profile = {
+    get: async (): Promise<Profile> => {
+      await this.wait();
+      return clone(this.profile_);
+    },
+    setName: async (name: string): Promise<void> => {
+      await this.wait();
+      const n = name.trim();
+      if (!n) throw new Error("Name can't be empty");
+      this.profile_ = { ...this.profile_, name: n.slice(0, 25) };
+      this.save();
+    },
+    setAbout: async (about: string): Promise<void> => {
+      await this.wait();
+      this.profile_ = { ...this.profile_, about: about.trim().slice(0, 139) };
+      this.save();
+    },
   };
 
   private async patchChat(jid: JID, patch: Partial<Chat>): Promise<void> {
