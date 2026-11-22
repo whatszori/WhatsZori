@@ -11,6 +11,11 @@ export function Conversation({ jid }: { jid: JID }) {
   const chat = useChats((s) => s.chats[jid]);
   const unread = chat?.unread ?? 0;
 
+  // always tell the backend on open, it also uses this as "the chat the user is looking at"
+  useEffect(() => {
+    void useChats.getState().markRead(jid);
+  }, [jid]);
+
   useEffect(() => {
     if (unread > 0) void useChats.getState().markRead(jid);
   }, [jid, unread]);
