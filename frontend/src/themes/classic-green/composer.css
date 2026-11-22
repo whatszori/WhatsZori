@@ -1,0 +1,66 @@
+.wz-composer {
+  padding: var(--wz-space-2) var(--wz-space-4) var(--wz-space-3);
+  background: transparent;
+  border-top: none;
+}
+
+.wz-composer__row {
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 26px;
+  background: var(--wz-bg-primary);
+  box-shadow: 0 1px 0.5px rgb(11 20 26 / 0.13);
+}
+
+[data-theme='dark'] .wz-composer__row {
+  background: #242626;
+}
+
+/* attach, then emoji, then the text field */
+.wz-composer__row > :has(> .wz-composer__attach) {
+  order: -2;
+}
+
+.wz-composer__row > :has(> .wz-composer__emoji) {
+  order: -1;
+}
+
+.wz-composer__row > .wz-tooltip-anchor {
+  margin-bottom: 0;
+}
+
+.wz-composer__row .wz-icon-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--wz-text-secondary);
+}
+
+.wz-composer__input,
+.wz-composer__input:focus {
+  min-height: 40px;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: calc(15px * var(--wz-font-scale));
+}
+
+.wz-composer__send--ready,
+.wz-composer__send--ready:not(:disabled):hover {
+  color: var(--wz-accent-fg);
+}
+
+.wz-composer__bar {
+  margin: 0 var(--wz-space-2) var(--wz-space-2);
+  padding: var(--wz-space-2) var(--wz-space-3);
+  border-left-width: 4px;
+  border-radius: var(--wz-radius-sm);
+  background: var(--wz-bg-primary);
+}
+
+[data-theme='dark'] .wz-composer__bar {
+  background: #242626;
+}

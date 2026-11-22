@@ -1,0 +1,127 @@
+/* all bubbles share one radius; the first of a run loses its top corner to a tail */
+
+.wz-message .wz-bubble.wz-bubble--in,
+.wz-message .wz-bubble.wz-bubble--out {
+  border-radius: var(--wz-radius-bubble);
+  box-shadow: 0 1px 0.5px rgb(11 20 26 / 0.13);
+}
+
+.wz-message .wz-bubble.wz-bubble--in.wz-bubble--first {
+  border-top-left-radius: 0;
+}
+
+.wz-message .wz-bubble.wz-bubble--out.wz-bubble--first {
+  border-top-right-radius: 0;
+}
+
+.wz-bubble--first::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 13px;
+}
+
+.wz-bubble--in.wz-bubble--first::before {
+  left: -8px;
+  background: var(--wz-bubble-in);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.wz-bubble--out.wz-bubble--first::before {
+  right: -8px;
+  background: var(--wz-bubble-out);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* a tail on an outlined (deleted) bubble looks detached */
+.wz-bubble--deleted.wz-bubble--first::before {
+  display: none;
+}
+
+.wz-message .wz-bubble.wz-bubble--deleted.wz-bubble--first {
+  border-top-left-radius: var(--wz-radius-bubble);
+  border-top-right-radius: var(--wz-radius-bubble);
+}
+
+.wz-message {
+  padding-left: 6%;
+  padding-right: 6%;
+}
+
+.wz-message--group-end {
+  padding-bottom: 8px;
+}
+
+.wz-bubble {
+  padding: 6px 9px 8px;
+}
+
+.wz-bubble__sender {
+  color: var(--wz-accent-text);
+  font-weight: 500;
+}
+
+.wz-bubble__text {
+  font-size: calc(14.2px * var(--wz-font-scale));
+  line-height: 1.36;
+}
+
+.wz-bubble__meta {
+  font-size: calc(11px * var(--wz-font-scale));
+}
+
+/* reply quote: tinted block with a colored bar */
+.wz-quote {
+  border-left-width: 4px;
+  border-left-color: #06cf9c;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.05);
+}
+
+.wz-quote:hover {
+  background: rgb(0 0 0 / 0.08);
+}
+
+[data-theme='dark'] .wz-quote {
+  background: rgb(0 0 0 / 0.22);
+}
+
+[data-theme='dark'] .wz-quote:hover {
+  background: rgb(0 0 0 / 0.3);
+}
+
+.wz-quote__name {
+  color: #06cf9c;
+}
+
+.wz-bubble--out .wz-quote {
+  border-left-color: #53bdeb;
+}
+
+.wz-bubble--out .wz-quote__name {
+  color: #53bdeb;
+}
+
+[data-theme='light'] .wz-bubble--out .wz-quote__name,
+:root:not([data-theme='dark']) .wz-bubble--out .wz-quote__name {
+  color: #027eb5;
+}
+
+.wz-reaction {
+  border: none;
+  background: var(--wz-bg-elevated);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+
+.wz-reaction--mine {
+  background: var(--cg-chip-active);
+}
+
+.wz-bubble__text a {
+  color: #027eb5;
+}
+
+[data-theme='dark'] .wz-bubble__text a {
+  color: #53bdeb;
+}

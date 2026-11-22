@@ -41,4 +41,11 @@ One line each, with the reason.
 - WinUI follows Fluent's accent rules: AccentDark1 (`#005fb8`) with white text in light mode, AccentLight2 (`#60cdff`) with black text in dark mode. Accent bubbles use `--wz-accent-fg`, so they switch text color the same way.
 - In the WinUI dialog, the destructive action is the accent (primary) button on the left, as in ContentDialog; the close X is hidden when the dialog has its own buttons.
 - Several themes can be on at once. They're applied in name order (Adwaita, then WinUI), so the later one wins where they overlap. Mixing modules from different themes works but isn't curated.
+- Layout is a separate appearance setting (`panels` / `rail`), set as `<html data-layout>`, not part of a theme. Moving settings into the sidebar and adding an icon rail changes the component tree, which CSS can't do. A theme can ask for a layout with `"layout"` in its manifest, and turning the theme on switches to it once; the user can switch back.
+- Rail layout: Chats, Calls, Status, Archived at the top; Settings and profile at the bottom. Calls and Status are honest "not supported yet" panels rather than missing icons, so the rail reads like the familiar one without pretending features exist.
+- The rail unread badge counts chats with unread messages (not muted or archived), like the official client, not total messages.
+- "New chat" (+) focuses the search field: there's no contact picker yet, and the search placeholder already says "Search or start a new chat".
+- The chat list ⋮ menu only has actions that work (archived, mark all read, settings, log out). New group, starred messages, select chats and app lock were left out rather than shown dead.
+- Classic Green copies the layout, palette and bubble shapes of the official desktop client but not its logo, name or doodle wallpaper (their artwork); it uses our own dot pattern instead. The light accent is darkened to `#178048` so white text on it passes AA.
+- Avatars for names that are just a phone number show a person silhouette instead of digits.
 - Vitest turns CSS imports (even `?raw`) into empty strings, so the theme test only checks that every file a manifest lists exists.

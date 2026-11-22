@@ -91,7 +91,13 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   accent bubbles (off by default). Screenshots: `screenshots/adwaita-*.png`. Built-in **WinUI**
   theme (Windows 11 / Fluent 2) has 6 modules: palette (required), Fluent controls, navigation
   (selection pills), Mica layout, settings cards, and accent bubbles (off by default).
-  Screenshots: `screenshots/winui-*.png`.
+  Screenshots: `screenshots/winui-*.png`. Built-in **Classic Green** theme (familiar
+  desktop-messenger look: icon rail, green accent, tailed bubbles, floating composer) has 5 modules
+  and switches the app to the rail layout. Screenshots: `screenshots/classic-*.png`.
+- **Two layouts** (Settings → Appearance → Window layout): *Panels* (sidebar + content, settings in
+  the content area) and *Rail* (icon rail with Chats / Calls / Status / Archived / Settings /
+  profile, settings inside the sidebar with a searchable section list, ⋮ menu and a "+" button in
+  the chat list header). Calls and Status are "not supported yet" panels.
 - **Plugin core**: typed slot registry, `<PluginSlot>` with a per-entry error boundary, and all 7
   slots placed. `plugin-core/types.ts` is self-contained, ready to move into plugin-sdk. With
   `?demo=1`, a demo plugin adds a header button, a context-menu item, a sidebar footer line and a

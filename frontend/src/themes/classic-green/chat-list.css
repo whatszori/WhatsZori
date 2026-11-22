@@ -1,0 +1,102 @@
+/* pill-shaped search */
+.wz-chat-pane__tools .wz-input,
+.wz-settings-panel__search .wz-input {
+  height: 40px;
+  border: none;
+  border-radius: var(--wz-radius-full);
+  background: var(--cg-raised);
+}
+
+.wz-chat-pane__tools .wz-input:focus-within,
+.wz-settings-panel__search .wz-input:focus-within {
+  background: var(--cg-raised);
+  box-shadow: inset 0 0 0 2px var(--wz-accent);
+}
+
+.wz-chat-pane__tools .wz-input__icon,
+.wz-settings-panel__search .wz-input__icon {
+  padding-left: var(--wz-space-4);
+}
+
+/* filters as separate chips */
+.wz-chat-pane__tools .wz-segmented {
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--wz-space-2);
+  padding: var(--wz-space-1) 0;
+  background: transparent;
+}
+
+.wz-chat-pane__tools .wz-segmented__item {
+  flex: none;
+  height: 32px;
+  padding: 0 var(--wz-space-3);
+  border: 1px solid var(--cg-chip-border);
+  border-radius: var(--wz-radius-full);
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-md);
+  font-weight: 500;
+}
+
+.wz-chat-pane__tools .wz-segmented__item:hover {
+  background: var(--wz-bg-hover);
+}
+
+.wz-chat-pane__tools .wz-segmented__item--selected,
+[data-theme='dark'] .wz-chat-pane__tools .wz-segmented__item--selected {
+  border-color: transparent;
+  background: var(--cg-chip-active);
+  color: var(--cg-chip-active-fg);
+  box-shadow: none;
+}
+
+.wz-chat-pane__tools .wz-segmented__item:focus-visible {
+  border-radius: var(--wz-radius-full);
+}
+
+/* rows */
+.wz-chat-item {
+  gap: var(--wz-space-4);
+  padding: 0 var(--wz-space-3);
+  border-radius: var(--wz-radius-md);
+}
+
+.wz-chat-item__name {
+  font-size: var(--wz-font-size-lg);
+  font-weight: 400;
+}
+
+.wz-chat-item__time {
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-chat-item__preview {
+  font-size: var(--wz-font-size-md);
+}
+
+.wz-chat-item--unread:not(.wz-chat-item--muted) .wz-chat-item__time {
+  color: var(--wz-accent-text);
+  font-weight: 400;
+}
+
+.wz-chat-item__preview--typing {
+  color: var(--wz-accent-text);
+}
+
+.wz-badge {
+  min-width: 20px;
+  height: 20px;
+  font-weight: 600;
+}
+
+.wz-chat-list__header {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wz-chat-list__archived {
+  border-radius: var(--wz-radius-md);
+}

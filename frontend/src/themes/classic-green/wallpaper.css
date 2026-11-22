@@ -1,0 +1,10 @@
+/* Our own quiet dot grid. The official doodle wallpaper is their artwork, so it isn't copied. */
+
+.wz-message-list {
+  background-image: radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.07) 1px, transparent 0);
+  background-size: 18px 18px;
+}
+
+[data-theme='dark'] .wz-message-list {
+  background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.05) 1px, transparent 0);
+}

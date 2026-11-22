@@ -1,0 +1,41 @@
+{
+  "id": "classic-green",
+  "name": "Classic Green",
+  "version": "0.1.0",
+  "author": "WhatsZori",
+  "description": "Laid out like the official desktop client: icon rail, green accent, tailed bubbles.",
+  "layout": "rail",
+  "modules": [
+    {
+      "id": "palette",
+      "name": "Palette",
+      "description": "Near-black greys with a green accent, or warm whites in light mode.",
+      "file": "palette.css",
+      "required": true
+    },
+    {
+      "id": "chat-list",
+      "name": "Chat list",
+      "description": "Pill search, filter chips, rounded rows, green unread badges.",
+      "file": "chat-list.css"
+    },
+    {
+      "id": "bubbles",
+      "name": "Tailed bubbles",
+      "description": "Green outgoing bubbles with a tail on the first message of a run.",
+      "file": "bubbles.css"
+    },
+    {
+      "id": "composer",
+      "name": "Floating composer",
+      "description": "Message box as a rounded bar with attach and emoji on the left.",
+      "file": "composer.css"
+    },
+    {
+      "id": "wallpaper",
+      "name": "Dotted wallpaper",
+      "description": "A faint dot pattern behind messages.",
+      "file": "wallpaper.css"
+    }
+  ]
+}
