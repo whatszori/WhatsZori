@@ -15,6 +15,8 @@ export interface ThemeManifest {
   version: string;
   author?: string;
   description?: string;
+  // layout the theme was designed for; turning the theme on switches to it
+  layout?: 'panels' | 'rail';
   modules: ThemeModuleInfo[];
 }
 

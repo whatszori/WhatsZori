@@ -137,6 +137,8 @@ export interface AppSettings {
     accent: string | null;
     useSystemAccent: boolean;
     density: 'comfortable' | 'compact';
+    // panels = sidebar + content; rail = icon rail on the left, settings inside the sidebar
+    layout?: 'panels' | 'rail';
     fontScale: number;
   };
   history: {

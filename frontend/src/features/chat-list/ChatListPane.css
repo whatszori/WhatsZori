@@ -62,3 +62,23 @@
   flex: none;
   border-top: 1px solid var(--wz-border);
 }
+
+.wz-chat-pane__title--large {
+  font-size: var(--wz-font-size-xl);
+  font-weight: 700;
+}
+
+.wz-chat-pane__new {
+  border-radius: 50%;
+  background: var(--wz-accent);
+  color: var(--wz-accent-fg);
+}
+
+.wz-chat-pane__new:not(:disabled):hover {
+  background: var(--wz-accent-hover);
+  color: var(--wz-accent-fg);
+}
+
+.wz-chat-pane__new:focus-visible {
+  border-radius: 50%;
+}

@@ -120,6 +120,27 @@ export function AppearanceSection() {
         </Row>
       </Group>
 
+      <Group title="Layout">
+        <Row
+          label="Window layout"
+          description={
+            (a.layout ?? 'panels') === 'rail'
+              ? 'Icon rail on the left, settings open inside the sidebar.'
+              : 'Sidebar and content, settings open in the content area.'
+          }
+        >
+          <Segmented
+            label="Window layout"
+            value={a.layout ?? 'panels'}
+            onChange={(layout) => set({ layout })}
+            options={[
+              { value: 'panels', label: 'Panels' },
+              { value: 'rail', label: 'Rail' },
+            ]}
+          />
+        </Row>
+      </Group>
+
       <Group title="Messages">
         <Row label="Density" description="Compact fits more chats and messages on screen.">
           <Segmented

@@ -1,11 +1,13 @@
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type Density = 'comfortable' | 'compact';
+export type Layout = 'panels' | 'rail';
 
 export interface AppearanceOptions {
   theme: ThemeMode;
   // preset id, a '#rrggbb' custom color, or null for the theme default
   accent: string | null;
   density: Density;
+  layout: Layout;
   fontScale: number;
 }
 
@@ -49,6 +51,7 @@ function apply(): void {
   else root.style.removeProperty('--wz-accent');
 
   root.dataset.density = current.density;
+  root.dataset.layout = current.layout;
   root.style.setProperty('--wz-font-scale', String(current.fontScale));
 }
 

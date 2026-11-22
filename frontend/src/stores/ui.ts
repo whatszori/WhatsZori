@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { JID, MessagePK } from '../api';
 
 export type View = 'chats' | 'settings';
+// what the rail layout's sidebar shows besides chats and settings
+export type RailPanel = 'chats' | 'calls' | 'status';
 export type SettingsSection =
   | 'appearance'
   | 'privacy'
@@ -40,6 +42,7 @@ interface UIState {
   view: View;
   settingsSection: SettingsSection;
   activeChat: JID | null;
+  railPanel: RailPanel;
   sidebarWidth: number;
   // message to scroll to and flash; `nonce` lets the same pk be re-triggered
   focusMessage: { jid: JID; pk: MessagePK; nonce: number } | null;
@@ -47,6 +50,7 @@ interface UIState {
   infoMessage: { jid: JID; pk: MessagePK } | null;
   searchFocusNonce: number;
   openChat(jid: JID | null): void;
+  setRailPanel(panel: RailPanel): void;
   openSettings(section?: SettingsSection): void;
   closeSettings(): void;
   setSettingsSection(section: SettingsSection): void;
@@ -70,12 +74,14 @@ export const useUI = create<UIState>((set, get) => {
     view: 'chats',
     settingsSection: 'appearance',
     activeChat: null,
+    railPanel: 'chats',
     sidebarWidth: readWidth(),
     focusMessage: null,
     composer: {},
     infoMessage: null,
     searchFocusNonce: 0,
     openChat: (jid) => set({ activeChat: jid, view: 'chats' }),
+    setRailPanel: (railPanel) => set({ railPanel, view: 'chats' }),
     openSettings: (section) =>
       set((s) => ({ view: 'settings', settingsSection: section ?? s.settingsSection })),
     closeSettings: () => set({ view: 'chats' }),

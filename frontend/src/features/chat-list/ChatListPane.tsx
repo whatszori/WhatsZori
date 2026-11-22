@@ -1,10 +1,21 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { ArrowLeft, Search, Settings, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Archive,
+  ArrowLeft,
+  CheckCheck,
+  LogOut,
+  MoreVertical,
+  Plus,
+  Search,
+  Settings,
+  X,
+} from 'lucide-react';
+import { backend } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { buildChatList, type ChatFilter } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
-import { IconButton, Input, Segmented } from '../../ui';
+import { IconButton, Input, Menu, Segmented, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { ChatList } from './ChatList';
 import './ChatListPane.css';
 
@@ -14,7 +25,12 @@ const FILTERS: { value: ChatFilter; label: string }[] = [
   { value: 'groups', label: 'Groups' },
 ];
 
-export function ChatListPane() {
+function markAllRead(): void {
+  const { chats, markRead } = useChats.getState();
+  for (const c of Object.values(chats)) if (c.unread > 0) void markRead(c.jid);
+}
+
+export function ChatListPane({ rail = false }: { rail?: boolean }) {
   const chats = useChats((s) => s.chats);
   const filter = useChats((s) => s.filter);
   const query = useChats((s) => s.query);
@@ -23,6 +39,32 @@ export function ChatListPane() {
   const nonce = useUI((s) => s.searchFocusNonce);
   const view = useUI((s) => s.view);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [menu, setMenu] = useState<PopoverAnchor | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  const menuItems: MenuEntry[] = [
+    {
+      id: 'archived',
+      label: 'Archived chats',
+      icon: <Archive />,
+      onSelect: () => setShowArchived(true),
+    },
+    { id: 'read', label: 'Mark all as read', icon: <CheckCheck />, onSelect: markAllRead },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: <Settings />,
+      shortcut: 'Ctrl ,',
+      onSelect: () => useUI.getState().openSettings(),
+    },
+    { kind: 'separator', id: 's1' },
+    {
+      id: 'logout',
+      label: 'Log out',
+      icon: <LogOut />,
+      onSelect: () => void backend.auth.logout(),
+    },
+  ];
 
   const list = useMemo(
     () => buildChatList(Object.values(chats), filter, query),
@@ -47,23 +89,52 @@ export function ChatListPane() {
             />
             <h1 className="wz-chat-pane__title">Archived</h1>
           </>
+        ) : rail ? (
+          <h1 className="wz-chat-pane__title wz-chat-pane__title--large">Chats</h1>
         ) : (
           <span className="wz-wordmark">WhatsZori</span>
         )}
         <div className="wz-chat-pane__actions">
           <PluginSlot name="sidebar.header" />
-          <IconButton
-            label="Settings"
-            hint="Ctrl ,"
-            icon={<Settings size={18} />}
-            active={view === 'settings'}
-            onClick={() => {
-              const ui = useUI.getState();
-              if (ui.view === 'settings') ui.closeSettings();
-              else ui.openSettings();
-            }}
-          />
+          {rail ? (
+            <>
+              <IconButton
+                label="Menu"
+                icon={<MoreVertical size={18} />}
+                aria-haspopup="menu"
+                aria-expanded={!!menu}
+                onClick={(e) => setMenu(e.currentTarget.getBoundingClientRect())}
+              />
+              {/* no contact picker yet, so new chat = search, like the official placeholder says */}
+              <IconButton
+                label="New chat"
+                className="wz-chat-pane__new"
+                icon={<Plus size={20} />}
+                onClick={() => useUI.getState().focusSearch()}
+              />
+            </>
+          ) : (
+            <IconButton
+              label="Settings"
+              hint="Ctrl ,"
+              icon={<Settings size={18} />}
+              active={view === 'settings'}
+              onClick={() => {
+                const ui = useUI.getState();
+                if (ui.view === 'settings') ui.closeSettings();
+                else ui.openSettings();
+              }}
+            />
+          )}
         </div>
+        <Menu
+          open={!!menu}
+          anchor={menu}
+          onClose={closeMenu}
+          items={menuItems}
+          label="Chat list menu"
+          placement="bottom-end"
+        />
       </header>
 
       <div className="wz-chat-pane__tools">
@@ -71,7 +142,7 @@ export function ChatListPane() {
           ref={searchRef}
           type="search"
           aria-label="Search chats"
-          placeholder="Search"
+          placeholder={rail ? 'Search or start a new chat' : 'Search'}
           icon={<Search size={16} strokeWidth={1.75} />}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -97,7 +168,7 @@ export function ChatListPane() {
                   searchRef.current?.focus();
                 }}
               />
-            ) : (
+            ) : rail ? undefined : (
               <kbd className="wz-chat-pane__kbd">Ctrl K</kbd>
             )
           }

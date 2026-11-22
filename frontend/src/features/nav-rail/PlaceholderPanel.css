@@ -1,0 +1,31 @@
+.wz-placeholder-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.wz-placeholder-panel__header {
+  display: flex;
+  align-items: center;
+  height: var(--wz-header-height);
+  padding: 0 var(--wz-space-4);
+}
+
+.wz-placeholder-panel__title {
+  font-size: var(--wz-font-size-xl);
+  font-weight: 700;
+}
+
+.wz-placeholder-panel__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-3);
+  padding: var(--wz-space-8) var(--wz-space-6);
+  text-align: center;
+}
+
+.wz-placeholder-panel__icon {
+  display: inline-flex;
+  color: var(--wz-text-muted);
+}

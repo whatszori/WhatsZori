@@ -25,6 +25,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       theme: settings.appearance.theme,
       accent: effectiveAccent(settings),
       density: settings.appearance.density,
+      layout: settings.appearance.layout ?? 'panels',
       fontScale: settings.appearance.fontScale,
     });
   }, [settings]);

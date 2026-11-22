@@ -137,6 +137,7 @@ export function Composer({ chat }: { chat: Chat }) {
       <div className="wz-composer__row">
         <IconButton
           label="Attach file"
+          className="wz-composer__attach"
           icon={<Paperclip size={18} />}
           tooltipPlacement="top"
           onClick={() => undefined}
@@ -155,6 +156,7 @@ export function Composer({ chat }: { chat: Chat }) {
         <PluginSlot name="composer.actions" props={{ chatJid: jid, insertText: insert }} />
         <IconButton
           label="Emoji"
+          className="wz-composer__emoji"
           icon={<Smile size={18} />}
           tooltipPlacement="top"
           aria-haspopup="dialog"

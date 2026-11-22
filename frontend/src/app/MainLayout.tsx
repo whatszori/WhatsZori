@@ -3,6 +3,11 @@ import { ChatListPane } from '../features/chat-list/ChatListPane';
 import { Conversation } from '../features/conversation/Conversation';
 import { NoChatSelected } from '../features/conversation/EmptyStates';
 import { SettingsView } from '../features/settings/SettingsView';
+import { SettingsPanel } from '../features/settings/SettingsPanel';
+import { NavRail } from '../features/nav-rail/NavRail';
+import { PlaceholderPanel } from '../features/nav-rail/PlaceholderPanel';
+import { useSettings } from '../stores/settings';
+import { CircleDashed, Phone } from 'lucide-react';
 import { DevPanel } from '../features/dev/DevPanel';
 import { isDemo } from '../api';
 import { useHotkeys } from '../lib/hotkeys';
@@ -92,7 +97,54 @@ export function MainLayout() {
   const width = useUI((s) => s.sidebarWidth);
   const view = useUI((s) => s.view);
   const activeChat = useUI((s) => s.activeChat);
+  const railPanel = useUI((s) => s.railPanel);
+  const settingsSection = useUI((s) => s.settingsSection);
+  const rail = useSettings((s) => s.settings.appearance.layout === 'rail');
   useGlobalShortcuts();
+
+  const conversation = activeChat ? (
+    <Conversation key={activeChat} jid={activeChat} />
+  ) : (
+    <NoChatSelected />
+  );
+
+  if (rail) {
+    const sidebar =
+      view === 'settings' ? (
+        <SettingsPanel key={settingsSection} />
+      ) : railPanel === 'calls' ? (
+        <PlaceholderPanel
+          title="Calls"
+          icon={<Phone size={32} strokeWidth={1.5} />}
+          text="Voice and video calls aren’t supported in WhatsZori yet."
+        />
+      ) : railPanel === 'status' ? (
+        <PlaceholderPanel
+          title="Status"
+          icon={<CircleDashed size={32} strokeWidth={1.5} />}
+          text="Status updates aren’t supported in WhatsZori yet."
+        />
+      ) : (
+        <ChatListPane rail />
+      );
+    return (
+      <div
+        className="wz-app wz-app--rail"
+        style={{ ['--wz-sidebar-width' as string]: `${width}px` }}
+      >
+        <ConnectionBanner />
+        <div className="wz-app__body">
+          <NavRail />
+          <aside className="wz-sidebar" aria-label="Sidebar">
+            {sidebar}
+          </aside>
+          <Resizer />
+          <main className="wz-main">{conversation}</main>
+        </div>
+        {isDemo && <DevPanel />}
+      </div>
+    );
+  }
 
   return (
     <div className="wz-app" style={{ ['--wz-sidebar-width' as string]: `${width}px` }}>
@@ -102,15 +154,7 @@ export function MainLayout() {
           <ChatListPane />
         </aside>
         <Resizer />
-        <main className="wz-main">
-          {view === 'settings' ? (
-            <SettingsView />
-          ) : activeChat ? (
-            <Conversation key={activeChat} jid={activeChat} />
-          ) : (
-            <NoChatSelected />
-          )}
-        </main>
+        <main className="wz-main">{view === 'settings' ? <SettingsView /> : conversation}</main>
       </div>
       {isDemo && <DevPanel />}
     </div>

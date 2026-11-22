@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     accent: null,
     useSystemAccent: false,
     density: 'comfortable',
+    layout: 'panels',
     fontScale: 1,
   },
   history: { keepDeleted: true, keepEditHistory: true, autoDownloadMedia: false },

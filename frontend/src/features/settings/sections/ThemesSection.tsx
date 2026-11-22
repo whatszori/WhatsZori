@@ -26,7 +26,15 @@ function ThemeEntry({ pkg }: { pkg: ThemePackage }) {
           label={manifest.name}
           description={[manifest.description, meta].filter(Boolean).join(' · ')}
           checked={enabled}
-          onChange={(on) => update((s) => ({ ...s, themes: { ...s.themes, [manifest.id]: on } }))}
+          onChange={(on) =>
+            update((s) => ({
+              ...s,
+              themes: { ...s.themes, [manifest.id]: on },
+              // a theme built for a layout brings it along; the user can switch back after
+              appearance:
+                on && manifest.layout ? { ...s.appearance, layout: manifest.layout } : s.appearance,
+            }))
+          }
         />
       </div>
       {enabled && optional.length > 0 && (
