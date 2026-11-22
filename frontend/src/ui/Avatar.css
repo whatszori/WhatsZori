@@ -1,0 +1,28 @@
+.wz-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 50%;
+  background: hsl(
+    var(--wz-avatar-hue, 220) var(--wz-avatar-saturation) var(--wz-avatar-lightness)
+  );
+  color: hsl(var(--wz-avatar-hue, 220) 30% var(--wz-avatar-text-lightness));
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.wz-avatar__online {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 28%;
+  height: 28%;
+  min-width: 9px;
+  min-height: 9px;
+  border-radius: 50%;
+  background: var(--wz-success);
+  box-shadow: 0 0 0 2px var(--wz-bg-primary);
+}

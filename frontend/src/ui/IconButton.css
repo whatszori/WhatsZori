@@ -1,0 +1,38 @@
+.wz-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--wz-radius-sm);
+  color: var(--wz-text-secondary);
+  transition:
+    background-color var(--wz-duration-fast) var(--wz-ease),
+    color var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-icon-button--sm {
+  width: 26px;
+  height: 26px;
+}
+
+.wz-icon-button:not(:disabled):hover {
+  background: var(--wz-bg-hover);
+  color: var(--wz-text-primary);
+}
+
+.wz-icon-button--active,
+.wz-icon-button[aria-expanded='true'] {
+  background: var(--wz-bg-hover);
+  color: var(--wz-text-primary);
+}
+
+.wz-icon-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.wz-icon-button svg {
+  stroke-width: 1.75;
+}

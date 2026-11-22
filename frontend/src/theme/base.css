@@ -1,0 +1,98 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--wz-bg-app);
+  color: var(--wz-text-primary);
+  font-family: var(--wz-font-ui);
+  font-size: var(--wz-font-size-md);
+  line-height: var(--wz-line-height);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  user-select: none;
+}
+
+input,
+textarea,
+button,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: var(--wz-accent-text);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  box-shadow: var(--wz-focus-ring);
+  border-radius: var(--wz-radius-sm);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--wz-accent) 30%, transparent);
+}
+
+/* thin, quiet scrollbars (webkit = WebView2 / WebKitGTK / WKWebView) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wz-border-strong);
+  border-radius: var(--wz-radius-full);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wz-selectable {
+  user-select: text;
+}
+
+.wz-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.wz-mono {
+  font-family: var(--wz-font-mono);
+}

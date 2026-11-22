@@ -1,0 +1,20 @@
+.wz-popover {
+  position: fixed;
+  z-index: 900;
+  min-width: 160px;
+  max-width: min(420px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-elevated);
+  border: 1px solid var(--wz-border);
+  box-shadow: var(--wz-shadow-popover);
+  animation: wz-popover-in var(--wz-duration-fast) var(--wz-ease);
+}
+
+@keyframes wz-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}

@@ -1,0 +1,20 @@
+.wz-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--wz-radius-full);
+  background: var(--wz-accent);
+  color: var(--wz-accent-fg);
+  font-size: var(--wz-font-size-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.wz-badge--muted {
+  background: var(--wz-border-strong);
+  color: var(--wz-text-primary);
+}

@@ -1,0 +1,67 @@
+.wz-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wz-space-2);
+  height: 32px;
+  padding: 0 var(--wz-space-3);
+  border-radius: var(--wz-radius-sm);
+  border: 1px solid transparent;
+  font-size: var(--wz-font-size-md);
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--wz-duration-fast) var(--wz-ease),
+    border-color var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-button--sm {
+  height: 28px;
+  padding: 0 var(--wz-space-2);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.wz-button--primary {
+  background: var(--wz-accent);
+  color: var(--wz-accent-fg);
+}
+
+.wz-button--primary:not(:disabled):hover {
+  background: var(--wz-accent-hover);
+}
+
+.wz-button--primary:not(:disabled):active {
+  background: var(--wz-accent-active);
+}
+
+.wz-button--secondary {
+  background: var(--wz-bg-primary);
+  border-color: var(--wz-border-strong);
+}
+
+.wz-button--secondary:not(:disabled):hover {
+  background: var(--wz-bg-secondary);
+}
+
+.wz-button--ghost:not(:disabled):hover {
+  background: var(--wz-bg-hover);
+}
+
+.wz-button--danger {
+  background: var(--wz-bg-primary);
+  border-color: var(--wz-border-strong);
+  color: var(--wz-danger);
+}
+
+.wz-button--danger:not(:disabled):hover {
+  background: var(--wz-danger-soft);
+}
+
+.wz-button__icon {
+  display: inline-flex;
+}
