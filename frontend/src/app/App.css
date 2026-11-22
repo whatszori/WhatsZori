@@ -1,0 +1,13 @@
+.wz-splash {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.wz-wordmark {
+  font-size: var(--wz-font-size-lg);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--wz-text-primary);
+}

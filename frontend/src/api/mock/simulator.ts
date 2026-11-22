@@ -1,5 +1,5 @@
 import type { Chat, JID, Message } from '../types';
-import { createRng } from './rng';
+import { createRng } from '../../lib/rng';
 import { INCOMING_DEMO, REACTIONS } from './texts';
 import type { MockBackend } from './MockBackend';
 

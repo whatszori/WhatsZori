@@ -154,6 +154,9 @@ export class MockBackend implements Backend {
       this.setAuth({ state: 'qr', me: null });
       this.emitQR();
       this.qrTimer = window.setInterval(() => this.emitQR(), QR_TTL);
+      window.clearTimeout(this.loginTimer);
+      // long enough to see one QR refresh; clicking the code logs in right away
+      this.loginTimer = window.setTimeout(() => this.completeLogin(), 25_000);
     },
     pairWithPhone: async (phone: string): Promise<string> => {
       await this.wait();
@@ -163,11 +166,15 @@ export class MockBackend implements Backend {
       const chars = 'ABCDEFGHJKLMNPQRSTVWXYZ23456789';
       let code = '';
       for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      window.clearTimeout(this.loginTimer);
+      this.loginTimer = window.setTimeout(() => this.completeLogin(), 8_000);
       return code;
     },
     logout: async (): Promise<void> => {
       await this.wait();
       this.simulator.stop();
+      window.clearInterval(this.qrTimer);
+      window.clearTimeout(this.loginTimer);
       this.setConn('offline');
       this.setAuth({ state: 'logged-out', me: null });
     },

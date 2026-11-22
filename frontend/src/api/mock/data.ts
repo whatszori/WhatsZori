@@ -1,5 +1,5 @@
 import type { Chat, EditVersion, JID, MediaInfo, Me, Message, MessageKind, Reaction } from '../types';
-import { createRng, type Rng } from './rng';
+import { createRng, type Rng } from '../../lib/rng';
 import { EN, FILES, JA, LINK_TEXT, LONG_TEXT, MULTILINE, REACTIONS, RU } from './texts';
 
 type Lang = 'en' | 'ru' | 'ja';

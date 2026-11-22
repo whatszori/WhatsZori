@@ -1,0 +1,179 @@
+.wz-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wz-space-5);
+  height: 100%;
+  padding: var(--wz-space-6);
+  overflow: auto;
+  background: var(--wz-bg-app);
+}
+
+.wz-auth__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-4);
+  width: 380px;
+  max-width: 100%;
+  padding: var(--wz-space-7) var(--wz-space-7) var(--wz-space-5);
+  border-radius: var(--wz-radius-lg);
+  background: var(--wz-bg-primary);
+  border: 1px solid var(--wz-border);
+  text-align: center;
+}
+
+.wz-auth__wordmark {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-md);
+}
+
+.wz-auth__title {
+  font-size: var(--wz-font-size-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.wz-auth__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-1);
+  padding-left: var(--wz-space-5);
+  color: var(--wz-text-secondary);
+  text-align: left;
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-auth__qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-2);
+  margin: var(--wz-space-2) 0;
+}
+
+.wz-auth__qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  height: 240px;
+  padding: var(--wz-space-2);
+  border-radius: var(--wz-radius-md);
+  border: 1px solid var(--wz-border);
+  background: #fff;
+}
+
+.wz-auth__qr--loading {
+  background: var(--wz-bg-secondary);
+}
+
+.wz-qr__bg {
+  fill: #fff;
+}
+
+/* QR stays dark-on-white in both themes, phones can't scan inverted codes reliably */
+.wz-qr__cell {
+  fill: #1b1b1f;
+}
+
+.wz-auth__qr:hover {
+  border-color: var(--wz-border-strong);
+}
+
+.wz-auth__refresh {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.wz-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-2);
+  width: 100%;
+  text-align: left;
+}
+
+.wz-auth__form .wz-input {
+  height: 36px;
+}
+
+.wz-auth__form .wz-button {
+  margin-top: var(--wz-space-2);
+  height: 36px;
+}
+
+.wz-auth__label {
+  font-size: var(--wz-font-size-sm);
+  font-weight: 500;
+  color: var(--wz-text-secondary);
+}
+
+.wz-auth__error {
+  color: var(--wz-danger);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-auth__hint {
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-auth__code {
+  display: flex;
+  gap: var(--wz-space-3);
+  margin: var(--wz-space-3) 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.wz-auth__code-group {
+  padding: var(--wz-space-2) var(--wz-space-3);
+  padding-right: calc(var(--wz-space-3) - 0.18em);
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-secondary);
+  border: 1px solid var(--wz-border);
+}
+
+.wz-auth__waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-auth__busy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-3);
+  padding: var(--wz-space-8) 0;
+  color: var(--wz-text-secondary);
+}
+
+.wz-auth__disclaimer {
+  width: 380px;
+  max-width: 100%;
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+  text-align: center;
+}
+
+.wz-auth__disclaimer-full {
+  margin-top: var(--wz-space-2);
+  text-align: left;
+  line-height: 1.5;
+}
+
+.wz-link-button {
+  color: var(--wz-accent-text);
+  font-size: inherit;
+}
+
+.wz-link-button:hover {
+  text-decoration: underline;
+}

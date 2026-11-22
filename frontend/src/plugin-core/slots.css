@@ -1,0 +1,9 @@
+.wz-plugin-slot {
+  display: contents;
+}
+
+.wz-demo-footer {
+  padding: var(--wz-space-2) var(--wz-space-4);
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+}
