@@ -1,29 +1,48 @@
 import { Events } from '@wailsio/runtime';
 import '../../../bindings/events';
 import {
+  Auth,
+  Chats,
+  Contacts,
+  Messages,
+  Privacy,
+  Profile,
   Settings,
   System,
   SystemTheme,
   Themes,
   Window,
 } from '../../../bindings/github.com/whatszori/WhatsZori/internal/services';
+import type * as Go from '../../../bindings/github.com/whatszori/WhatsZori/internal/domain/models';
 import type { SystemPalette as GoPalette } from '../../../bindings/github.com/whatszori/WhatsZori/internal/systheme/models';
 import type { Backend } from '../backend';
 import { withDefaults } from '../defaults';
-import type { SystemPalette, WzEventName } from '../events';
+import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
   AppSettings,
+  AuthStatus,
   BackendEventName,
   BackendEvents,
+  Chat,
+  ChatInfo,
   ConfigFolder,
+  ConnState,
+  Contact,
+  EditVersion,
+  GhostSettings,
+  JID,
+  Message,
+  MessagePK,
+  MessagePage,
+  Profile as ProfileDTO,
+  Reaction,
+  SearchHit,
   UserTheme,
 } from '../types';
 
 const SETTINGS_KEY = 'app';
-const wzNames = new Set<string>(Object.values(WZ_EVENTS));
-const isWzEvent = (name: string): name is WzEventName => wzNames.has(name);
 
 function normalizePalette(p: GoPalette | null): SystemPalette {
   return {
@@ -37,29 +56,85 @@ function normalizePalette(p: GoPalette | null): SystemPalette {
   };
 }
 
-// Hybrid backend: Go answers for what exists on the Go side (system, settings, system theme,
-// user themes); WhatsApp itself (auth, chats, messages, profile, privacy) is still the mock.
-// When whatsmeow lands, those services move over one at a time without touching the UI.
+// Go's DTOs are the same JSON as our types (check.ts compares the keys at compile time); the
+// generator just spells string unions as enums, which TS won't assign to literal unions.
+const as = <T>(v: unknown): T => v as T;
+
+const message = (m: Go.Message): Message => as<Message>({ ...m, reactions: m.reactions ?? [] });
+
+const chatInfo = (i: Go.ChatInfo): ChatInfo =>
+  as<ChatInfo>({ ...i, members: i.members ?? undefined, recentMedia: i.recentMedia ?? [] });
+
+// Everything comes from Go now. The mock is only used once, to take over the settings a browser
+// session left in localStorage on the very first desktop start.
 export class WailsBackend implements Backend {
   readonly kind = 'wails' as const;
 
   constructor(private readonly mock: MockBackend) {}
 
-  get auth() {
-    return this.mock.auth;
-  }
-  get chats() {
-    return this.mock.chats;
-  }
-  get messages() {
-    return this.mock.messages;
-  }
-  get profile() {
-    return this.mock.profile;
-  }
-  get privacy() {
-    return this.mock.privacy;
-  }
+  auth = {
+    getState: async (): Promise<AuthStatus> => as<AuthStatus>(await Auth.GetState()),
+    getConnState: async (): Promise<ConnState> => as<ConnState>(await Auth.GetConnState()),
+    startQRLogin: () => Auth.StartQRLogin(),
+    pairWithPhone: (phone: string) => Auth.PairWithPhone(phone),
+    logout: (wipe = false) => Auth.Logout(wipe),
+  };
+
+  chats = {
+    listChats: async (): Promise<Chat[]> => as<Chat[]>((await Chats.ListChats()) ?? []),
+    markRead: (jid: JID) => Chats.MarkRead(jid),
+    setPinned: (jid: JID, pinned: boolean) => Chats.SetPinned(jid, pinned),
+    setArchived: (jid: JID, archived: boolean) => Chats.SetArchived(jid, archived),
+    setMuted: (jid: JID, muted: boolean) => Chats.SetMuted(jid, muted),
+    getInfo: async (jid: JID): Promise<ChatInfo> => chatInfo(await Chats.GetInfo(jid)),
+    setTyping: (jid: JID, typing: boolean) => Chats.SetTyping(jid, typing),
+  };
+
+  messages = {
+    getMessages: async (
+      jid: JID,
+      beforePk: MessagePK | null,
+      limit: number,
+    ): Promise<MessagePage> => {
+      const page = await Messages.GetMessages(jid, beforePk ?? '', limit);
+      return { messages: (page.messages ?? []).map(message), hasMore: page.hasMore };
+    },
+    getEditHistory: async (pk: MessagePK): Promise<EditVersion[]> =>
+      (await Messages.GetEditHistory(pk)) ?? [],
+    sendText: async (jid: JID, text: string, replyToPk?: MessagePK): Promise<Message> =>
+      message(await Messages.SendText(jid, text, replyToPk ?? '')),
+    edit: (pk: MessagePK, text: string) => Messages.Edit(pk, text),
+    revoke: (pk: MessagePK) => Messages.Revoke(pk),
+    react: async (pk: MessagePK, emoji: string): Promise<Reaction[]> =>
+      (await Messages.React(pk, emoji)) ?? [],
+    search: async (query: string): Promise<SearchHit[]> =>
+      ((await Messages.Search(query)) ?? []).map((h) => ({ ...h, message: message(h.message) })),
+    attachFile: async (jid: JID): Promise<Message | null> => {
+      const m = await Messages.AttachFile(jid);
+      return m ? message(m) : null;
+    },
+  };
+
+  profile = {
+    get: async (): Promise<ProfileDTO> => Profile.Get(),
+    setName: (name: string) => Profile.SetName(name),
+    setAbout: (about: string) => Profile.SetAbout(about),
+  };
+
+  privacy = {
+    getGhost: async (): Promise<GhostSettings> => as<GhostSettings>(await Privacy.GetGhost()),
+    setGhost: (g: GhostSettings) => Privacy.SetGhost(as<Go.GhostSettings>(g)),
+  };
+
+  contacts = {
+    list: async (): Promise<Contact[]> => (await Contacts.List()) ?? [],
+  };
+
+  media = {
+    url: (pk: MessagePK, thumb = false) =>
+      `/wz-media/${encodeURIComponent(pk)}${thumb ? '?thumb=1' : ''}`,
+    canAttach: true,
+  };
 
   settings = {
     get: async (): Promise<AppSettings> => {
@@ -68,11 +143,7 @@ export class WailsBackend implements Backend {
       if (stored == null) return this.mock.settings.get();
       return withDefaults(stored);
     },
-    set: async (s: AppSettings): Promise<void> => {
-      await Settings.Set(SETTINGS_KEY, s);
-      // the mock reads history settings (keep deleted, edit history) for its own behaviour
-      await this.mock.settings.set(s);
-    },
+    set: (s: AppSettings): Promise<void> => Settings.Set(SETTINGS_KEY, s),
   };
 
   system = {
@@ -98,10 +169,15 @@ export class WailsBackend implements Backend {
   };
 
   on<E extends BackendEventName>(event: E, handler: (payload: BackendEvents[E]) => void) {
-    if (!isWzEvent(event)) return this.mock.on(event, handler);
     return Events.On(event, (e) => {
-      const data =
-        event === WZ_EVENTS.systemThemeChanged ? normalizePalette(e.data as GoPalette) : e.data;
+      let data: unknown = e.data;
+      if (event === WZ_EVENTS.systemThemeChanged) data = normalizePalette(e.data as GoPalette);
+      else if (event === 'msg:batch')
+        data = { messages: ((e.data as Go.MsgBatchEvent).messages ?? []).map(message) };
+      else if (event === 'msg:reaction') {
+        const r = e.data as Go.MsgReactionEvent;
+        data = { ...r, reactions: r.reactions ?? [] };
+      }
       handler(data as BackendEvents[E]);
     });
   }

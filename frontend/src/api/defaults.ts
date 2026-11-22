@@ -9,7 +9,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     layout: 'panels',
     fontScale: 1,
   },
-  history: { keepDeleted: true, keepEditHistory: true, autoDownloadMedia: false },
+  history: { keepDeleted: true, keepEditHistory: true, autoDownloadMedia: true },
   plugins: { 'message-timestamps': true, 'translate-button': false, 'quick-reply-templates': true },
   themes: {},
   themeModules: {},

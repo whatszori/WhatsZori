@@ -142,7 +142,7 @@ export const Bubble = memo(function Bubble({
                   <span className="wz-quote__text">{m.replyTo.text || 'Message'}</span>
                 </button>
               )}
-              {hasMedia && <MediaBlock kind={m.kind} media={m.media!} />}
+              {hasMedia && <MediaBlock pk={m.pk} kind={m.kind} media={m.media!} />}
               {m.text && (
                 <p className="wz-bubble__text wz-selectable" dir="auto">
                   <Text text={m.text} />

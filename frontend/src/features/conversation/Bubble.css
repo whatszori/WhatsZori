@@ -456,3 +456,46 @@ button.wz-bubble__edited:hover {
     box-shadow: 0 0 0 3px var(--wz-bubble-highlight);
   }
 }
+
+/* real media (desktop app): the thumbnail sits behind as a background until the file loads */
+.wz-media--loaded {
+  overflow: hidden;
+  background-color: var(--wz-bg-secondary);
+  background-size: cover;
+  background-position: center;
+}
+
+.wz-media--sticker.wz-media--loaded {
+  background-color: transparent;
+}
+
+.wz-media__el {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.wz-media--sticker .wz-media__el {
+  object-fit: contain;
+}
+
+.wz-media--link {
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--wz-radius-sm);
+}
+
+.wz-media--link:hover .wz-media__doc-name {
+  text-decoration: underline;
+}
+
+.wz-media__bar--played {
+  background: var(--wz-accent);
+}
+
+.wz-media__voice-play:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

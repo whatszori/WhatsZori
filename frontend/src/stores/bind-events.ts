@@ -2,12 +2,16 @@ import type { Backend } from '../api';
 import { useChats } from './chats';
 import { useConnection } from './connection';
 import { useMessages } from './messages';
+import { useToasts } from './toasts';
 import { useUI } from './ui';
 
 export function bindBackendEvents(be: Backend): () => void {
   const offs = [
     be.on('auth:qr', (qr) => useConnection.getState().setQR(qr)),
     be.on('auth:state', (auth) => useConnection.getState().setAuth(auth)),
+    be.on('auth:error', ({ message }) => useConnection.getState().setAuthError(message)),
+    be.on('sync:progress', (p) => useConnection.getState().setSync(p)),
+    be.on('toast', (t) => useToasts.getState().push(t)),
     be.on('conn:state', ({ state }) => useConnection.getState().setConn(state)),
     be.on('msg:batch', ({ messages }) => {
       useMessages.getState().receive(messages);
@@ -30,6 +34,10 @@ export function bindBackendEvents(be: Backend): () => void {
       useMessages.getState().setReactions(chatJid, pk, reactions),
     ),
     be.on('chat:update', ({ chat }) => useChats.getState().upsert(chat)),
+    be.on('chat:removed', ({ jid }) => {
+      useChats.getState().remove(jid);
+      if (useUI.getState().activeChat === jid) useUI.getState().openChat(null);
+    }),
     be.on('presence', ({ jid, online, lastSeen }) =>
       useChats.getState().setPresence(jid, online, lastSeen),
     ),

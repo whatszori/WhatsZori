@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { backend, type Chat, type JID } from '../api';
 import type { ChatFilter } from './chat-selectors';
+import { toastError } from './toasts';
 
 interface ChatsState {
   chats: Record<JID, Chat>;
@@ -12,6 +13,7 @@ interface ChatsState {
   typing: Record<JID, Record<JID, string>>;
   load(): Promise<void>;
   upsert(chat: Chat): void;
+  remove(jid: JID): void;
   setFilter(filter: ChatFilter): void;
   setQuery(query: string): void;
   setShowArchived(show: boolean): void;
@@ -32,7 +34,7 @@ export const useChats = create<ChatsState>((set, get) => {
     try {
       await call();
     } catch (err) {
-      console.error(err);
+      toastError(err);
       set((s) => ({ chats: { ...s.chats, [jid]: before } }));
     }
   };
@@ -54,6 +56,12 @@ export const useChats = create<ChatsState>((set, get) => {
         // presence comes through its own event, don't let a stale chat snapshot clobber it
         const merged = prev ? { ...chat, online: prev.online, lastSeen: prev.lastSeen } : chat;
         return { chats: { ...s.chats, [chat.jid]: merged } };
+      }),
+    remove: (jid) =>
+      set((s) => {
+        const chats = { ...s.chats };
+        delete chats[jid];
+        return { chats };
       }),
     setFilter: (filter) => set({ filter }),
     setQuery: (query) => set({ query }),

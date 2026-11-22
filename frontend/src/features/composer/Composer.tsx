@@ -7,7 +7,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { Check, Paperclip, Pencil, Reply, SendHorizontal, Smile, X } from 'lucide-react';
-import type { Chat } from '../../api';
+import { backend, type Chat, type JID } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { canEdit, useMessages } from '../../stores/messages';
 import { composerFor, useUI } from '../../stores/ui';
@@ -42,6 +42,39 @@ const EMOJI = [
   '🚀',
 ];
 
+// Tells the other side we're typing: composing at most every few seconds while keys are
+// pressed, paused after a short idle or when the message goes out. The backend drops all of it
+// when "hide typing" is on.
+const TYPING_REFRESH = 8_000;
+const TYPING_IDLE = 5_000;
+
+function useTypingSignal(jid: JID) {
+  const last = useRef(0);
+  const idle = useRef<number | undefined>(undefined);
+
+  const stop = useCallback(() => {
+    window.clearTimeout(idle.current);
+    if (last.current) {
+      last.current = 0;
+      void backend.chats.setTyping(jid, false).catch(() => {});
+    }
+  }, [jid]);
+
+  useEffect(() => stop, [stop]);
+
+  const typed = useCallback(() => {
+    const now = Date.now();
+    if (now - last.current > TYPING_REFRESH) {
+      last.current = now;
+      void backend.chats.setTyping(jid, true).catch(() => {});
+    }
+    window.clearTimeout(idle.current);
+    idle.current = window.setTimeout(stop, TYPING_IDLE);
+  }, [jid, stop]);
+
+  return { typed, stop };
+}
+
 export function Composer({ chat }: { chat: Chat }) {
   const jid = chat.jid;
   const state = useUI((s) => composerFor(s, jid));
@@ -49,6 +82,7 @@ export function Composer({ chat }: { chat: Chat }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [emoji, setEmoji] = useState<PopoverAnchor | null>(null);
   const closeEmoji = useCallback(() => setEmoji(null), []);
+  const typing = useTypingSignal(jid);
 
   const replyMsg = state.replyTo ? items?.find((m) => m.pk === state.replyTo) : undefined;
   const editMsg = state.editing ? items?.find((m) => m.pk === state.editing) : undefined;
@@ -80,9 +114,20 @@ export function Composer({ chat }: { chat: Chat }) {
       ui.cancelComposerMode(jid);
       return;
     }
-    void useMessages.getState().send(jid, value, state.replyTo ?? undefined);
+    typing.stop();
+    const replyTo = state.replyTo ?? undefined;
     ui.setDraft(jid, '');
-    if (state.replyTo) ui.cancelComposerMode(jid);
+    if (replyTo) ui.cancelComposerMode(jid);
+    void useMessages
+      .getState()
+      .send(jid, value, replyTo)
+      .then((ok) => {
+        // refused (offline, rate limit): give the text back unless they started a new one
+        if (!ok && !composerFor(useUI.getState(), jid).draft) {
+          ui.setDraft(jid, value);
+          if (replyTo) ui.startReply(jid, replyTo);
+        }
+      });
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -136,11 +181,16 @@ export function Composer({ chat }: { chat: Chat }) {
       {bar}
       <div className="wz-composer__row">
         <IconButton
-          label="Attach file"
+          label={
+            backend.media.canAttach
+              ? 'Attach a photo or file'
+              : 'Attachments work in the desktop app'
+          }
           className="wz-composer__attach"
           icon={<Paperclip size={18} />}
           tooltipPlacement="top"
-          onClick={() => undefined}
+          disabled={!backend.media.canAttach}
+          onClick={() => void useMessages.getState().attach(jid)}
         />
         <textarea
           ref={ref}
@@ -149,7 +199,11 @@ export function Composer({ chat }: { chat: Chat }) {
           placeholder={chat.isGroup ? `Message ${chat.name}` : 'Write a message'}
           aria-label="Message"
           value={text}
-          onChange={(e) => ui.setDraft(jid, e.target.value)}
+          onChange={(e) => {
+            ui.setDraft(jid, e.target.value);
+            if (e.target.value && !state.editing) typing.typed();
+            else typing.stop();
+          }}
           onKeyDown={onKeyDown}
           spellCheck
         />

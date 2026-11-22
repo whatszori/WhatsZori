@@ -2,6 +2,8 @@ import type {
   AppSettings,
   AuthStatus,
   ConfigFolder,
+  ConnState,
+  Contact,
   UserTheme,
   BackendEventName,
   BackendEvents,
@@ -22,9 +24,12 @@ import type { SystemPalette } from './events';
 // Mirrors the planned Wails services one-to-one, so the Wails bindings can implement it directly.
 export interface AuthService {
   getState(): Promise<AuthStatus>;
+  // conn:state events sent before the UI subscribed are lost, so it asks once on start
+  getConnState(): Promise<ConnState>;
   startQRLogin(): Promise<void>;
   pairWithPhone(phone: string): Promise<string>;
-  logout(): Promise<void>;
+  // wipe also deletes local history and downloaded media
+  logout(wipe?: boolean): Promise<void>;
 }
 
 export interface ChatService {
@@ -34,6 +39,8 @@ export interface ChatService {
   setArchived(jid: JID, archived: boolean): Promise<void>;
   setMuted(jid: JID, muted: boolean): Promise<void>;
   getInfo(jid: JID): Promise<ChatInfo>;
+  // composing / paused; the backend drops it when typing is hidden
+  setTyping(jid: JID, typing: boolean): Promise<void>;
 }
 
 export interface ProfileService {
@@ -50,6 +57,19 @@ export interface MessageService {
   revoke(pk: MessagePK): Promise<void>;
   react(pk: MessagePK, emoji: string): Promise<Reaction[]>;
   search(query: string): Promise<SearchHit[]>;
+  // opens the system file picker and sends the choice; null when cancelled
+  attachFile(jid: JID): Promise<Message | null>;
+}
+
+export interface ContactService {
+  list(): Promise<Contact[]>;
+}
+
+export interface MediaService {
+  // where to load a message's attachment from; empty when there's nothing to load (mock)
+  url(pk: MessagePK, thumb?: boolean): string;
+  // attachments can be sent (desktop app only)
+  canAttach: boolean;
 }
 
 export interface PrivacyService {
@@ -91,7 +111,7 @@ export interface UserThemeService {
 export type Unsubscribe = () => void;
 
 export interface Backend {
-  // 'mock' in a plain browser, 'wails' inside the desktop app (Go for system bits, mock for WA)
+  // 'mock' in a plain browser, 'wails' inside the desktop app (everything from Go)
   readonly kind: 'mock' | 'wails';
   system: SystemService;
   systemTheme: SystemThemeService;
@@ -102,6 +122,8 @@ export interface Backend {
   messages: MessageService;
   profile: ProfileService;
   privacy: PrivacyService;
+  contacts: ContactService;
+  media: MediaService;
   settings: SettingsService;
   on<E extends BackendEventName>(
     event: E,

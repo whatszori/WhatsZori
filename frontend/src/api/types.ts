@@ -212,8 +212,27 @@ export interface UserTheme {
 
 export type ConfigFolder = 'root' | 'themes' | 'plugins' | 'media';
 
+export interface Contact {
+  jid: JID;
+  name: string;
+  phone: string;
+}
+
+export interface SyncProgress {
+  // 0..100
+  progress: number;
+  done: boolean;
+}
+
+export interface Toast {
+  kind: 'error' | 'info';
+  text: string;
+}
+
 export interface BackendEvents extends WzEvents {
   'auth:qr': QRPayload;
+  // the login attempt ended (code expired, linking failed); back to logged-out
+  'auth:error': { message: string };
   'auth:state': AuthStatus;
   'conn:state': { state: ConnState };
   'msg:batch': { messages: Message[] };
@@ -228,8 +247,12 @@ export interface BackendEvents extends WzEvents {
   };
   'msg:reaction': { chatJid: JID; pk: MessagePK; reactions: Reaction[] };
   'chat:update': { chat: Chat };
+  // a LID chat that turned out to be the same person as a phone-number chat and was merged into it
+  'chat:removed': { jid: JID };
   presence: { jid: JID; online: boolean; lastSeen: number | null };
   'chat:typing': { chatJid: JID; senderJid: JID; senderName: string; typing: boolean };
+  'sync:progress': SyncProgress;
+  toast: Toast;
 }
 
 export type BackendEventName = keyof BackendEvents;

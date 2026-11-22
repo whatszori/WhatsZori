@@ -1,23 +1,75 @@
-// Compile-time check that the hand-written event types in api/events.ts still match what the
-// binding generator produced from the Go structs. Nothing here runs.
+// Compile-time check that the hand-written types in api/types.ts and api/events.ts still match
+// what the binding generator produced from the Go structs. Nothing here runs.
 import type * as Generated from '../../../bindings/events';
+import type * as Go from '../../../bindings/github.com/whatszori/WhatsZori/internal/domain/models';
 import type { SystemPalette as GoPalette } from '../../../bindings/github.com/whatszori/WhatsZori/internal/systheme/models';
 import type {
   Changed as GoThemeChanged,
   Info as GoThemeInfo,
 } from '../../../bindings/github.com/whatszori/WhatsZori/internal/themes/models';
-import type { SystemPalette, ThemeFileChanged } from '../events';
-import { WZ_EVENTS } from '../events';
-import type { UserTheme } from '../types';
+import type { SystemPalette, ThemeFileChanged, WaEventName } from '../events';
+import { WA_EVENTS, WZ_EVENTS } from '../events';
+import type * as T from '../types';
 
-type Assert<T extends true> = T;
+type Assert<X extends true> = X;
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-type Keys<T> = keyof T & string;
+type Keys<X> = keyof X & string;
+type SameKeys<A, B> = Same<Keys<A>, Keys<B>>;
+type Payload<E extends keyof T.BackendEvents> = T.BackendEvents[E];
+
+// every generated event name, as a union of string literals
+type GeneratedNames = (typeof Generated)[keyof typeof Generated];
 
 export type Checks = [
-  Assert<Same<Keys<SystemPalette>, Keys<GoPalette>>>,
-  Assert<Same<Keys<ThemeFileChanged>, Keys<GoThemeChanged>>>,
-  Assert<Same<Keys<UserTheme>, Keys<GoThemeInfo>>>,
+  Assert<SameKeys<SystemPalette, GoPalette>>,
+  Assert<SameKeys<ThemeFileChanged, GoThemeChanged>>,
+  Assert<SameKeys<T.UserTheme, GoThemeInfo>>,
   Assert<Same<(typeof WZ_EVENTS)['systemThemeChanged'], typeof Generated.WzSysthemeChanged>>,
   Assert<Same<(typeof WZ_EVENTS)['themeChanged'], typeof Generated.WzThemeChanged>>,
+
+  // DTOs
+  Assert<SameKeys<T.Message, Go.Message>>,
+  Assert<SameKeys<T.MediaInfo, Go.MediaInfo>>,
+  Assert<SameKeys<T.ReplyRef, Go.ReplyRef>>,
+  Assert<SameKeys<T.Reaction, Go.Reaction>>,
+  Assert<SameKeys<T.DeletedInfo, Go.DeletedInfo>>,
+  Assert<SameKeys<T.Chat, Go.Chat>>,
+  Assert<SameKeys<T.MessagePreview, Go.MessagePreview>>,
+  Assert<SameKeys<T.ChatInfo, Go.ChatInfo>>,
+  Assert<SameKeys<T.GroupMember, Go.GroupMember>>,
+  Assert<SameKeys<T.MediaRef, Go.MediaRef>>,
+  Assert<SameKeys<T.EditVersion, Go.EditVersion>>,
+  Assert<SameKeys<T.MessagePage, Go.MessagePage>>,
+  Assert<SameKeys<T.SearchHit, Go.SearchHit>>,
+  Assert<SameKeys<T.GhostSettings, Go.GhostSettings>>,
+  Assert<SameKeys<T.Profile, Go.Profile>>,
+  Assert<SameKeys<T.Me, Go.Me>>,
+  Assert<SameKeys<T.AuthStatus, Go.AuthStatus>>,
+  Assert<SameKeys<T.QRPayload, Go.QRPayload>>,
+  Assert<SameKeys<T.Contact, Go.Contact>>,
+  Assert<Same<`${Go.MessageKind}`, T.MessageKind | ''>>,
+  Assert<Same<`${Go.MessageStatus}`, T.MessageStatus | ''>>,
+  Assert<Same<`${Go.ConnState}`, T.ConnState | ''>>,
+  Assert<Same<`${Go.AuthState}`, T.AuthState | ''>>,
+  Assert<Same<`${Go.ReadReceiptMode}`, T.ReadReceiptMode | ''>>,
+
+  // event payloads
+  Assert<SameKeys<Payload<'auth:error'>, Go.AuthErrorEvent>>,
+  Assert<SameKeys<Payload<'conn:state'>, Go.ConnStateEvent>>,
+  Assert<SameKeys<Payload<'msg:batch'>, Go.MsgBatchEvent>>,
+  Assert<SameKeys<Payload<'msg:status'>, Go.MsgStatusEvent>>,
+  Assert<SameKeys<Payload<'msg:edited'>, Go.MsgEditedEvent>>,
+  Assert<SameKeys<Payload<'msg:deleted'>, Go.MsgDeletedEvent>>,
+  Assert<SameKeys<Payload<'msg:reaction'>, Go.MsgReactionEvent>>,
+  Assert<SameKeys<Payload<'chat:update'>, Go.ChatUpdateEvent>>,
+  Assert<SameKeys<Payload<'chat:removed'>, Go.ChatRemovedEvent>>,
+  Assert<SameKeys<Payload<'presence'>, Go.PresenceEvent>>,
+  Assert<SameKeys<Payload<'chat:typing'>, Go.TypingEvent>>,
+  Assert<SameKeys<Payload<'sync:progress'>, Go.SyncProgressEvent>>,
+  Assert<SameKeys<Payload<'toast'>, Go.ToastEvent>>,
+
+  // names: the WA event list, BackendEvents and what Go registered all agree
+  Assert<Same<WaEventName | (typeof WZ_EVENTS)[keyof typeof WZ_EVENTS], GeneratedNames>>,
+  Assert<Same<WaEventName | keyof import('../events').WzEvents, keyof T.BackendEvents>>,
+  Assert<Same<(typeof WA_EVENTS)['msgBatch'], 'msg:batch'>>,
 ];

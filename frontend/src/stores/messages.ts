@@ -8,6 +8,7 @@ import {
   type MessageStatus,
   type Reaction,
 } from '../api';
+import { toastError } from './toasts';
 
 export const PAGE_SIZE = 50;
 
@@ -29,7 +30,9 @@ interface MessagesState {
   applyEdit(jid: JID, pk: MessagePK, text: string, editedAt: number, editCount: number): void;
   applyDelete(jid: JID, pk: MessagePK, deleted: DeletedInfo, purged: boolean): void;
   setReactions(jid: JID, pk: MessagePK, reactions: Reaction[]): void;
-  send(jid: JID, text: string, replyToPk?: MessagePK): Promise<void>;
+  // resolve to false when the backend refused (offline, rate limit); the error is already a toast
+  send(jid: JID, text: string, replyToPk?: MessagePK): Promise<boolean>;
+  attach(jid: JID): Promise<void>;
   edit(jid: JID, pk: MessagePK, text: string): Promise<void>;
   revoke(jid: JID, pk: MessagePK): Promise<void>;
   react(jid: JID, pk: MessagePK, emoji: string): Promise<void>;
@@ -114,23 +117,42 @@ export const useMessages = create<MessagesState>((set, get) => {
     setReactions: (jid, pk, reactions) => updateMessage(jid, pk, (m) => ({ ...m, reactions })),
 
     async send(jid, text, replyToPk) {
-      const m = await backend.messages.sendText(jid, text, replyToPk);
-      updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
+      try {
+        const m = await backend.messages.sendText(jid, text, replyToPk);
+        updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
+        return true;
+      } catch (err) {
+        toastError(err, 'Not sent');
+        return false;
+      }
+    },
+
+    async attach(jid) {
+      try {
+        const m = await backend.messages.attachFile(jid);
+        if (m) updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
+      } catch (err) {
+        toastError(err, 'Not sent');
+      }
     },
 
     async edit(jid, pk, text) {
       const prev = get().byChat[jid]?.items.find((m) => m.pk === pk);
       if (!prev || prev.text === text) return;
-      await backend.messages.edit(pk, text);
+      await backend.messages.edit(pk, text).catch((err) => toastError(err, 'Not edited'));
     },
 
     async revoke(_jid, pk) {
-      await backend.messages.revoke(pk);
+      await backend.messages.revoke(pk).catch((err) => toastError(err, 'Not deleted'));
     },
 
     async react(jid, pk, emoji) {
-      const reactions = await backend.messages.react(pk, emoji);
-      get().setReactions(jid, pk, reactions);
+      try {
+        const reactions = await backend.messages.react(pk, emoji);
+        get().setReactions(jid, pk, reactions);
+      } catch (err) {
+        toastError(err, 'Reaction not sent');
+      }
     },
   };
 });

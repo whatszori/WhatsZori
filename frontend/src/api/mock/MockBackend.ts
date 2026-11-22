@@ -8,6 +8,7 @@ import type {
   ChatInfo,
   Profile,
   ConnState,
+  Contact,
   EditVersion,
   GhostSettings,
   JID,
@@ -79,6 +80,7 @@ export class MockBackend implements Backend {
   readonly db: MockDB;
   private emitter = new Emitter();
   private auth_: AuthStatus = { state: 'logged-out', me: null };
+  private conn_: ConnState = 'offline';
   private settings_: AppSettings;
   private ghost_: GhostSettings;
   private profile_: Profile;
@@ -153,6 +155,7 @@ export class MockBackend implements Backend {
   }
 
   private setConn(state: ConnState): void {
+    this.conn_ = state;
     this.emit('conn:state', { state });
   }
 
@@ -188,6 +191,7 @@ export class MockBackend implements Backend {
       await this.wait();
       return clone(this.auth_);
     },
+    getConnState: async (): Promise<ConnState> => this.conn_,
     startQRLogin: async (): Promise<void> => {
       await this.wait();
       window.clearInterval(this.qrTimer);
@@ -210,7 +214,8 @@ export class MockBackend implements Backend {
       this.loginTimer = window.setTimeout(() => this.completeLogin(), 8_000);
       return code;
     },
-    logout: async (): Promise<void> => {
+    // wipe has nothing to delete here: the mock regenerates its data on every load
+    logout: async (_wipe?: boolean): Promise<void> => {
       await this.wait();
       this.simulator.stop();
       window.clearInterval(this.qrTimer);
@@ -240,6 +245,22 @@ export class MockBackend implements Backend {
       await this.wait();
       return clone(buildChatInfo(this.db, jid));
     },
+    setTyping: async (): Promise<void> => undefined,
+  };
+
+  contacts = {
+    list: async (): Promise<Contact[]> => {
+      await this.wait();
+      return [...this.db.chats.values()]
+        .filter((c) => !c.isGroup)
+        .map((c) => ({ jid: c.jid, name: c.name, phone: '+' + c.jid.split('@')[0] }));
+    },
+  };
+
+  // mock media are placeholders, there's nothing to load or attach
+  media = {
+    url: (): string => '',
+    canAttach: false,
   };
 
   profile = {
@@ -362,6 +383,7 @@ export class MockBackend implements Backend {
       hits.sort((a, b) => b.message.timestamp - a.message.timestamp);
       return clone(hits.slice(0, 50));
     },
+    attachFile: async (): Promise<Message | null> => null,
   };
 
   privacy = {

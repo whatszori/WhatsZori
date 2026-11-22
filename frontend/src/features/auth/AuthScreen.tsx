@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowLeft, Smartphone } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Smartphone } from 'lucide-react';
 import { backend, devControls } from '../../api';
 import { formatPairingCode, isValidPhone } from '../../lib/format';
 import { useConnection } from '../../stores/connection';
 import { Button, Input, Logo, Spinner } from '../../ui';
-import { FakeQR } from './FakeQR';
+import { QRCode } from './QRCode';
 import './AuthScreen.css';
 
 type Mode = 'qr' | 'phone';
@@ -19,13 +19,25 @@ function useCountdown(receivedAt: number | undefined, ttl: number | undefined): 
   return Math.max(0, Math.ceil((receivedAt + ttl - now) / 1000));
 }
 
+function errorText(err: unknown): string {
+  return err instanceof Error
+    ? err.message
+    : typeof err === 'string'
+      ? err
+      : 'Something went wrong';
+}
+
 function QRPanel({ onPhone }: { onPhone: () => void }) {
   const qr = useConnection((s) => s.qr);
+  const authError = useConnection((s) => s.authError);
   const secs = useCountdown(qr?.receivedAt, qr?.expiresIn);
 
-  useEffect(() => {
-    void backend.auth.startQRLogin();
-  }, []);
+  const start = () =>
+    void backend.auth
+      .startQRLogin()
+      .catch((err) => useConnection.getState().setAuthError(errorText(err)));
+
+  useEffect(start, []);
 
   return (
     <>
@@ -36,7 +48,13 @@ function QRPanel({ onPhone }: { onPhone: () => void }) {
         <li>Tap Link a device and point the camera here</li>
       </ol>
       <div className="wz-auth__qr-wrap">
-        {qr ? (
+        {authError ? (
+          <div className="wz-auth__qr wz-auth__qr--loading">
+            <Button variant="secondary" icon={<RefreshCw size={16} />} onClick={start}>
+              Get a new code
+            </Button>
+          </div>
+        ) : qr && devControls ? (
           <button
             type="button"
             className="wz-auth__qr"
@@ -44,15 +62,23 @@ function QRPanel({ onPhone }: { onPhone: () => void }) {
             aria-label="QR code. In the mock build, click to simulate a scan."
             title="Mock: click to simulate a scan"
           >
-            <FakeQR code={qr.code} />
+            <QRCode code={qr.code} />
           </button>
+        ) : qr ? (
+          <div className="wz-auth__qr" role="img" aria-label="QR code to scan with your phone">
+            <QRCode code={qr.code} />
+          </div>
         ) : (
           <div className="wz-auth__qr wz-auth__qr--loading">
             <Spinner size={20} />
           </div>
         )}
-        <p className="wz-auth__refresh" aria-live="polite">
-          {qr ? `Code refreshes in ${secs}s` : 'Generating code…'}
+        <p
+          className={authError ? 'wz-auth__error' : 'wz-auth__refresh'}
+          role={authError ? 'alert' : undefined}
+          aria-live="polite"
+        >
+          {authError ?? (qr ? `Code refreshes in ${secs}s` : 'Generating code…')}
         </p>
       </div>
       <Button variant="ghost" icon={<Smartphone size={16} />} onClick={onPhone}>
@@ -67,6 +93,8 @@ function PhonePanel({ onBack }: { onBack: () => void }) {
   const [code, setCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // the login socket timed out while we waited for the phone
+  const expired = useConnection((s) => s.authError);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -76,10 +104,11 @@ function PhonePanel({ onBack }: { onBack: () => void }) {
     }
     setBusy(true);
     setError(null);
+    useConnection.getState().setAuthError(null);
     try {
       setCode(await backend.auth.pairWithPhone(phone));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
@@ -107,9 +136,27 @@ function PhonePanel({ onBack }: { onBack: () => void }) {
               </span>
             ))}
           </div>
-          <p className="wz-auth__waiting">
-            <Spinner size={14} /> Waiting for your phone…
-          </p>
+          {expired ? (
+            <>
+              <p className="wz-auth__error" role="alert">
+                {expired}
+              </p>
+              <Button
+                variant="secondary"
+                icon={<RefreshCw size={16} />}
+                onClick={() => {
+                  useConnection.getState().setAuthError(null);
+                  setCode(null);
+                }}
+              >
+                Try again
+              </Button>
+            </>
+          ) : (
+            <p className="wz-auth__waiting">
+              <Spinner size={14} /> Waiting for your phone…
+            </p>
+          )}
         </>
       ) : (
         <form className="wz-auth__form" onSubmit={submit} noValidate>
