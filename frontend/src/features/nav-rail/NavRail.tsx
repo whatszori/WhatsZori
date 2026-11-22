@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Archive, CircleDashed, MessageSquareText, Phone, Settings } from 'lucide-react';
 import { useChats } from '../../stores/chats';
-import { useConnection } from '../../stores/connection';
+import { useProfile } from '../../stores/profile';
 import { useUI, type RailPanel } from '../../stores/ui';
 import { Avatar, Tooltip } from '../../ui';
 import './NavRail.css';
@@ -63,7 +63,7 @@ function RailButton({
 
 export function NavRail() {
   const active = useActiveItem();
-  const me = useConnection((s) => s.auth.me);
+  const profile = useProfile((s) => s.profile);
   // count of chats with unread, like the official client, not of messages
   const unreadChats = useChats(
     (s) => Object.values(s.chats).filter((c) => c.unread > 0 && !c.archived && !c.muted).length,
@@ -111,13 +111,13 @@ export function NavRail() {
           <button
             type="button"
             className="wz-rail__profile"
-            aria-label="Profile and account"
+            aria-label="Your profile"
             onClick={() => {
               const ui = useUI.getState();
-              ui.openSettings('about');
+              ui.openSettings('profile', true);
             }}
           >
-            <Avatar name={me?.phone ?? ''} size={30} />
+            <Avatar name={profile.name || profile.phone} size={30} />
           </button>
         </Tooltip>
       </div>

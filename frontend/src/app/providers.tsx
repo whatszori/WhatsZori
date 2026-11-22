@@ -3,6 +3,7 @@ import { backend, devControls, isDemo } from '../api';
 import { bindBackendEvents } from '../stores/bind-events';
 import { useChats } from '../stores/chats';
 import { useConnection } from '../stores/connection';
+import { useProfile } from '../stores/profile';
 import { effectiveAccent, useSettings } from '../stores/settings';
 import { applyAppearance } from '../theme/theme-manager';
 import { registerDemoPlugins } from '../plugin-core/demo';
@@ -37,6 +38,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authState !== 'logged-in') return;
     void useChats.getState().load();
+    void useProfile.getState().load();
     if (isDemo) devControls?.setDemo(true);
     return () => devControls?.setDemo(false);
   }, [authState]);

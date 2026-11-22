@@ -1,11 +1,21 @@
 import type { ReactNode } from 'react';
-import { Brush, History, Info, Palette, Puzzle, ShieldCheck, Store } from 'lucide-react';
+import {
+  Brush,
+  CircleUser,
+  History,
+  Info,
+  Palette,
+  Puzzle,
+  ShieldCheck,
+  Store,
+} from 'lucide-react';
 import type { SettingsSection } from '../../../stores/ui';
 import { AboutSection } from './AboutSection';
 import { AppearanceSection } from './AppearanceSection';
 import { MarketplaceSection, PluginsSection } from './ExtensionsSections';
 import { HistorySection } from './HistorySection';
 import { PrivacySection } from './PrivacySection';
+import { ProfileSection } from './ProfileSection';
 import { ThemesSection } from './ThemesSection';
 
 export interface SectionInfo {
@@ -16,6 +26,12 @@ export interface SectionInfo {
 }
 
 export const SECTIONS: SectionInfo[] = [
+  {
+    id: 'profile',
+    label: 'Profile',
+    hint: 'Name, about, phone number',
+    icon: <CircleUser size={18} />,
+  },
   {
     id: 'appearance',
     label: 'Appearance',
@@ -42,11 +58,18 @@ export const SECTIONS: SectionInfo[] = [
     icon: <Brush size={18} />,
   },
   { id: 'marketplace', label: 'Marketplace', hint: 'Coming soon', icon: <Store size={18} /> },
-  { id: 'about', label: 'About', hint: 'Version, links, log out', icon: <Info size={18} /> },
+  {
+    id: 'about',
+    label: 'About',
+    hint: 'Version, disclaimer, links, log out',
+    icon: <Info size={18} />,
+  },
 ];
 
 export function SectionBody({ section }: { section: SettingsSection }) {
   switch (section) {
+    case 'profile':
+      return <ProfileSection />;
     case 'privacy':
       return <PrivacySection />;
     case 'history':

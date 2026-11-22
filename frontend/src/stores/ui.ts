@@ -5,6 +5,7 @@ export type View = 'chats' | 'settings';
 // what the rail layout's sidebar shows besides chats and settings
 export type RailPanel = 'chats' | 'calls' | 'status';
 export type SettingsSection =
+  | 'profile'
   | 'appearance'
   | 'privacy'
   | 'history'
@@ -41,6 +42,10 @@ const EMPTY_COMPOSER: ComposerState = { draft: '', replyTo: null, editing: null,
 interface UIState {
   view: View;
   settingsSection: SettingsSection;
+  // rail layout: open straight into the section instead of the section list
+  settingsDirect: boolean;
+  // contact / group info panel next to the conversation
+  chatInfoOpen: boolean;
   activeChat: JID | null;
   railPanel: RailPanel;
   sidebarWidth: number;
@@ -51,7 +56,8 @@ interface UIState {
   searchFocusNonce: number;
   openChat(jid: JID | null): void;
   setRailPanel(panel: RailPanel): void;
-  openSettings(section?: SettingsSection): void;
+  openSettings(section?: SettingsSection, direct?: boolean): void;
+  setChatInfoOpen(open: boolean): void;
   closeSettings(): void;
   setSettingsSection(section: SettingsSection): void;
   setSidebarWidth(w: number): void;
@@ -73,6 +79,8 @@ export const useUI = create<UIState>((set, get) => {
   return {
     view: 'chats',
     settingsSection: 'appearance',
+    settingsDirect: false,
+    chatInfoOpen: false,
     activeChat: null,
     railPanel: 'chats',
     sidebarWidth: readWidth(),
@@ -80,10 +88,20 @@ export const useUI = create<UIState>((set, get) => {
     composer: {},
     infoMessage: null,
     searchFocusNonce: 0,
-    openChat: (jid) => set({ activeChat: jid, view: 'chats' }),
+    openChat: (jid) =>
+      set((s) => ({
+        activeChat: jid,
+        view: 'chats',
+        chatInfoOpen: s.activeChat === jid ? s.chatInfoOpen : false,
+      })),
     setRailPanel: (railPanel) => set({ railPanel, view: 'chats' }),
-    openSettings: (section) =>
-      set((s) => ({ view: 'settings', settingsSection: section ?? s.settingsSection })),
+    openSettings: (section, direct = false) =>
+      set((s) => ({
+        view: 'settings',
+        settingsSection: section ?? s.settingsSection,
+        settingsDirect: direct,
+      })),
+    setChatInfoOpen: (chatInfoOpen) => set({ chatInfoOpen }),
     closeSettings: () => set({ view: 'chats' }),
     setSettingsSection: (settingsSection) => set({ settingsSection }),
     setSidebarWidth(w) {
