@@ -1,7 +1,7 @@
 # Frontend status
 
 State of `frontend/`. In a browser it runs against a typed mock backend; inside the desktop app
-it runs in hybrid mode (Go for system bits, the mock for WhatsApp). See [STATUS.md](STATUS.md) for
+every service is Go (whatsmeow + SQLite, see [BACKEND.md](BACKEND.md)). See [STATUS.md](STATUS.md) for
 the whole app and [WAILS.md](WAILS.md) for the desktop side.
 
 ## How to run
@@ -49,7 +49,8 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   go pending → sent → delivered → read.
 - **Stores** (zustand): connection, chats, messages, settings, ui (view, active chat, persisted
   sidebar width, per-chat drafts with reply/edit state).
-- **Auth**: QR card with a fake QR that refreshes every 20s with a countdown, phone pairing with an
+- **Auth**: QR card with a real QR (rendered with `uqr`) that refreshes with a countdown, an
+  expired / failed state with "Get a new code", phone pairing with an
   8-character code shown in two monospace groups, and a one-line unofficial-client disclaimer
   whose "Learn more" expands the full text.
 - **Main layout**: resizable sidebar (drag, keyboard arrows, double-click to reset, width
@@ -137,13 +138,14 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 
 - The whole backend (`src/api/mock`). Chats and messages reset on reload; only login, settings and
   ghost mode persist.
-- The QR code isn’t a real QR. In a browser, "Use system accent" uses a fixed color
+- In a browser, "Use system accent" uses a fixed color
   (`MOCK_SYSTEM_ACCENT`); the desktop app reads the real one.
-- These buttons do nothing yet: attach and play on voice/video. "Open folder" works in the desktop
-  app and is disabled in a browser.
-- Media are placeholders sized from the real aspect ratio; no thumbnails yet.
+- In the desktop app, photos, stickers, video, voice and documents load from `/wz-media/`
+  (thumbnail first). In a browser they're placeholders sized from the real aspect ratio, and the
+  attach button is disabled. "Open folder" works in the desktop app and is disabled in a browser.
+- Toasts (send failures, anti-spam blocks, logged out from the phone) are new: `stores/toasts.ts`
+  and `app/Toasts.tsx`.
 - Emoji picker is a fixed 24-emoji grid.
-- Ghost-mode settings are stored but have no effect beyond the mock.
 - The plugin list is a hard-coded placeholder; nothing loads plugins yet. Single-file CSS themes
   load from the user's themes folder in the desktop app; bundled packages still come from
   `src/themes/`.
@@ -152,14 +154,9 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 
 ## Next
 
-1. whatsmeow on the Go side: move auth, chats, messages, profile and privacy from the mock to Go
-   services one at a time (the hybrid `WailsBackend` already routes per service).
-2. Real QR rendering from the whatsmeow payload (a small QR encoder, no network).
-3. Send typing/presence through the backend while respecting ghost mode; read receipts on reply.
-4. Media: thumbnails, download/open, attach flow, voice playback.
-5. Message search results UI (in-chat search, plus global results in the sidebar).
-6. Plugin loader: load plugin bundles, build `PluginContext`, settings persistence per plugin.
+1. Message search results UI (in-chat search, plus global results in the sidebar).
+2. Plugin loader: load plugin bundles, build `PluginContext`, settings persistence per plugin.
    Move `plugin-core/types.ts` into plugin-sdk.
-7. Theme packages (folder + manifest) from disk, next to the single-file themes that already load.
-8. Component tests for the message list and composer (React Testing Library), and a Playwright
+3. Theme packages (folder + manifest) from disk, next to the single-file themes that already load.
+4. Component tests for the message list and composer (React Testing Library), and a Playwright
    smoke test (the desktop app can be driven over CDP, see WAILS.md).

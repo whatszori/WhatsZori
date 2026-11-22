@@ -96,3 +96,48 @@ One line each, with the reason.
 - The app icon is the bubble logo, `frontend/public/logo.svg`, rendered to a 1024 px transparent `build/appicon.png` (headless Edge screenshot). The `.ico` is generated from that PNG, so after changing the logo, re-render the PNG and run `wails3 task common:generate:icons`.
 - Build assets were regenerated with `wails3 update build-assets` from `build/config.yml`. The macOS, iOS, Android, Docker and MSIX templates were left out (no target yet), and the Windows installer is NSIS.
 - Vite binds `127.0.0.1`: the Wails dev proxy dials IPv4 only, and Node may bind `localhost` to `::1` on Windows.
+
+## WhatsApp backend
+
+- whatsmeow is the latest commit at the time (`v0.0.0-20261116172437-19d61352436f`). Every signature was checked against the module source; most network calls now take a `context.Context`.
+- SQLite is `modernc.org/sqlite` (pure Go, so the Windows build stays CGO-free). FTS5 works with it, so search uses FTS5, not `LIKE`.
+- Two databases: `session.db` is whatsmeow's `sqlstore` and nothing of ours touches it; `whatszori.db` is ours. Logging out or a broken session can't take the message history with it.
+- `whatszori.db` runs in WAL with `foreign_keys`, `busy_timeout` and `_txlock=immediate`, set through the DSN so every pooled connection gets them. Immediate transactions avoid the busy errors deferred ones hit when two writers both try to upgrade a read lock.
+- Migrations are numbered `.sql` files embedded in the binary. Each runs in a transaction together with its `PRAGMA user_version` bump. A db with a higher version than the build knows is refused rather than used half-understood.
+- Data access is plain `database/sql` in `store/repo`, every function taking a `DBTX` (`*sql.DB` or `*sql.Tx`). sqlc would have added a code generator to the toolchain for about 40 queries.
+- Settings stay in the existing `settings.json`, not a `settings` table: the Wails task already built atomic writes, BOM handling and broken-file recovery there, and the frontend's `AppSettings` lives in it. Go reads `app.history` from it; ghost mode is a new Go-owned `privacy` key.
+- Reactions and receipts are keyed by `(chat_jid, msg_id)`, not by message pk, with no foreign key: they often arrive before the message (history order, retries) and attach once it shows up.
+- Timestamps are unix milliseconds everywhere, matching what the frontend already used.
+- Store kinds are finer than UI kinds (`audio`, `location`, `contact`, `poll`, `unknown`). The DTO maps location, contact and poll to `text` with a preview line ("📍 …", "👤 …", "📊 …") and audio to `voice`, so the existing bubbles render them without new components.
+- Unknown message types are stored with kind `unknown` and the raw proto and show "This message type isn't supported yet". Pure control or meta messages (sender key distribution only, protocol messages, poll votes, pin/keep-in-chat) aren't stored as messages.
+- `contentUnknown` is derived, not stored: a deleted or placeholder row with no raw proto and no body. A placeholder whose content arrived later keeps `is_placeholder = 1` (we still know the revoke came first) but stops being content-unknown.
+- Revoke kind is `admin` when the stanza's edit attribute says admin revoke (`8`) or the revoker isn't the original sender; otherwise `sender`.
+- With "keep deleted messages" off, a revoke drops the body, raw proto, media file and edit history, but keeps the row so the "deleted" marker still shows where the message was.
+- Edits from anyone but the original sender are ignored and logged (message ID, redacted JIDs). An edit that arrives late (older than the current version) is added to the history but doesn't replace the newer text.
+- Live edits arrive as `ProtocolMessage{MESSAGE_EDIT}`; history sync hands them over already unwrapped by `ParseWebMessage` (original id, new content, `IsEdit`). Ingest handles both.
+- `SynchronousAck` is on. whatsmeow's default acks before handlers finish; with it on, the ack goes out after our SQLite write, and the handler returns false on a db error so there's no ack at all and the server redelivers.
+- Frontend events go through a batcher (50 ms or 200 items). Consecutive `msg:batch` events merge, a `chat:update` for a chat that's already queued replaces that snapshot in place, and everything else keeps its order.
+- History messages are stored with `read_sent = 1`, so switching ghost mode later never fires receipts for months of old messages; unread counts come from the conversation's `unreadCount`. Pending receipts are also capped at the last 7 days and 300 messages.
+- Only live messages are auto-downloaded, never history. Auto-download covers photos, voice notes and stickers up to 16 MB, which is what tends to get deleted and is cheap to keep; videos and documents download when opened.
+- "Download media automatically" now defaults to on (it was off in the mock), so a deleted photo survives without the user changing anything.
+- Media files are named by the SHA-256 of their content (WhatsApp's `fileSHA256`, or our own hash) in two-character shard folders. A forwarded photo is stored once, and a URL's bytes never change, so `/wz-media/` responses are cached as immutable.
+- `/wz-media/<pk>` downloads on demand inside the request (60 s timeout, one download per pk however many requests wait for it) and falls back to the stored thumbnail with `no-store`. A 403/404/410 from the CDN marks the file `expired`, and it isn't retried.
+- Media is served with `nosniff` and a sandboxing CSP, and only known image, video, audio and PDF types are served inline. Anything else (HTML, SVG, scripts) is an `application/octet-stream` attachment: it's other people's content on our webview's origin.
+- Canonical JIDs: the phone-number JID when the LID mapping is known, the LID otherwise, never a device suffix. When a mapping shows up later (`SenderAlt`, contact sync, history mappings), the LID chat is merged into the phone-number chat, and a new `chat:removed` event tells the UI to drop the old row.
+- The privacy gate holds the only `PresenceTransport`; the `wa.Client` interface everything else uses has no `SendPresence`, `SendChatPresence` or `MarkRead`. A test walks the AST of every non-test `.go` file and fails if anything outside the gate and the whatsmeow adapter calls them.
+- "Hide online" sends `unavailable` on connect and never `available`. Read receipts: `always` sends them when a chat is opened, `never` never does (the local unread count still clears), `on-reply` sends them just before our next message to that chat. In groups there's one receipt per sender, with the participant set.
+- Anti-spam limits: 60 messages a minute, 12 different chats a minute, and the same text (whitespace and case normalized, 12+ characters) to at most 4 chats in 10 minutes. A fast typist in one chat doesn't get near them, and "thanks!" to several people isn't blocked. A blocked message is never stored; the reason comes back as the call's error and shows as a toast.
+- Sending is optimistic: the message is stored as `pending` and returned at once, and the network part runs in the background. A failure sets `failed` and emits a `toast` event. Refusals before anything is stored (offline, rate limit) come back as errors, and the composer gets its text back.
+- Edits are refused on the Go side after whatsmeow's `EditWindow` (20 minutes); the UI already hides the option after 15.
+- Our own edits, revokes and reactions go through the same ingest code as incoming ones (`ApplyLocal*`), since whatsmeow doesn't echo what we send. One code path, one set of tests.
+- Media sending: JPEG and PNG up to 16 MB go as photos, everything else (and bigger images) as documents, up to 100 MB. The file is picked with the native dialog on the Go side, so the bytes never cross the webview bridge. Voice notes were cut.
+- `wa` doesn't import `ingest`, `privacy` or `antispam`; the sender takes small interfaces. That keeps the package graph acyclic, and the send tests (an external `wa_test` package) run against the real ingester, gate and limiter.
+- `WHATSZORI_NO_CONNECT=1` keeps the client offline (no QR, no reconnect), so a build can be smoke-tested without talking to WhatsApp. The auth screen then shows the reason and a retry button instead of a code.
+- whatsmeow's logs go to slog with every run of 6+ digits masked, and its debug level is dropped (it dumps whole stanzas). Our own logs carry message IDs and event types; JIDs go through `redact.JID`.
+- Statuses (`status@broadcast`) and newsletters are skipped: the UI has no place for them yet.
+- "Delete for me" from another of your devices is ignored. Keeping what was on screen is the point of this client, and Settings has "Delete local data" for a clean slate.
+- Logout keeps `whatszori.db` and the media. Settings → About has a separate "Delete local data" (with a confirmation) that logs out, then empties our tables and the media folder.
+- The login QR is rendered with `uqr` (MIT, no dependencies) as one SVG path with error correction L, like WhatsApp Web. The fake QR is gone; the mock's random code renders as a real QR too.
+- Toasts are a small store plus one component: bottom centre, at most three, deduplicated, gone after 5–7 s. There was no toast UI before.
+- Typing notifications: `composing` at most every 8 s while keys are pressed, `paused` after 5 s idle, on send, and on leaving the chat.
+- `auth.getConnState()` was added because `conn:state` events emitted before the UI subscribed are lost; the UI asks once on start.

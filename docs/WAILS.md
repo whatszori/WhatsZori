@@ -1,9 +1,8 @@
 # Desktop app (Wails)
 
 WhatsZori runs as a native desktop app on [Wails v3](https://v3.wails.io) (3.1.0). Go owns the
-window, settings, OS integration and the asset paths for themes and plugins. The React app in
-`frontend/` is embedded into the binary. WhatsApp itself (login, chats, messages) still comes from
-the frontend mock; see [STATUS.md](STATUS.md).
+window, settings, OS integration, the asset paths, and WhatsApp itself (whatsmeow + SQLite, see
+[BACKEND.md](BACKEND.md)). The React app in `frontend/` is embedded into the binary.
 
 ## Setup
 
@@ -84,11 +83,13 @@ The config folder is `os.UserConfigDir()` + `whatszori`:
 Inside it:
 
 ```
-settings.json    app settings ("app"), window state ("window"); written atomically
+settings.json    app settings ("app"), ghost mode ("privacy"), window state ("window"); written atomically
+session.db       whatsmeow's own store: keys and device (never touched by our migrations)
+whatszori.db     our chats, messages, edit history, reactions, receipts, media index
 boot.pending     exists while a start hasn't been confirmed yet (see safe mode)
 themes/          user CSS themes, served at /wz-themes/
 plugins/         plugin folders, served at /wz-plugins/<id>/ (nothing loads them yet)
-media/           reserved for downloaded media (/wz-media/ answers 404 for now)
+media/           downloaded and sent attachments, served at /wz-media/<pk>
 ```
 
 Set `WHATSZORI_CONFIG_DIR` to use a different folder, for example to try a build without
@@ -101,6 +102,7 @@ touching your real settings. WebView2 keeps its own data (localStorage, cache) i
 | --- | --- |
 | `--safe-mode` | Start in safe mode on purpose. |
 | `WHATSZORI_CONFIG_DIR` | Override the config folder. |
+| `WHATSZORI_NO_CONNECT` | Set to `1` to keep the WhatsApp client offline (no QR, no reconnect). For smoke tests and UI work without talking to WhatsApp. |
 | `WHATSZORI_WEBVIEW_DEBUG_PORT` | Opens the WebView2 DevTools protocol on that port, so Playwright can drive the real app with `chromium.connectOverCDP('http://127.0.0.1:<port>')`. Windows only. |
 
 ## Go layout
@@ -117,11 +119,9 @@ internal/
   systheme/             OS accent and light/dark: windows, linux (portal/gsettings), darwin stub
   themes/               CSS theme listing, header parsing, fsnotify watcher
   assets/               middleware for /wz-themes/, /wz-plugins/, /wz-media/
+  core/ wa/ ingest/ privacy/ antispam/ media/ store/ domain/ redact/
+                        the WhatsApp side, see BACKEND.md
 ```
-
-The WhatsApp side will add `internal/wa/` (whatsmeow), `internal/store/` (SQLite) and
-`internal/ingest/` (events into the store) next to these. It will also add services for auth,
-chats and messages, which replace the matching mock services in the frontend's hybrid backend.
 
 ## How the frontend talks to Go
 
@@ -129,11 +129,7 @@ The frontend has one contract, the `Backend` interface in `frontend/src/api/back
 `src/api/index.ts` picks an implementation when the app starts:
 
 - **Desktop app** (the WebView2 / WebKit message bridge is present): `WailsBackend` from
-  `src/api/wails/`. This is the **hybrid** mode.
-  - Go handles `system`, `settings`, `systemTheme`, `userThemes` and `window`.
-  - `auth`, `chats`, `messages`, `profile` and `privacy` still go to the mock, so the app looks
-    and works as before.
-  - Events named `wz:*` come from Go through `Events.On`. The rest come from the mock.
+  `src/api/wails/`. Every service is Go, and every event comes from Go through `Events.On`.
 - **Plain browser** (`npm run dev`), or any URL with `?backend=mock`: the pure `MockBackend`.
   The Wails code is a separate lazy chunk and is never loaded.
 
@@ -146,14 +142,18 @@ Events: the binding generator types method parameters and return values, and it 
 event names (`frontend/bindings/events`). The payload types used by the app are hand-written in
 `src/api/events.ts`. Two checks keep them in sync:
 
-- `internal/events/events_test.go` checks that every Go event name appears in `events.ts`.
-- `src/api/wails/check.ts` fails `tsc` if a payload type's keys stop matching the generated
-  models.
+- `internal/events/events_test.go` checks that every Go event name appears in `events.ts`, and
+  the other way round.
+- `src/api/wails/check.ts` fails `tsc` if a DTO or payload type's keys stop matching the
+  generated models, or the event names stop matching what Go registered.
 
 | Event | Payload | When |
 | --- | --- | --- |
 | `wz:systheme:changed` | `SystemPalette` | OS accent or light/dark changed |
 | `wz:theme:changed` | `{ file, hash }` | a CSS file in `themes/` was written or removed (`hash` empty) |
+
+The WhatsApp events (`auth:*`, `conn:state`, `msg:*`, `chat:*`, `presence`, `sync:progress`,
+`toast`) are listed in [BACKEND.md](BACKEND.md#events).
 
 ### System theme
 
@@ -229,7 +229,7 @@ There is no separate HTTP server:
 | --- | --- |
 | `/wz-themes/<file>` | `<config>/themes/<file>`, with no-cache headers |
 | `/wz-plugins/<id>/<file>` | `<config>/plugins/<id>/<file>` |
-| `/wz-media/<id>` | 404 for now |
+| `/wz-media/<pk>` | a message's attachment from `<config>/media` (Range requests, download on demand, thumbnail fallback; see BACKEND.md) |
 
 Paths are checked before they reach the disk:
 
