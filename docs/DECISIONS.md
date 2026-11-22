@@ -12,3 +12,23 @@ One line each, with the reason.
 - Tooltip wraps its trigger in an inline-flex span instead of `cloneElement`, to avoid ref juggling that the react-hooks compiler rules flag.
 - One global layer stack (`ui/layers.ts`) owns Esc: it listens in capture phase and closes only the topmost menu, popover or dialog, so Esc in the composer only cancels reply/edit when nothing is open.
 - Ctrl is matched as Ctrl *or* Cmd, so the same shortcuts work in a future macOS build.
+- Backend is a `Backend` interface grouped into services (`auth`, `chats`, `messages`, `privacy`, `settings`) plus `on(event)`, matching how Wails binds Go services. UI code only imports `backend` from `src/api`; swapping the mock for Wails bindings is a one-file change in `api/index.ts`.
+- Message identity is a local `pk` (numeric string from our own store), not the WA message id, because WA ids aren't unique across chats. Pages are fetched with `beforePk`.
+- The mock persists login state, settings and ghost mode to `localStorage` (so reloads keep you logged in), but chats and messages are regenerated from a fixed seed on each load. That keeps screenshots reproducible.
+- `?demo=1` turns on the event simulator, the demo plugin registrations and a small dev panel (simulator toggle, fake connection state). Without it the app is quiet.
+- The simulator prefers the chat that was last opened (the mock treats `markRead` as "the user is looking at this"), so live edits and deletes show up where you're looking. The conversation calls `markRead` on every open for this reason; the real backend can no-op it when there's nothing unread.
+- Message "tail" is a tighter corner on the last bubble of a run rather than a drawn tail shape. It reads as a tail but stays quiet.
+- Day separators: inline pills in the list plus a floating "current day" pill that shows only while the user scrolls. True sticky headers don't combine well with a virtualized, measured list.
+- Older messages load when scrolled within 600px of the top; scroll position is restored from "distance from bottom", which works with measured, variable-height rows.
+- Quote click: loads older pages until the target is in memory (`ensureLoaded`), then centers and flashes it.
+- Mock edit window is 15 minutes, like WhatsApp; Up arrow on an empty composer only edits your last text message inside that window.
+- Delete for everyone asks for confirmation in a dialog. The dialog text admits that clients with anti-delete (like this one) may still show it.
+- Settings is a full view in the main pane, with the chat list still visible on the left. Esc and Ctrl+, close it.
+- Plugin-facing types (`plugin-core/types.ts`) only import `ComponentType` from React. Plugins get narrow `PluginMessage` / `PluginChat` shapes built by adapters, not our internal DTOs, so internals can change without breaking plugins.
+- The `settings.sections` slot renders inside Settings → Plugins under "Plugin settings", and that group is hidden when nothing registered.
+- The QR code is a fake grid with the right look (finder patterns, quiet zone), drawn as SVG. It stays dark-on-white in dark mode because phones scan inverted codes poorly. Clicking it simulates a scan in the mock.
+- The emoji button opens a small fixed grid; a real picker is out of scope for this pass.
+- Attach and "Open folder" buttons are present but do nothing until the Go side exists.
+- External links in messages use `target="_blank"`. Under Wails they'll need to go through `BrowserOpenURL`, which is a backend concern.
+- Two ESLint warnings remain from `react-hooks/incompatible-library` on `useVirtualizer` (TanStack Virtual can't be memoized by the React Compiler). They're warnings, not errors, and expected for that library.
+- Screenshots were taken with `playwright-core` driving the system Edge install (no browser download), from a script kept outside the repo so the project has no Playwright dependency.
