@@ -9,6 +9,81 @@ import type {} from "../github.com/wailsapp/wails/v3/internal/eventdata.js";
 import "../github.com/wailsapp/wails/v3/internal/eventcreate.js";
 
 /**
+ * Name of the custom event "auth:error".
+ */
+export const AuthError = "auth:error";
+
+/**
+ * Name of the custom event "auth:qr".
+ */
+export const AuthQr = "auth:qr";
+
+/**
+ * Name of the custom event "auth:state".
+ */
+export const AuthState = "auth:state";
+
+/**
+ * Name of the custom event "chat:removed".
+ */
+export const ChatRemoved = "chat:removed";
+
+/**
+ * Name of the custom event "chat:typing".
+ */
+export const ChatTyping = "chat:typing";
+
+/**
+ * Name of the custom event "chat:update".
+ */
+export const ChatUpdate = "chat:update";
+
+/**
+ * Name of the custom event "conn:state".
+ */
+export const ConnState = "conn:state";
+
+/**
+ * Name of the custom event "msg:batch".
+ */
+export const MsgBatch = "msg:batch";
+
+/**
+ * Name of the custom event "msg:deleted".
+ */
+export const MsgDeleted = "msg:deleted";
+
+/**
+ * Name of the custom event "msg:edited".
+ */
+export const MsgEdited = "msg:edited";
+
+/**
+ * Name of the custom event "msg:reaction".
+ */
+export const MsgReaction = "msg:reaction";
+
+/**
+ * Name of the custom event "msg:status".
+ */
+export const MsgStatus = "msg:status";
+
+/**
+ * Name of the custom event "presence".
+ */
+export const Presence = "presence";
+
+/**
+ * Name of the custom event "sync:progress".
+ */
+export const SyncProgress = "sync:progress";
+
+/**
+ * Name of the custom event "toast".
+ */
+export const Toast = "toast";
+
+/**
  * Name of the custom event "wz:systheme:changed".
  */
 export const WzSysthemeChanged = "wz:systheme:changed";

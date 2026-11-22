@@ -7,6 +7,9 @@ import type { Events } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import type * as domain$0 from "../../../../whatszori/WhatsZori/internal/domain/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import type * as systheme$0 from "../../../../whatszori/WhatsZori/internal/systheme/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -15,6 +18,21 @@ import type * as themes$0 from "../../../../whatszori/WhatsZori/internal/themes/
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
+            "auth:error": domain$0.AuthErrorEvent;
+            "auth:qr": domain$0.QRPayload;
+            "auth:state": domain$0.AuthStatus;
+            "chat:removed": domain$0.ChatRemovedEvent;
+            "chat:typing": domain$0.TypingEvent;
+            "chat:update": domain$0.ChatUpdateEvent;
+            "conn:state": domain$0.ConnStateEvent;
+            "msg:batch": domain$0.MsgBatchEvent;
+            "msg:deleted": domain$0.MsgDeletedEvent;
+            "msg:edited": domain$0.MsgEditedEvent;
+            "msg:reaction": domain$0.MsgReactionEvent;
+            "msg:status": domain$0.MsgStatusEvent;
+            "presence": domain$0.PresenceEvent;
+            "sync:progress": domain$0.SyncProgressEvent;
+            "toast": domain$0.ToastEvent;
             "wz:systheme:changed": systheme$0.SystemPalette;
             "wz:theme:changed": themes$0.Changed;
         }

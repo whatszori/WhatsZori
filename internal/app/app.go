@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/assets"
 	"github.com/whatszori/WhatsZori/internal/boot"
 	"github.com/whatszori/WhatsZori/internal/config"
+	"github.com/whatszori/WhatsZori/internal/core"
 	"github.com/whatszori/WhatsZori/internal/events"
 	"github.com/whatszori/WhatsZori/internal/services"
 	"github.com/whatszori/WhatsZori/internal/settings"
@@ -68,6 +70,20 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 	}
 	store.Decode(services.KeyWindow, &a.state)
 
+	wa, err := core.New(context.Background(), core.Options{
+		Paths:     cfg.Paths,
+		Settings:  store,
+		Version:   Version,
+		NoConnect: cfg.Flags.NoConnect,
+		Out:       events.Wails{},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if cfg.Flags.NoConnect {
+		slog.Warn("WhatsApp connection disabled", "env", config.EnvNoConnect)
+	}
+
 	// a second launch exits inside application.New (single instance), so nothing below runs for it
 	a.wails = application.New(application.Options{
 		Name:        title,
@@ -78,12 +94,19 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(a.sysTheme),
 			application.NewService(services.NewThemes(cfg.Paths.Themes, events.Wails{})),
 			application.NewService(services.NewWindow(a)),
+			application.NewService(services.NewAuth(wa)),
+			application.NewService(services.NewChats(wa)),
+			application.NewService(services.NewMessages(wa, filePicker{a})),
+			application.NewService(services.NewProfile(wa)),
+			application.NewService(services.NewPrivacy(wa)),
+			application.NewService(services.NewContacts(wa)),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
 			Middleware: assets.Middleware(assets.Options{
 				ThemesDir:  cfg.Paths.Themes,
 				PluginsDir: cfg.Paths.Plugins,
+				Media:      wa.Media.Handler(assets.MediaPrefix),
 				HTMLAttrs:  a.htmlAttrs,
 			}),
 		},
@@ -287,3 +310,9 @@ type shell struct{ a *App }
 
 func (s shell) OpenURL(url string) error     { return s.a.wails.Browser.OpenURL(url) }
 func (s shell) OpenFolder(path string) error { return s.a.wails.Env.OpenFileManager(path, false) }
+
+type filePicker struct{ a *App }
+
+func (p filePicker) PickFile(title string) (string, error) {
+	return p.a.wails.Dialog.OpenFile().SetTitle(title).AttachToWindow(p.a.window).PromptForSingleSelection()
+}

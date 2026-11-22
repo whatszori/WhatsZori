@@ -14,7 +14,8 @@ const (
 	KeyWindow = "window"
 )
 
-var goOwnedKeys = map[string]bool{KeyWindow: true}
+// "privacy" is ghost mode; it goes through the Privacy service so the gate sees every change
+var goOwnedKeys = map[string]bool{KeyWindow: true, "privacy": true}
 
 type Settings struct {
 	store *settings.Store

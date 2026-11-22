@@ -22,6 +22,10 @@ type Paths struct {
 func (p Paths) SettingsFile() string { return filepath.Join(p.Root, "settings.json") }
 func (p Paths) BootMarker() string   { return filepath.Join(p.Root, "boot.pending") }
 
+// SessionDB is whatsmeow's own store (keys, device); DataDB is ours (chats, messages, media).
+func (p Paths) SessionDB() string { return filepath.Join(p.Root, "session.db") }
+func (p Paths) DataDB() string    { return filepath.Join(p.Root, "whatszori.db") }
+
 // Dir maps the folder kinds the frontend knows about to real paths.
 func (p Paths) Dir(kind string) (string, bool) {
 	switch kind {
@@ -37,8 +41,13 @@ func (p Paths) Dir(kind string) (string, bool) {
 	return "", false
 }
 
+// EnvNoConnect keeps the WhatsApp client offline (no QR, no reconnect). For smoke-testing a build
+// without talking to WhatsApp.
+const EnvNoConnect = "WHATSZORI_NO_CONNECT"
+
 type Flags struct {
-	SafeMode bool
+	SafeMode  bool
+	NoConnect bool
 }
 
 type Config struct {
@@ -59,7 +68,11 @@ func Load(args []string) (Config, error) {
 	if err := paths.Ensure(); err != nil {
 		return Config{}, err
 	}
-	return Config{Paths: paths, Flags: ParseFlags(args)}, nil
+	flags := ParseFlags(args)
+	if v := os.Getenv(EnvNoConnect); v != "" && v != "0" {
+		flags.NoConnect = true
+	}
+	return Config{Paths: paths, Flags: flags}, nil
 }
 
 func NewPaths(root string) Paths {
