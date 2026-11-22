@@ -3,6 +3,7 @@ package events
 import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
+	"github.com/whatszori/WhatsZori/internal/domain"
 	"github.com/whatszori/WhatsZori/internal/systheme"
 	"github.com/whatszori/WhatsZori/internal/themes"
 )
@@ -11,15 +12,50 @@ import (
 const (
 	SystemThemeChanged = "wz:systheme:changed"
 	ThemeChanged       = "wz:theme:changed"
+
+	AuthQR       = "auth:qr"
+	AuthState    = "auth:state"
+	AuthError    = "auth:error"
+	ConnState    = "conn:state"
+	MsgBatch     = "msg:batch"
+	MsgStatus    = "msg:status"
+	MsgEdited    = "msg:edited"
+	MsgDeleted   = "msg:deleted"
+	MsgReaction  = "msg:reaction"
+	ChatUpdate   = "chat:update"
+	ChatRemoved  = "chat:removed"
+	Presence     = "presence"
+	ChatTyping   = "chat:typing"
+	SyncProgress = "sync:progress"
+	Toast        = "toast"
 )
 
 // All lists every event name, for the sync test.
-var All = []string{SystemThemeChanged, ThemeChanged}
+var All = []string{
+	SystemThemeChanged, ThemeChanged,
+	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction,
+	ChatUpdate, ChatRemoved, Presence, ChatTyping, SyncProgress, Toast,
+}
 
 func init() {
 	// registered events are type-checked on emit, and the binding generator sees them
 	application.RegisterEvent[systheme.SystemPalette](SystemThemeChanged)
 	application.RegisterEvent[themes.Changed](ThemeChanged)
+	application.RegisterEvent[domain.QRPayload](AuthQR)
+	application.RegisterEvent[domain.AuthStatus](AuthState)
+	application.RegisterEvent[domain.AuthErrorEvent](AuthError)
+	application.RegisterEvent[domain.ConnStateEvent](ConnState)
+	application.RegisterEvent[domain.MsgBatchEvent](MsgBatch)
+	application.RegisterEvent[domain.MsgStatusEvent](MsgStatus)
+	application.RegisterEvent[domain.MsgEditedEvent](MsgEdited)
+	application.RegisterEvent[domain.MsgDeletedEvent](MsgDeleted)
+	application.RegisterEvent[domain.MsgReactionEvent](MsgReaction)
+	application.RegisterEvent[domain.ChatUpdateEvent](ChatUpdate)
+	application.RegisterEvent[domain.ChatRemovedEvent](ChatRemoved)
+	application.RegisterEvent[domain.PresenceEvent](Presence)
+	application.RegisterEvent[domain.TypingEvent](ChatTyping)
+	application.RegisterEvent[domain.SyncProgressEvent](SyncProgress)
+	application.RegisterEvent[domain.ToastEvent](Toast)
 }
 
 type Emitter interface {
