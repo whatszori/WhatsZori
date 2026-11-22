@@ -93,6 +93,6 @@ One line each, with the reason.
 - A start that closes before `BootOK` (about 4 s after mount) counts as failed, on purpose. A UI broken by a plugin usually gets closed quickly too. Safe mode lasts one start.
 - `OpenExternal` only allows http(s) and mailto. Message text is untrusted, and `file:` or custom protocol links could launch programs. In the desktop app, clicks on off-origin links are intercepted and opened in the system browser, instead of letting WebView2 open a second webview.
 - `WHATSZORI_CONFIG_DIR` overrides the config folder, and `WHATSZORI_WEBVIEW_DEBUG_PORT` opens DevTools for Playwright. WebView2's own `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` is ignored because Wails always passes arguments of its own.
-- The app icon is a plain "WZ" in Go Bold on a graphite rounded square (`build/appicon.png`, 1024 px), rendered with a throwaway Go program. It's deliberately neutral; the bubble logo stays the in-app brand.
+- The app icon is the bubble logo, `frontend/public/logo.svg`, rendered to a 1024 px transparent `build/appicon.png` (headless Edge screenshot). The `.ico` is generated from that PNG, so after changing the logo, re-render the PNG and run `wails3 task common:generate:icons`.
 - Build assets were regenerated with `wails3 update build-assets` from `build/config.yml`. The macOS, iOS, Android, Docker and MSIX templates were left out (no target yet), and the Windows installer is NSIS.
 - Vite binds `127.0.0.1`: the Wails dev proxy dials IPv4 only, and Node may bind `localhost` to `::1` on Windows.

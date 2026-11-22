@@ -68,7 +68,7 @@ changing a bound Go method, run `wails3 generate bindings -clean=true -ts -i` (o
 
 ### Icon
 
-`build/appicon.png` is the source. The build turns it into `build/windows/icon.ico`
+`build/appicon.png` is a 1024 px render of `frontend/public/logo.svg`. The build turns it into `build/windows/icon.ico`
 (`wails3 task common:generate:icons`).
 
 ## Where things live

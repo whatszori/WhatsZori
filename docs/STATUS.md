@@ -39,7 +39,7 @@ Everything in the brief is in; nothing was cut.
 - **Safe mode**: a boot sentinel plus `--safe-mode`. In safe mode a banner shows and the (demo)
   plugins stay off.
 - **Links** open in the system browser (http(s) and mailto only).
-- **Icon**: neutral "WZ" monogram in `build/appicon.png`, with a Windows `.ico` generated from it.
+- **Icon**: the bubble logo from `frontend/public/logo.svg`, rendered to `build/appicon.png`, with a Windows `.ico` generated from it.
 - **CI**: `.github/workflows/build.yml` builds Windows and Linux on pushes to `main`. It hasn't run
   yet; nothing has been pushed.
 
