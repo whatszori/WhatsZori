@@ -1,0 +1,49 @@
+/**
+ * @name Dusk
+ * @id dusk
+ * @author WhatsZori
+ * @version 0.1.0
+ * @description Warm greys with a muted amber accent, in both light and dark.
+ */
+
+/* Only --wz-* variables, so it survives app updates. Set both modes: :root and
+   [data-theme='dark'] have the same specificity, so a light-only value leaks into dark. */
+
+:root {
+  --wz-accent: #9a5b2e;
+  --wz-accent-fg: #ffffff;
+
+  --wz-bg-app: #ebe7e2;
+  --wz-bg-primary: #faf8f5;
+  --wz-bg-secondary: #f2eee9;
+  --wz-bg-elevated: #ffffff;
+  --wz-bg-input: #efebe6;
+  --wz-bg-conversation: #f3efea;
+
+  --wz-text-primary: #2a2520;
+  --wz-text-secondary: #5c544b;
+  --wz-text-muted: #7a7168;
+
+  --wz-bubble-in: #ffffff;
+  --wz-logo-accent: #9a5b2e;
+}
+
+[data-theme='dark'] {
+  --wz-accent: #d9a066;
+  --wz-accent-fg: #1e1710;
+
+  --wz-bg-app: #16130f;
+  --wz-bg-primary: #201c18;
+  --wz-bg-secondary: #1b1814;
+  --wz-bg-elevated: #2a2520;
+  --wz-bg-input: #2a2520;
+  --wz-bg-conversation: #1a1713;
+
+  --wz-text-primary: #efe9e2;
+  --wz-text-secondary: #c4bab0;
+  --wz-text-muted: #9a8f84;
+
+  --wz-bubble-in: #29241f;
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 24%, #201c18);
+  --wz-logo-accent: #d9a066;
+}

@@ -35,10 +35,18 @@ Source of truth: [`frontend/src/theme/tokens.css`](../frontend/src/theme/tokens.
 
 Keep text contrast at WCAG AA (4.5:1 for body text) against the surfaces it sits on.
 
+## Single-file themes from disk
+
+In the desktop app, any `.css` file in `<config>/themes/` shows up in Settings → Themes under
+"From your themes folder". One can be on at a time, on top of the bundled themes, and it reloads
+as soon as you save. Start from [`examples/themes/dusk.css`](../examples/themes/dusk.css). The
+header comment (`@name`, `@id`, `@author`, `@version`, `@description`) is optional. Where the
+folder is and how loading works is in [WAILS.md](WAILS.md#themes-from-disk).
+
 ## Theme packages
 
-A theme is a folder. Bundled themes live in `frontend/src/themes/<id>/`. User themes will later
-come from the app's themes folder through the Go side, in the same format.
+A theme package is a folder. Bundled ones live in `frontend/src/themes/<id>/`. Packages don't load
+from disk yet; for now, user themes on disk are single CSS files (see above).
 
 ```
 themes/adwaita/

@@ -1,7 +1,8 @@
 # Frontend status
 
-State of `frontend/` after the first build-out. Everything runs against a typed mock backend; there
-is no Go code yet.
+State of `frontend/`. In a browser it runs against a typed mock backend; inside the desktop app
+it runs in hybrid mode (Go for system bits, the mock for WhatsApp). See [STATUS.md](STATUS.md) for
+the whole app and [WAILS.md](WAILS.md) for the desktop side.
 
 ## How to run
 
@@ -28,7 +29,7 @@ Useful URLs:
   Settings → About → Log out, or clear site data.
 
 All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DECISIONS.md),
-`test` (33 tests), `build`.
+`test` (45 tests), `build`.
 
 ## Done
 
@@ -76,7 +77,7 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   editing and restored after), emoji grid stub, send button that activates when there is text,
   and a plugin slot.
 - **Settings**:
-  - Appearance: theme, 6 accent presets plus a custom color, "Use system accent" (mocked),
+  - Appearance: theme, 6 accent presets plus a custom color, "Use system accent" (live OS accent in the desktop app),
     density, text size, and a live preview.
   - Privacy / ghost mode: hide online, hide typing, read receipts (Always / Never / On reply),
     with the note that delivery receipts can't be hidden.
@@ -136,28 +137,29 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 
 - The whole backend (`src/api/mock`). Chats and messages reset on reload; only login, settings and
   ghost mode persist.
-- The QR code isn't a real QR. "Use system accent" uses a fixed color (`MOCK_SYSTEM_ACCENT`).
-- These buttons do nothing yet: attach, plugin/theme "Open folder", and play on voice/video.
+- The QR code isn’t a real QR. In a browser, "Use system accent" uses a fixed color
+  (`MOCK_SYSTEM_ACCENT`); the desktop app reads the real one.
+- These buttons do nothing yet: attach and play on voice/video. "Open folder" works in the desktop
+  app and is disabled in a browser.
 - Media are placeholders sized from the real aspect ratio; no thumbnails yet.
 - Emoji picker is a fixed 24-emoji grid.
 - Ghost-mode settings are stored but have no effect beyond the mock.
-- The plugin list is a hard-coded placeholder; nothing loads plugins yet. Themes load only from
-  the bundled `src/themes/` folder, not yet from a user folder on disk.
+- The plugin list is a hard-coded placeholder; nothing loads plugins yet. Single-file CSS themes
+  load from the user's themes folder in the desktop app; bundled packages still come from
+  `src/themes/`.
 - Full-text message search exists in the backend (`messages.search`), but there is no search
   results UI. The sidebar search filters chats by name and last message only.
 
 ## Next
 
-1. Go/Wails side: implement `Backend` on top of the Wails bindings (`src/api/wails.ts`) and switch
-   `api/index.ts` to it. Map whatsmeow events onto `BackendEvents`.
+1. whatsmeow on the Go side: move auth, chats, messages, profile and privacy from the mock to Go
+   services one at a time (the hybrid `WailsBackend` already routes per service).
 2. Real QR rendering from the whatsmeow payload (a small QR encoder, no network).
 3. Send typing/presence through the backend while respecting ghost mode; read receipts on reply.
 4. Media: thumbnails, download/open, attach flow, voice playback.
 5. Message search results UI (in-chat search, plus global results in the sidebar).
 6. Plugin loader: load plugin bundles, build `PluginContext`, settings persistence per plugin.
    Move `plugin-core/types.ts` into plugin-sdk.
-7. Themes from disk: have the Go side read the user's themes folder and hand over the same
-   `ThemePackage` shape that `themes/registry.ts` builds for bundled themes.
+7. Theme packages (folder + manifest) from disk, next to the single-file themes that already load.
 8. Component tests for the message list and composer (React Testing Library), and a Playwright
-   smoke test in the repo once CI exists.
-9. Push the Windows accent color from Go into the "Use system accent" option.
+   smoke test (the desktop app can be driven over CDP, see WAILS.md).
