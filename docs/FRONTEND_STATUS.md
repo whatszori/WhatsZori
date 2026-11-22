@@ -94,6 +94,18 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   Screenshots: `screenshots/winui-*.png`. Built-in **Classic Green** theme (familiar
   desktop-messenger look: icon rail, green accent, tailed bubbles, floating composer) has 5 modules
   and switches the app to the rail layout. Screenshots: `screenshots/classic-*.png`.
+- **Profile** (Settings → Profile, or the avatar at the bottom of the rail): your name and about
+  line, editable in place, and your phone number. About stays app info.
+- **Contact / group info panel**: click the chat header (or ⋮ → Contact info).
+  - Big avatar, phone or member count, and quick Mute / Pin / Archive buttons.
+  - About line or group description.
+  - Media, links and docs with the last 6 photos and videos; clicking one jumps to that message.
+  - "Kept by WhatsZori" counts of deleted messages kept and edited messages.
+  - Mute toggle.
+  - Groups: member list with admin badges and search; clicking a member opens their chat.
+    Footer shows who created the group and when.
+  - Screenshots: `screenshots/contact-info-*.png`, `group-info-members-dark.png`,
+    `profile-dark.png`.
 - **Two layouts** (Settings → Appearance → Window layout): *Panels* (sidebar + content, settings in
   the content area) and *Rail* (icon rail with Chats / Calls / Status / Archived / Settings /
   profile, settings inside the sidebar with a searchable section list, ⋮ menu and a "+" button in

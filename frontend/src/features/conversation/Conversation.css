@@ -21,6 +21,12 @@
   min-width: 0;
 }
 
+.wz-conv-header__text,
+.wz-conv-header__name,
+.wz-conv-header__status {
+  display: block;
+}
+
 .wz-conv-header__name {
   overflow: hidden;
   white-space: nowrap;

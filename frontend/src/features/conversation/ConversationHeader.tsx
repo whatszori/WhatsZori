@@ -5,6 +5,7 @@ import {
   Bell,
   BellOff,
   CheckCheck,
+  Info,
   MoreVertical,
   Pin,
   PinOff,
@@ -13,6 +14,7 @@ import type { Chat } from '../../api';
 import { formatLastSeen, pluralize } from '../../lib/format';
 import { PluginSlot } from '../../plugin-core/slots';
 import { useChats } from '../../stores/chats';
+import { useUI } from '../../stores/ui';
 import { Avatar, IconButton, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { toPluginChat } from './plugin-adapters';
 
@@ -37,11 +39,19 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
   const typingMap = useChats((s) => s.typing[chat.jid]);
   const typing = typingMap ? Object.values(typingMap) : [];
   const status = statusLine(chat, typing);
+  const infoOpen = useUI((s) => s.chatInfoOpen);
   const [menu, setMenu] = useState<PopoverAnchor | null>(null);
   const close = useCallback(() => setMenu(null), []);
   const chats = useChats.getState();
 
   const items: MenuEntry[] = [
+    {
+      id: 'info',
+      label: chat.isGroup ? 'Group info' : 'Contact info',
+      icon: <Info />,
+      onSelect: () => useUI.getState().setChatInfoOpen(true),
+    },
+    { kind: 'separator', id: 's-info' },
     {
       id: 'pin',
       label: chat.pinned ? 'Unpin chat' : 'Pin chat',
@@ -65,16 +75,24 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
 
   return (
     <header className="wz-conv-header">
-      <Avatar name={chat.name} size={36} group={chat.isGroup} />
-      <div className="wz-conv-header__text">
-        <h2 className="wz-conv-header__name">{chat.name}</h2>
-        <p
-          className={`wz-conv-header__status${status.accent ? ' wz-conv-header__status--accent' : ''}`}
-          aria-live="polite"
-        >
-          {status.text}
-        </p>
-      </div>
+      <button
+        type="button"
+        className="wz-conv-header__identity"
+        aria-label={`${chat.name}, ${chat.isGroup ? 'group' : 'contact'} info`}
+        aria-expanded={infoOpen}
+        onClick={() => useUI.getState().setChatInfoOpen(!infoOpen)}
+      >
+        <Avatar name={chat.name} size={36} group={chat.isGroup} />
+        <span className="wz-conv-header__text">
+          <span className="wz-conv-header__name">{chat.name}</span>
+          <span
+            className={`wz-conv-header__status${status.accent ? ' wz-conv-header__status--accent' : ''}`}
+            aria-live="polite"
+          >
+            {status.text}
+          </span>
+        </span>
+      </button>
       <div className="wz-conv-header__actions">
         <PluginSlot name="chat.header.actions" props={{ chat: toPluginChat(chat) }} />
         <IconButton

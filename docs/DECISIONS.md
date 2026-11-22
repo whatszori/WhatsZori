@@ -48,4 +48,10 @@ One line each, with the reason.
 - The chat list ⋮ menu only has actions that work (archived, mark all read, settings, log out). New group, starred messages, select chats and app lock were left out rather than shown dead.
 - Classic Green copies the layout, palette and bubble shapes of the official desktop client but not its logo, name or doodle wallpaper (their artwork); it uses our own dot pattern instead. The light accent is darkened to `#178048` so white text on it passes AA.
 - Avatars for names that are just a phone number show a person silhouette instead of digits.
+- Profile (your name, about, phone) is its own settings section and backend service (`profile.get/setName/setAbout`), separate from About (app version, disclaimer, links). `Me` in auth stays the account identity; `Profile` is what others see.
+- The rail avatar opens Profile directly (`openSettings('profile', true)`); the settings gear opens the section list.
+- Profile fields edit in place. While editing, Esc cancels the edit only (the field registers its own layer), a second Esc leaves the page.
+- Contact / group info is a panel to the right of the conversation, opened by clicking the header (or ⋮ → Contact info). Under 1100px wide it floats over the conversation instead of squeezing it. It closes when you switch chats and on Esc.
+- Info data comes from a new `chats.getInfo(jid)`: about/description, phone, members with admin flags, media/doc/link counts, the 6 latest photos/videos, and counts of what anti-delete and edit history kept. It's refetched when the chat's last message changes.
+- The info panel only offers actions that work today: mute, pin, archive, jump to media, open a member's chat, member search. Block, report, clear/export chat, leave group, disappearing messages and invite links need the Go side and were left out rather than shown dead. Instead there's a "Kept by WhatsZori" section with the anti-delete and edit-history counts for the chat.
 - Vitest turns CSS imports (even `?raw`) into empty strings, so the theme test only checks that every file a manifest lists exists.
