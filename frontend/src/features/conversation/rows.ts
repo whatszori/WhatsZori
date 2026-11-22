@@ -29,7 +29,12 @@ export function buildRows(messages: Message[], now = Date.now()): ListRow[] {
     const prev = messages[i - 1];
     const next = messages[i + 1];
     if (!prev || !isSameDay(prev.timestamp, m.timestamp)) {
-      rows.push({ type: 'day', key: `day-${m.pk}`, label: formatDay(m.timestamp, now), ts: m.timestamp });
+      rows.push({
+        type: 'day',
+        key: `day-${m.pk}`,
+        label: formatDay(m.timestamp, now),
+        ts: m.timestamp,
+      });
     }
     rows.push({
       type: 'msg',

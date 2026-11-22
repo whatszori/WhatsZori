@@ -1,6 +1,14 @@
 import type { ReactNode } from 'react';
 
-export function Page({ title, lead, children }: { title: string; lead?: string; children: ReactNode }) {
+export function Page({
+  title,
+  lead,
+  children,
+}: {
+  title: string;
+  lead?: string;
+  children: ReactNode;
+}) {
   return (
     <section>
       <h2 className="wz-settings-page__title">{title}</h2>

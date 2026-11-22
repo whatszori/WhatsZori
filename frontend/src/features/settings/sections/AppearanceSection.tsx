@@ -62,14 +62,21 @@ export function AppearanceSection() {
             ]}
           />
         </Row>
-        <Row label="Accent color" description="Used for selection, your messages and badges." id="wz-accent-label" stack>
+        <Row
+          label="Accent color"
+          description="Used for selection, your messages and badges."
+          id="wz-accent-label"
+          stack
+        >
           <div className="wz-swatches" role="radiogroup" aria-labelledby="wz-accent-label">
             {ACCENT_PRESETS.map((p) => (
               <button
                 key={p.id}
                 type="button"
                 role="radio"
-                aria-checked={!a.useSystemAccent && (a.accent === p.id || (!a.accent && p.id === 'slate'))}
+                aria-checked={
+                  !a.useSystemAccent && (a.accent === p.id || (!a.accent && p.id === 'slate'))
+                }
                 aria-label={p.name}
                 title={p.name}
                 disabled={a.useSystemAccent}
@@ -81,7 +88,11 @@ export function AppearanceSection() {
             <label
               className="wz-swatch wz-swatch--custom"
               title="Custom color"
-              style={isCustom ? { ['--wz-swatch' as string]: a.accent!, background: a.accent! } : undefined}
+              style={
+                isCustom
+                  ? { ['--wz-swatch' as string]: a.accent!, background: a.accent! }
+                  : undefined
+              }
             >
               {!isCustom && <Pipette size={14} strokeWidth={1.75} />}
               <input

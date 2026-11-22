@@ -71,7 +71,10 @@ describe('messages store', () => {
   beforeEach(() => useMessages.setState({ byChat: {} }));
 
   it('merges by pk and keeps chronological order', () => {
-    const merged = mergeByPk([msg('1', 10), msg('3', 30)], [msg('2', 20), msg('3', 30, { text: 'x' })]);
+    const merged = mergeByPk(
+      [msg('1', 10), msg('3', 30)],
+      [msg('2', 20), msg('3', 30, { text: 'x' })],
+    );
     expect(merged.map((m) => m.pk)).toEqual(['1', '2', '3']);
     expect(merged[2].text).toBe('x');
   });
@@ -91,7 +94,9 @@ describe('messages store', () => {
 
   it('keeps content on delete unless purged', () => {
     useMessages.setState({
-      byChat: { a: { items: [msg('1', 1), msg('2', 2)], hasMore: false, loading: false, loaded: true } },
+      byChat: {
+        a: { items: [msg('1', 1), msg('2', 2)], hasMore: false, loading: false, loaded: true },
+      },
     });
     const d = { byJid: 'a', byName: 'A', at: 5 };
     useMessages.getState().applyDelete('a', '1', d, false);
@@ -108,7 +113,9 @@ describe('messages store', () => {
     expect(canEdit(msg('1', now - 60_000, { fromMe: true }), now)).toBe(true);
     expect(canEdit(msg('1', now - 20 * 60_000, { fromMe: true }), now)).toBe(false);
     expect(canEdit(msg('1', now, { fromMe: false }), now)).toBe(false);
-    expect(canEdit(msg('1', now, { fromMe: true, deleted: { byJid: '', byName: '', at: 0 } }), now)).toBe(false);
+    expect(
+      canEdit(msg('1', now, { fromMe: true, deleted: { byJid: '', byName: '', at: 0 } }), now),
+    ).toBe(false);
   });
 });
 
@@ -121,7 +128,10 @@ describe('composer state', () => {
     ui.startEdit('a', '9', 'old text');
     expect(composerFor(useUI.getState(), 'a')).toMatchObject({ draft: 'old text', editing: '9' });
     useUI.getState().cancelComposerMode('a');
-    expect(composerFor(useUI.getState(), 'a')).toMatchObject({ draft: 'half-written', editing: null });
+    expect(composerFor(useUI.getState(), 'a')).toMatchObject({
+      draft: 'half-written',
+      editing: null,
+    });
   });
 
   it('keeps drafts per chat and clears edit when replying', () => {
@@ -130,7 +140,11 @@ describe('composer state', () => {
     ui.setDraft('b', 'for b');
     ui.startEdit('a', '1', 'edit');
     useUI.getState().startReply('a', '2');
-    expect(composerFor(useUI.getState(), 'a')).toMatchObject({ draft: 'for a', replyTo: '2', editing: null });
+    expect(composerFor(useUI.getState(), 'a')).toMatchObject({
+      draft: 'for a',
+      replyTo: '2',
+      editing: null,
+    });
     expect(composerFor(useUI.getState(), 'b').draft).toBe('for b');
   });
 });

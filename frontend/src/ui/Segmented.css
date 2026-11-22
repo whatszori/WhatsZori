@@ -32,7 +32,9 @@
 .wz-segmented__item--selected {
   background: var(--wz-bg-primary);
   color: var(--wz-text-primary);
-  box-shadow: 0 0 0 1px var(--wz-border), 0 1px 1px rgb(0 0 0 / 0.04);
+  box-shadow:
+    0 0 0 1px var(--wz-border),
+    0 1px 1px rgb(0 0 0 / 0.04);
 }
 
 [data-theme='dark'] .wz-segmented__item--selected {

@@ -24,10 +24,13 @@ export class Simulator {
 
   private schedule(): void {
     if (!this.running) return;
-    this.timer = window.setTimeout(() => {
-      this.tick();
-      this.schedule();
-    }, this.rng.int(3000, 6000));
+    this.timer = window.setTimeout(
+      () => {
+        this.tick();
+        this.schedule();
+      },
+      this.rng.int(3000, 6000),
+    );
   }
 
   private activeChats(): Chat[] {
@@ -48,7 +51,9 @@ export class Simulator {
   }
 
   private recentIncoming(chat: Chat, filter: (m: Message) => boolean): Message | undefined {
-    const list = (this.be.db.messages.get(chat.jid) ?? []).slice(-15).filter((m) => !m.fromMe && filter(m));
+    const list = (this.be.db.messages.get(chat.jid) ?? [])
+      .slice(-15)
+      .filter((m) => !m.fromMe && filter(m));
     return list.length ? this.rng.pick(list) : undefined;
   }
 
@@ -65,32 +70,55 @@ export class Simulator {
 
   private incoming(chat: Chat): void {
     const who = this.sender(chat);
-    this.be.emit('chat:typing', { chatJid: chat.jid, senderJid: who.jid, senderName: who.name, typing: true });
-    window.setTimeout(() => {
-      this.be.emit('chat:typing', { chatJid: chat.jid, senderJid: who.jid, senderName: who.name, typing: false });
-      const m: Message = {
-        pk: String(this.be.db.nextPk++),
-        id: `3EB0SIM${this.be.db.nextPk}`,
-        chatJid: chat.jid,
-        senderJid: who.jid,
-        senderName: who.name,
-        fromMe: false,
-        timestamp: Date.now(),
-        kind: 'text',
-        text: this.rng.pick(INCOMING_DEMO),
-        reactions: [],
-      };
-      this.be.insert(m);
-      this.be.emit('msg:batch', { messages: [structuredClone(m)] });
-    }, this.rng.int(1200, 2400));
+    this.be.emit('chat:typing', {
+      chatJid: chat.jid,
+      senderJid: who.jid,
+      senderName: who.name,
+      typing: true,
+    });
+    window.setTimeout(
+      () => {
+        this.be.emit('chat:typing', {
+          chatJid: chat.jid,
+          senderJid: who.jid,
+          senderName: who.name,
+          typing: false,
+        });
+        const m: Message = {
+          pk: String(this.be.db.nextPk++),
+          id: `3EB0SIM${this.be.db.nextPk}`,
+          chatJid: chat.jid,
+          senderJid: who.jid,
+          senderName: who.name,
+          fromMe: false,
+          timestamp: Date.now(),
+          kind: 'text',
+          text: this.rng.pick(INCOMING_DEMO),
+          reactions: [],
+        };
+        this.be.insert(m);
+        this.be.emit('msg:batch', { messages: [structuredClone(m)] });
+      },
+      this.rng.int(1200, 2400),
+    );
   }
 
   private typingOnly(chat: Chat): void {
     const who = this.sender(chat);
-    this.be.emit('chat:typing', { chatJid: chat.jid, senderJid: who.jid, senderName: who.name, typing: true });
+    this.be.emit('chat:typing', {
+      chatJid: chat.jid,
+      senderJid: who.jid,
+      senderName: who.name,
+      typing: true,
+    });
     window.setTimeout(
       () =>
-        this.be.emit('chat:typing', { chatJid: chat.jid, senderJid: who.jid, senderName: who.name, typing: false }),
+        this.be.emit('chat:typing', {
+          chatJid: chat.jid,
+          senderJid: who.jid,
+          senderName: who.name,
+          typing: false,
+        }),
       this.rng.int(2000, 4000),
     );
   }
@@ -98,8 +126,16 @@ export class Simulator {
   private edit(chat: Chat): void {
     const m = this.recentIncoming(chat, (x) => x.kind === 'text' && !x.deleted && !!x.text);
     if (!m) return this.incoming(chat);
-    const suffix = this.rng.pick([' (edited: typo)', ', sorry', ' — actually make it tomorrow', '!']);
-    this.be.applyEdit(m, m.text.replace(/( \(edited: typo\)|, sorry| — actually make it tomorrow|!)$/, '') + suffix);
+    const suffix = this.rng.pick([
+      ' (edited: typo)',
+      ', sorry',
+      ' — actually make it tomorrow',
+      '!',
+    ]);
+    this.be.applyEdit(
+      m,
+      m.text.replace(/( \(edited: typo\)|, sorry| — actually make it tomorrow|!)$/, '') + suffix,
+    );
   }
 
   private revoke(chat: Chat): void {
@@ -117,7 +153,11 @@ export class Simulator {
     m.reactions = ex
       ? m.reactions.map((x) => (x === ex ? { ...x, count: x.count + 1 } : x))
       : [...m.reactions, { emoji, count: 1, mine: false }];
-    this.be.emit('msg:reaction', { chatJid: chat.jid, pk: m.pk, reactions: structuredClone(m.reactions) });
+    this.be.emit('msg:reaction', {
+      chatJid: chat.jid,
+      pk: m.pk,
+      reactions: structuredClone(m.reactions),
+    });
   }
 
   private presence(): void {

@@ -136,7 +136,9 @@ export const Bubble = memo(function Bubble({
                   onClick={() => onJump(m.replyTo!.pk)}
                   aria-label={`Reply to ${m.replyTo.senderName}: ${m.replyTo.text}. Jump to message`}
                 >
-                  <span className="wz-quote__name">{m.replyTo.fromMe ? 'You' : m.replyTo.senderName}</span>
+                  <span className="wz-quote__name">
+                    {m.replyTo.fromMe ? 'You' : m.replyTo.senderName}
+                  </span>
                   <span className="wz-quote__text">{m.replyTo.text || 'Message'}</span>
                 </button>
               )}
@@ -166,8 +168,8 @@ export const Bubble = memo(function Bubble({
             <div className="wz-bubble__deleted">
               <Trash2 size={13} strokeWidth={1.75} aria-hidden="true" />
               <span>
-                Deleted by {m.deleted.byJid === m.senderJid && m.fromMe ? 'you' : m.deleted.byName} ·{' '}
-                {formatTime(m.deleted.at)}
+                Deleted by {m.deleted.byJid === m.senderJid && m.fromMe ? 'you' : m.deleted.byName}{' '}
+                · {formatTime(m.deleted.at)}
               </span>
             </div>
           )}

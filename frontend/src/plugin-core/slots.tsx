@@ -56,7 +56,10 @@ export function PluginSlot<N extends SlotName>({ name, props, className }: Plugi
       {entries.map((e, i) => {
         const C = e.component as SlotComponent<N>;
         return (
-          <ErrorBoundary key={`${e.pluginId}:${i}`} label={`plugin "${e.pluginId}" in slot ${name}`}>
+          <ErrorBoundary
+            key={`${e.pluginId}:${i}`}
+            label={`plugin "${e.pluginId}" in slot ${name}`}
+          >
             <C {...p} />
           </ErrorBoundary>
         );

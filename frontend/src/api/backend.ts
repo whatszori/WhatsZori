@@ -58,5 +58,8 @@ export interface Backend {
   messages: MessageService;
   privacy: PrivacyService;
   settings: SettingsService;
-  on<E extends BackendEventName>(event: E, handler: (payload: BackendEvents[E]) => void): Unsubscribe;
+  on<E extends BackendEventName>(
+    event: E,
+    handler: (payload: BackendEvents[E]) => void,
+  ): Unsubscribe;
 }

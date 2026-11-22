@@ -207,7 +207,11 @@ export class MockBackend implements Backend {
   }
 
   messages = {
-    getMessages: async (jid: JID, beforePk: MessagePK | null, limit: number): Promise<MessagePage> => {
+    getMessages: async (
+      jid: JID,
+      beforePk: MessagePK | null,
+      limit: number,
+    ): Promise<MessagePage> => {
       await this.wait();
       const list = this.db.messages.get(jid) ?? [];
       let end = list.length;
@@ -288,7 +292,8 @@ export class MockBackend implements Backend {
       for (const [jid, list] of this.db.messages) {
         const chat = this.db.chats.get(jid)!;
         for (const m of list) {
-          if (m.text.toLowerCase().includes(q)) hits.push({ chatJid: jid, chatName: chat.name, message: m });
+          if (m.text.toLowerCase().includes(q))
+            hits.push({ chatJid: jid, chatName: chat.name, message: m });
         }
       }
       hits.sort((a, b) => b.message.timestamp - a.message.timestamp);
@@ -361,7 +366,13 @@ export class MockBackend implements Backend {
     m.text = text;
     m.editedAt = now;
     m.editCount = (m.editCount ?? 0) + 1;
-    this.emit('msg:edited', { chatJid: m.chatJid, pk: m.pk, text, editedAt: now, editCount: m.editCount });
+    this.emit('msg:edited', {
+      chatJid: m.chatJid,
+      pk: m.pk,
+      text,
+      editedAt: now,
+      editCount: m.editCount,
+    });
     refreshChatPreview(this.db, m.chatJid);
     this.emit('chat:update', { chat: clone(this.db.chats.get(m.chatJid)!) });
   }

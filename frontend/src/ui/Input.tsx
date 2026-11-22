@@ -11,7 +11,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   ref,
 ) {
   return (
-    <div className={['wz-input', icon && 'wz-input--with-icon', className].filter(Boolean).join(' ')}>
+    <div
+      className={['wz-input', icon && 'wz-input--with-icon', className].filter(Boolean).join(' ')}
+    >
       {icon && <span className="wz-input__icon">{icon}</span>}
       <input ref={ref} className="wz-input__field" {...rest} />
       {trailing && <span className="wz-input__trailing">{trailing}</span>}

@@ -72,9 +72,11 @@ export const JA = [
 export const LONG_TEXT =
   "Quick summary from today's sync so nobody has to rewatch the recording: we're keeping the release on the 14th, the onboarding flow gets one more round of copy edits, and the settings page ships without the marketplace for now. Mark owns the migration script, I'll handle the release notes, and Sophie is going to double-check the dark theme contrast on the low-end laptops we have in the office. If anything here is wrong, reply in the thread before Wednesday so we can still adjust the plan.";
 
-export const MULTILINE = 'Shopping list for Saturday:\n- coffee beans\n- oat milk\n- tomatoes\n- something for dessert';
+export const MULTILINE =
+  'Shopping list for Saturday:\n- coffee beans\n- oat milk\n- tomatoes\n- something for dessert';
 
-export const LINK_TEXT = 'Here is the doc with the plan https://example.com/whatszori/roadmap — have a look';
+export const LINK_TEXT =
+  'Here is the doc with the plan https://example.com/whatszori/roadmap — have a look';
 
 export const REACTIONS = ['👍', '❤️', '😂', '😮', '🙏', '🔥'];
 

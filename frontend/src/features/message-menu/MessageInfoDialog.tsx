@@ -10,17 +10,29 @@ const STATUS: Record<string, string> = {
   failed: 'Not sent',
 };
 
-export function MessageInfoDialog({ message: m, onClose }: { message: Message | null; onClose: () => void }) {
+export function MessageInfoDialog({
+  message: m,
+  onClose,
+}: {
+  message: Message | null;
+  onClose: () => void;
+}) {
   const rows: [string, string][] = m
     ? [
         ['From', m.fromMe ? 'You' : m.senderName],
         ['Sent', formatDateTime(m.timestamp)],
         ...(m.fromMe && m.status ? ([['Status', STATUS[m.status]]] as [string, string][]) : []),
         ...(m.editedAt
-          ? ([['Last edited', `${formatDateTime(m.editedAt)} (${m.editCount ?? 1}×)`]] as [string, string][])
+          ? ([['Last edited', `${formatDateTime(m.editedAt)} (${m.editCount ?? 1}×)`]] as [
+              string,
+              string,
+            ][])
           : []),
         ...(m.deleted
-          ? ([['Deleted', `${formatDateTime(m.deleted.at)} by ${m.deleted.byName}`]] as [string, string][])
+          ? ([['Deleted', `${formatDateTime(m.deleted.at)} by ${m.deleted.byName}`]] as [
+              string,
+              string,
+            ][])
           : []),
         ['Type', m.kind],
         ['Message ID', m.id],

@@ -21,7 +21,10 @@ export const useSettings = create<SettingsState>((set, get) => ({
   ghost: { ...DEFAULT_GHOST },
   loaded: false,
   async load() {
-    const [settings, ghost] = await Promise.all([backend.settings.get(), backend.privacy.getGhost()]);
+    const [settings, ghost] = await Promise.all([
+      backend.settings.get(),
+      backend.privacy.getGhost(),
+    ]);
     set({ settings, ghost, loaded: true });
   },
   update(fn) {

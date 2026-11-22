@@ -9,7 +9,8 @@ type History = AppSettings['history'];
 export function HistorySection() {
   const h = useSettings((s) => s.settings.history);
   const update = useSettings((s) => s.update);
-  const set = (patch: Partial<History>) => update((s) => ({ ...s, history: { ...s.history, ...patch } }));
+  const set = (patch: Partial<History>) =>
+    update((s) => ({ ...s, history: { ...s.history, ...patch } }));
 
   return (
     <Page title="Anti-delete & history" lead="Keep a local copy of what people delete or change.">

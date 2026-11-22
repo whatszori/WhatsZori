@@ -1,4 +1,13 @@
-import type { Chat, EditVersion, JID, MediaInfo, Me, Message, MessageKind, Reaction } from '../types';
+import type {
+  Chat,
+  EditVersion,
+  JID,
+  MediaInfo,
+  Me,
+  Message,
+  MessageKind,
+  Reaction,
+} from '../types';
 import { createRng, type Rng } from '../../lib/rng';
 import { EN, FILES, JA, LINK_TEXT, LONG_TEXT, MULTILINE, REACTIONS, RU } from './texts';
 
@@ -25,7 +34,14 @@ const SEEDS: ChatSeed[] = [
   { name: 'Anna Petrova', count: 260, pinned: true, ago: 62, online: true },
   {
     name: 'Design team',
-    group: ['Mark Ellison', 'Sophie Laurent', 'Priya Raman', 'Jonas Weber', 'Kenji Watanabe', 'Emma Lindqvist'],
+    group: [
+      'Mark Ellison',
+      'Sophie Laurent',
+      'Priya Raman',
+      'Jonas Weber',
+      'Kenji Watanabe',
+      'Emma Lindqvist',
+    ],
     count: 340,
     pinned: true,
     ago: 34,
@@ -34,7 +50,15 @@ const SEEDS: ChatSeed[] = [
   { name: 'Mark Ellison', count: 60, ago: 75, lastSeenAgo: 70 },
   {
     name: 'Product launch',
-    group: ['Mark Ellison', 'Anna Petrova', 'Ryan Patel', 'Grace Kim', 'Oliver Hughes', 'Mia Rossi', 'Liam O’Connor'],
+    group: [
+      'Mark Ellison',
+      'Anna Petrova',
+      'Ryan Patel',
+      'Grace Kim',
+      'Oliver Hughes',
+      'Mia Rossi',
+      'Liam O’Connor',
+    ],
     count: 300,
     unread: 37,
     ago: 18,
@@ -159,7 +183,11 @@ const SEEDS: ChatSeed[] = [
   { name: 'Mia Rossi', count: 5, archived: true, ago: 70000, lastSeenAgo: 69000 },
 ];
 
-const slug = (s: string) => Array.from(s).map((c) => c.codePointAt(0)!.toString(36)).join('').slice(0, 20);
+const slug = (s: string) =>
+  Array.from(s)
+    .map((c) => c.codePointAt(0)!.toString(36))
+    .join('')
+    .slice(0, 20);
 
 export function jidFor(name: string, group: boolean): JID {
   return group ? `1203630${slug(name)}@g.us` : `${slug(name)}@s.whatsapp.net`;
@@ -188,14 +216,25 @@ function randomMedia(rng: Rng): { kind: MessageKind; media: MediaInfo; text: str
     const landscape = rng.chance(0.6);
     return {
       kind: 'image',
-      media: { width: landscape ? 1600 : 1080, height: landscape ? 1067 : 1440, size: rng.int(200, 3000) * 1000 },
-      text: rng.chance(0.4) ? rng.pick(['From yesterday', 'Look at this', 'The view from the office']) : '',
+      media: {
+        width: landscape ? 1600 : 1080,
+        height: landscape ? 1067 : 1440,
+        size: rng.int(200, 3000) * 1000,
+      },
+      text: rng.chance(0.4)
+        ? rng.pick(['From yesterday', 'Look at this', 'The view from the office'])
+        : '',
     };
   }
   if (r < 0.55) {
     return {
       kind: 'video',
-      media: { width: 1920, height: 1080, duration: rng.int(5, 140), size: rng.int(2000, 40000) * 1000 },
+      media: {
+        width: 1920,
+        height: 1080,
+        duration: rng.int(5, 140),
+        size: rng.int(2000, 40000) * 1000,
+      },
       text: '',
     };
   }
@@ -390,7 +429,13 @@ function addShowcase(db: MockDB, now: number, pk: () => string): void {
   a.push(
     mk(anna, me, 56, {
       text: 'Looks solid. I left a couple of comments on the timeline section.',
-      replyTo: { pk: plan.pk, senderName: plan.senderName, fromMe: false, kind: 'text', text: LINK_TEXT },
+      replyTo: {
+        pk: plan.pk,
+        senderName: plan.senderName,
+        fromMe: false,
+        kind: 'text',
+        text: LINK_TEXT,
+      },
     }),
   );
   const edited = mk(anna, annaP, 52, {
@@ -429,24 +474,48 @@ function addShowcase(db: MockDB, now: number, pk: () => string): void {
       kind: 'voice',
       media: {
         duration: 23,
-        waveform: [0.2, 0.4, 0.6, 0.5, 0.8, 0.9, 0.7, 0.4, 0.3, 0.5, 0.7, 0.9, 1, 0.8, 0.6, 0.4, 0.3, 0.5, 0.6, 0.8, 0.7, 0.5, 0.3, 0.2, 0.4, 0.6, 0.7, 0.5, 0.3, 0.2, 0.3, 0.5, 0.6, 0.4, 0.3, 0.2, 0.3, 0.2, 0.15, 0.1],
+        waveform: [
+          0.2, 0.4, 0.6, 0.5, 0.8, 0.9, 0.7, 0.4, 0.3, 0.5, 0.7, 0.9, 1, 0.8, 0.6, 0.4, 0.3, 0.5,
+          0.6, 0.8, 0.7, 0.5, 0.3, 0.2, 0.4, 0.6, 0.7, 0.5, 0.3, 0.2, 0.3, 0.5, 0.6, 0.4, 0.3, 0.2,
+          0.3, 0.2, 0.15, 0.1,
+        ],
       },
     }),
   );
-  a.push(mk(anna, annaP, 24, { contentUnknown: true, deleted: { byJid: anna, byName: 'Anna Petrova', at: now - 24 * MIN } }));
+  a.push(
+    mk(anna, annaP, 24, {
+      contentUnknown: true,
+      deleted: { byJid: anna, byName: 'Anna Petrova', at: now - 24 * MIN },
+    }),
+  );
   a.push(
     mk(anna, me, 20, {
       text: 'Wait, what did you just delete?',
       deleted: { byJid: ME.jid, byName: 'You', at: now - 19 * MIN },
     }),
   );
-  a.push(mk(anna, me, 18, { text: MULTILINE, reactions: [{ emoji: '😂', count: 1, mine: false }] }));
-  a.push(mk(anna, annaP, 5, { kind: 'video', media: { width: 1080, height: 1920, duration: 14, size: 8_400_000 } }));
+  a.push(
+    mk(anna, me, 18, { text: MULTILINE, reactions: [{ emoji: '😂', count: 1, mine: false }] }),
+  );
+  a.push(
+    mk(anna, annaP, 5, {
+      kind: 'video',
+      media: { width: 1080, height: 1920, duration: 14, size: 8_400_000 },
+    }),
+  );
   a.push(mk(anna, annaP, 3, { text: 'Nothing important. See you at 19:30!' }));
   db.messages.get(anna)!.push(...a);
 
   const d: Message[] = [];
-  d.push(mk(design, mark, 30, { text: LONG_TEXT, reactions: [{ emoji: '🙏', count: 3, mine: true }, { emoji: '👍', count: 2, mine: false }] }));
+  d.push(
+    mk(design, mark, 30, {
+      text: LONG_TEXT,
+      reactions: [
+        { emoji: '🙏', count: 3, mine: true },
+        { emoji: '👍', count: 2, mine: false },
+      ],
+    }),
+  );
   const own = mk(design, me, 26, {
     text: 'I can take the release notes, draft by Tuesday',
     editedAt: now - 25 * MIN,
@@ -463,7 +532,9 @@ function addShowcase(db: MockDB, now: number, pk: () => string): void {
       deleted: { byJid: sophie.jid, byName: 'Sophie Laurent', at: now - 15 * MIN },
     }),
   );
-  d.push(mk(design, sophie, 19, { kind: 'image', media: { width: 1080, height: 1350, size: 920_000 } }));
+  d.push(
+    mk(design, sophie, 19, { kind: 'image', media: { width: 1080, height: 1350, size: 920_000 } }),
+  );
   d.push(mk(design, mark, 9, { text: 'Thanks all, I think we are in good shape' }));
   db.messages.get(design)!.push(...d);
 

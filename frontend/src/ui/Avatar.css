@@ -5,9 +5,7 @@
   justify-content: center;
   flex: none;
   border-radius: 50%;
-  background: hsl(
-    var(--wz-avatar-hue, 220) var(--wz-avatar-saturation) var(--wz-avatar-lightness)
-  );
+  background: hsl(var(--wz-avatar-hue, 220) var(--wz-avatar-saturation) var(--wz-avatar-lightness));
   color: hsl(var(--wz-avatar-hue, 220) 30% var(--wz-avatar-text-lightness));
   font-weight: 600;
   letter-spacing: 0.01em;

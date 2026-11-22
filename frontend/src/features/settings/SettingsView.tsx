@@ -47,7 +47,12 @@ export function SettingsView() {
     <div className="wz-settings">
       <nav className="wz-settings__nav" aria-label="Settings sections">
         <header className="wz-settings__nav-header">
-          <IconButton label="Close settings" hint="Esc" icon={<ArrowLeft size={18} />} onClick={closeSettings} />
+          <IconButton
+            label="Close settings"
+            hint="Esc"
+            icon={<ArrowLeft size={18} />}
+            onClick={closeSettings}
+          />
           <h1 className="wz-settings__title">Settings</h1>
         </header>
         <ul className="wz-settings__list">

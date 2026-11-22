@@ -1,4 +1,5 @@
-export type TextPart = { type: 'text'; value: string } | { type: 'link'; value: string; href: string };
+export type TextPart =
+  { type: 'text'; value: string } | { type: 'link'; value: string; href: string };
 
 const URL_RE = /\b(?:https?:\/\/|www\.)[^\s<>"']+/gi;
 // trailing punctuation usually belongs to the sentence, not the URL

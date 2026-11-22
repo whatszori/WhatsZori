@@ -1,5 +1,14 @@
 import { useCallback, useState } from 'react';
-import { Archive, ArchiveRestore, Bell, BellOff, CheckCheck, MoreVertical, Pin, PinOff } from 'lucide-react';
+import {
+  Archive,
+  ArchiveRestore,
+  Bell,
+  BellOff,
+  CheckCheck,
+  MoreVertical,
+  Pin,
+  PinOff,
+} from 'lucide-react';
 import type { Chat } from '../../api';
 import { formatLastSeen, pluralize } from '../../lib/format';
 import { PluginSlot } from '../../plugin-core/slots';
@@ -12,7 +21,10 @@ function statusLine(chat: Chat, typing: string[]): { text: string; accent: boole
     if (!chat.isGroup) return { text: 'typing…', accent: true };
     const first = typing[0].split(' ')[0];
     return {
-      text: typing.length === 1 ? `${first} is typing…` : `${first} and ${typing.length - 1} more are typing…`,
+      text:
+        typing.length === 1
+          ? `${first} is typing…`
+          : `${first} and ${typing.length - 1} more are typing…`,
       accent: true,
     };
   }
@@ -78,7 +90,14 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
           onClick={(e) => setMenu(e.currentTarget.getBoundingClientRect())}
         />
       </div>
-      <Menu open={!!menu} anchor={menu} onClose={close} items={items} label="Chat actions" placement="bottom-end" />
+      <Menu
+        open={!!menu}
+        anchor={menu}
+        onClose={close}
+        items={items}
+        label="Chat actions"
+        placement="bottom-end"
+      />
     </header>
   );
 }

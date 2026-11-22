@@ -29,6 +29,11 @@ export function MessageList({ chat }: { chat: Chat }) {
   const [menu, setMenu] = useState<{ m: Message; anchor: PopoverAnchor } | null>(null);
   const [history, setHistory] = useState<{ m: Message; anchor: PopoverAnchor } | null>(null);
   const dayTimer = useRef<number | undefined>(undefined);
+  // programmatic scrolls (initial pin, jumps) shouldn't flash the day label
+  const userScrollAt = useRef(0);
+  const markUserScroll = () => {
+    userScrollAt.current = Date.now();
+  };
   const initialScrollDone = useRef(false);
   // distance from the bottom before an older page lands, so we can restore it
   const anchorFromBottom = useRef<number | null>(null);
@@ -112,13 +117,18 @@ export function MessageList({ chat }: { chat: Chat }) {
     if (bottom !== atBottom) setAtBottom(bottom);
     if (bottom && newCount) setNewCount(0);
 
-    if (el.scrollTop < LOAD_OLDER_AT && state?.hasMore && !state.loading && initialScrollDone.current) {
+    if (
+      el.scrollTop < LOAD_OLDER_AT &&
+      state?.hasMore &&
+      !state.loading &&
+      initialScrollDone.current
+    ) {
       anchorFromBottom.current = el.scrollHeight - el.scrollTop;
       void useMessages.getState().loadOlder(jid);
     }
 
     const first = virtualizer.getVirtualItems().find((v) => v.end > el.scrollTop + 8);
-    if (first) {
+    if (first && Date.now() - userScrollAt.current < 1000) {
       const row = rows[first.index];
       // find the day this row belongs to
       let label: string | null = null;
@@ -160,7 +170,10 @@ export function MessageList({ chat }: { chat: Chat }) {
   }, [focus?.nonce]);
 
   const onMenu = useCallback((m: Message, anchor: PopoverAnchor) => setMenu({ m, anchor }), []);
-  const onHistory = useCallback((m: Message, anchor: PopoverAnchor) => setHistory({ m, anchor }), []);
+  const onHistory = useCallback(
+    (m: Message, anchor: PopoverAnchor) => setHistory({ m, anchor }),
+    [],
+  );
   const onJump = useCallback((pk: MessagePK) => useUI.getState().jumpTo(jid, pk), [jid]);
   const onReact = useCallback(
     (m: Message, emoji: string) => void useMessages.getState().react(jid, m.pk, emoji),
@@ -184,6 +197,10 @@ export function MessageList({ chat }: { chat: Chat }) {
         ref={scrollRef}
         className="wz-message-list__scroll"
         onScroll={onScroll}
+        onWheel={markUserScroll}
+        onPointerDown={markUserScroll}
+        onKeyDown={markUserScroll}
+        onTouchMove={markUserScroll}
         role="log"
         aria-label={`Messages with ${chat.name}`}
         aria-live="polite"
@@ -207,7 +224,13 @@ export function MessageList({ chat }: { chat: Chat }) {
                 key={vi.key}
                 data-index={vi.index}
                 ref={virtualizer.measureElement}
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vi.start}px)` }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${vi.start}px)`,
+                }}
               >
                 {row.type === 'day' ? (
                   <div className="wz-day-separator" role="separator" aria-label={row.label}>
@@ -247,7 +270,12 @@ export function MessageList({ chat }: { chat: Chat }) {
         </button>
       )}
 
-      <MessageMenu chat={chat} target={menu} onClose={closeMenu} onShowHistory={(m, a) => setHistory({ m, anchor: a })} />
+      <MessageMenu
+        chat={chat}
+        target={menu}
+        onClose={closeMenu}
+        onShowHistory={(m, a) => setHistory({ m, anchor: a })}
+      />
       <EditHistoryPopover target={history} onClose={closeHistory} />
     </div>
   );

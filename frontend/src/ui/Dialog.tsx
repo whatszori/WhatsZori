@@ -28,7 +28,10 @@ export function Dialog({ open, title, onClose, children, footer, width = 420 }: 
 
   if (!open) return null;
   return createPortal(
-    <div className="wz-dialog__scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="wz-dialog__scrim"
+      onPointerDown={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div
         ref={ref}
         role="dialog"

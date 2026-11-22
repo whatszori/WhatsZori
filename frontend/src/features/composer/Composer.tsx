@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from 'react';
 import { Check, Paperclip, Pencil, Reply, SendHorizontal, Smile, X } from 'lucide-react';
 import type { Chat } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
@@ -8,7 +15,32 @@ import { IconButton, Popover, type PopoverAnchor } from '../../ui';
 import './Composer.css';
 
 const MAX_LINES = 8;
-const EMOJI = ['😀', '😂', '🙂', '😉', '😍', '🤔', '😅', '😢', '😮', '😴', '👍', '👎', '👏', '🙏', '💪', '🎉', '❤️', '🔥', '✅', '👀', '☕', '🍕', '🌧️', '🚀'];
+const EMOJI = [
+  '😀',
+  '😂',
+  '🙂',
+  '😉',
+  '😍',
+  '🤔',
+  '😅',
+  '😢',
+  '😮',
+  '😴',
+  '👍',
+  '👎',
+  '👏',
+  '🙏',
+  '💪',
+  '🎉',
+  '❤️',
+  '🔥',
+  '✅',
+  '👀',
+  '☕',
+  '🍕',
+  '🌧️',
+  '🚀',
+];
 
 export function Composer({ chat }: { chat: Chat }) {
   const jid = chat.jid;
@@ -62,7 +94,9 @@ export function Composer({ chat }: { chat: Chat }) {
       e.preventDefault();
       ui.cancelComposerMode(jid);
     } else if (e.key === 'ArrowUp' && !text && !state.editing && !e.altKey) {
-      const last = [...(items ?? [])].reverse().find((m) => m.fromMe && !m.deleted && m.kind === 'text');
+      const last = [...(items ?? [])]
+        .reverse()
+        .find((m) => m.fromMe && !m.deleted && m.kind === 'text');
       if (last && canEdit(last)) {
         e.preventDefault();
         ui.startEdit(jid, last.pk, last.text);
@@ -82,7 +116,12 @@ export function Composer({ chat }: { chat: Chat }) {
   };
 
   const bar = editMsg ? (
-    <ComposerBar icon={<Pencil size={16} />} title="Editing message" text={editMsg.text} onCancel={() => ui.cancelComposerMode(jid)} />
+    <ComposerBar
+      icon={<Pencil size={16} />}
+      title="Editing message"
+      text={editMsg.text}
+      onCancel={() => ui.cancelComposerMode(jid)}
+    />
   ) : replyMsg ? (
     <ComposerBar
       icon={<Reply size={16} />}
@@ -181,7 +220,14 @@ function ComposerBar({
         <span className="wz-composer__bar-title">{title}</span>
         <span className="wz-composer__bar-preview">{text}</span>
       </div>
-      <IconButton label="Cancel" hint="Esc" size="sm" icon={<X size={16} />} onClick={onCancel} tooltipPlacement="top" />
+      <IconButton
+        label="Cancel"
+        hint="Esc"
+        size="sm"
+        icon={<X size={16} />}
+        onClick={onCancel}
+        tooltipPlacement="top"
+      />
     </div>
   );
 }

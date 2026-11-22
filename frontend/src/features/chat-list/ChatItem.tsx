@@ -20,10 +20,20 @@ function typingText(chat: Chat, typing: Record<JID, string> | undefined): string
   if (names.length === 0) return null;
   if (!chat.isGroup) return 'typing…';
   const first = names[0].split(' ')[0];
-  return names.length === 1 ? `${first} is typing…` : `${first} and ${names.length - 1} more are typing…`;
+  return names.length === 1
+    ? `${first} is typing…`
+    : `${first} and ${names.length - 1} more are typing…`;
 }
 
-export const ChatItem = memo(function ChatItem({ chat, index, avatarSize, active, typing, onOpen, onMenu }: ChatItemProps) {
+export const ChatItem = memo(function ChatItem({
+  chat,
+  index,
+  avatarSize,
+  active,
+  typing,
+  onOpen,
+  onMenu,
+}: ChatItemProps) {
   const last = chat.lastMessage;
   const typingLine = typingText(chat, typing);
 
@@ -37,7 +47,15 @@ export const ChatItem = memo(function ChatItem({ chat, index, avatarSize, active
     onMenu(chat.jid, anchor);
   };
 
-  const prefix = last && (last.fromMe ? (chat.isGroup ? 'You' : null) : chat.isGroup ? last.senderName.split(' ')[0] : null);
+  const prefix =
+    last &&
+    (last.fromMe
+      ? chat.isGroup
+        ? 'You'
+        : null
+      : chat.isGroup
+        ? last.senderName.split(' ')[0]
+        : null);
 
   return (
     <button
@@ -59,16 +77,32 @@ export const ChatItem = memo(function ChatItem({ chat, index, avatarSize, active
       <span className="wz-chat-item__body">
         <span className="wz-chat-item__top">
           <span className="wz-chat-item__name">{chat.name}</span>
-          {chat.muted && <BellOff className="wz-chat-item__muted" size={13} strokeWidth={1.75} aria-label="Muted" />}
+          {chat.muted && (
+            <BellOff
+              className="wz-chat-item__muted"
+              size={13}
+              strokeWidth={1.75}
+              aria-label="Muted"
+            />
+          )}
           {last && <span className="wz-chat-item__time">{formatChatTime(chat.lastActivity)}</span>}
         </span>
         <span className="wz-chat-item__bottom">
           {typingLine ? (
-            <span className="wz-chat-item__preview wz-chat-item__preview--typing">{typingLine}</span>
+            <span className="wz-chat-item__preview wz-chat-item__preview--typing">
+              {typingLine}
+            </span>
           ) : (
             <span className="wz-chat-item__preview">
               {last?.fromMe && last.status && <StatusTicks status={last.status} />}
-              {last?.deleted && <Trash2 className="wz-chat-item__deleted" size={13} strokeWidth={1.75} aria-label="Deleted" />}
+              {last?.deleted && (
+                <Trash2
+                  className="wz-chat-item__deleted"
+                  size={13}
+                  strokeWidth={1.75}
+                  aria-label="Deleted"
+                />
+              )}
               {prefix && <span className="wz-chat-item__sender">{prefix}: </span>}
               {last?.text ?? ''}
             </span>
@@ -76,7 +110,9 @@ export const ChatItem = memo(function ChatItem({ chat, index, avatarSize, active
           {chat.unread > 0 ? (
             <Badge count={chat.unread} muted={chat.muted} />
           ) : (
-            chat.pinned && <Pin className="wz-chat-item__pin" size={13} strokeWidth={1.75} aria-label="Pinned" />
+            chat.pinned && (
+              <Pin className="wz-chat-item__pin" size={13} strokeWidth={1.75} aria-label="Pinned" />
+            )
           )}
         </span>
       </span>

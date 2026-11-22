@@ -47,7 +47,10 @@ export function EditHistoryPopover({ target, onClose }: Props) {
           {versions.map((v, i) => {
             const current = i === versions.length - 1;
             return (
-              <li key={i} className={`wz-history__item${current ? ' wz-history__item--current' : ''}`}>
+              <li
+                key={i}
+                className={`wz-history__item${current ? ' wz-history__item--current' : ''}`}
+              >
                 <div className="wz-history__meta">
                   <span>{i === 0 ? 'Original' : current ? 'Current' : `Edit ${i}`}</span>
                   <time dateTime={new Date(v.at).toISOString()}>{formatDateTime(v.at)}</time>

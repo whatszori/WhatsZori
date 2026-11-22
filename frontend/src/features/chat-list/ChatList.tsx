@@ -38,7 +38,12 @@ function buildRows(view: ChatListView, showArchived: boolean, query: string): Ro
       for (const c of view.archived) rows.push({ type: 'chat', key: c.jid, chat: c });
     }
   } else if (view.archived.length) {
-    rows.push({ type: 'archived', key: 'archived', count: view.archived.length, unread: view.archivedUnread });
+    rows.push({
+      type: 'archived',
+      key: 'archived',
+      count: view.archived.length,
+      unread: view.archivedUnread,
+    });
   }
   return rows;
 }
@@ -59,7 +64,8 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: (i) => (rows[i].type === 'header' ? 28 : rows[i].type === 'archived' ? 52 : itemH),
+    estimateSize: (i) =>
+      rows[i].type === 'header' ? 28 : rows[i].type === 'archived' ? 52 : itemH,
     getItemKey: (i) => rows[i].key,
     overscan: 8,
   });
@@ -97,14 +103,19 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
     const i = Number(el.dataset.row);
     const focusable = (j: number) => rows[j] && rows[j].type !== 'header';
     let j = i;
-    if (e.key === 'ArrowDown') do j++; while (j < rows.length && !focusable(j));
-    else if (e.key === 'ArrowUp') do j--; while (j >= 0 && !focusable(j));
+    if (e.key === 'ArrowDown')
+      do j++;
+      while (j < rows.length && !focusable(j));
+    else if (e.key === 'ArrowUp')
+      do j--;
+      while (j >= 0 && !focusable(j));
     else if (e.key === 'Home') j = rows.findIndex((_, k) => focusable(k));
     else if (e.key === 'End') for (j = rows.length - 1; j > 0 && !focusable(j); j--);
     else return;
     e.preventDefault();
     if (j >= 0 && j < rows.length) focusRow(j);
-    else if (e.key === 'ArrowUp') document.querySelector<HTMLInputElement>('.wz-chat-pane__tools input')?.focus();
+    else if (e.key === 'ArrowUp')
+      document.querySelector<HTMLInputElement>('.wz-chat-pane__tools input')?.focus();
   };
 
   const menuChat = menu ? useChats.getState().chats[menu.jid] : undefined;
@@ -159,7 +170,11 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
 
   return (
     <div ref={scrollRef} className="wz-chat-list" onKeyDown={onKeyDown}>
-      <div role="list" aria-label={showArchived ? 'Archived chats' : 'Chats'} style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+      <div
+        role="list"
+        aria-label={showArchived ? 'Archived chats' : 'Chats'}
+        style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
+      >
         {virtualizer.getVirtualItems().map((vi) => {
           const row = rows[vi.index];
           const style = {
@@ -210,7 +225,13 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
           );
         })}
       </div>
-      <Menu open={!!menu} anchor={menu?.anchor ?? null} onClose={closeMenu} items={menuItems} label="Chat actions" />
+      <Menu
+        open={!!menu}
+        anchor={menu?.anchor ?? null}
+        onClose={closeMenu}
+        items={menuItems}
+        label="Chat actions"
+      />
     </div>
   );
 }

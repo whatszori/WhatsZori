@@ -89,13 +89,18 @@ function PhonePanel({ onBack }: { onBack: () => void }) {
 
   return (
     <>
-      <h1 className="wz-auth__title">{code ? 'Enter this code on your phone' : 'Link with phone number'}</h1>
+      <h1 className="wz-auth__title">
+        {code ? 'Enter this code on your phone' : 'Link with phone number'}
+      </h1>
       {code ? (
         <>
           <p className="wz-auth__hint">
             On your phone open Linked devices, tap Link with phone number instead, and type:
           </p>
-          <div className="wz-auth__code wz-mono wz-selectable" aria-label={`Pairing code ${code.split('').join(' ')}`}>
+          <div
+            className="wz-auth__code wz-mono wz-selectable"
+            aria-label={`Pairing code ${code.split('').join(' ')}`}
+          >
             {grouped.map((g, i) => (
               <span key={i} className="wz-auth__code-group">
                 {g}
@@ -159,11 +164,11 @@ function Disclaimer() {
       {open && (
         <p id="wz-disclaimer-full" className="wz-auth__disclaimer-full">
           WhatsZori is not made, endorsed or supported by WhatsApp or Meta. It talks to WhatsApp
-          servers the same way a linked device does, through a reverse-engineered protocol.
-          WhatsApp may change that protocol at any time, which can break features, and using
-          third-party clients may be against their terms of service and can, in rare cases, lead to
-          your account being restricted. Your messages stay end-to-end encrypted and are stored
-          only on this computer.
+          servers the same way a linked device does, through a reverse-engineered protocol. WhatsApp
+          may change that protocol at any time, which can break features, and using third-party
+          clients may be against their terms of service and can, in rare cases, lead to your account
+          being restricted. Your messages stay end-to-end encrypted and are stored only on this
+          computer.
         </p>
       )}
     </div>

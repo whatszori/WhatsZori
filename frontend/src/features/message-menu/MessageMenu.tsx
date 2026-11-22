@@ -28,7 +28,9 @@ export function MessageMenu({ chat, target, onClose, onShowHistory }: Props) {
   const m = target?.m;
 
   const focusComposer = () =>
-    requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('.wz-composer__input')?.focus());
+    requestAnimationFrame(() =>
+      document.querySelector<HTMLTextAreaElement>('.wz-composer__input')?.focus(),
+    );
 
   const items: MenuEntry[] = [];
   if (m && !m.contentUnknown) {
@@ -120,7 +122,12 @@ export function MessageMenu({ chat, target, onClose, onShowHistory }: Props) {
         label="Message actions"
         header={reactionRow}
       >
-        {m && <PluginSlot name="message.contextMenu" props={{ message: toPluginMessage(m), close: onClose }} />}
+        {m && (
+          <PluginSlot
+            name="message.contextMenu"
+            props={{ message: toPluginMessage(m), close: onClose }}
+          />
+        )}
       </Menu>
 
       <Dialog

@@ -71,7 +71,8 @@ function useGlobalShortcuts() {
     if (order.length === 0) return;
     const { activeChat, openChat } = useUI.getState();
     const i = order.findIndex((c) => c.jid === activeChat);
-    const next = i < 0 ? (dir === 1 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, i + dir));
+    const next =
+      i < 0 ? (dir === 1 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, i + dir));
     openChat(order[next].jid);
   };
 

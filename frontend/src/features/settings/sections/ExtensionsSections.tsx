@@ -1,5 +1,5 @@
 import { Brush, FolderOpen, Puzzle } from 'lucide-react';
-import { PluginSlot } from '../../../plugin-core/slots';
+import { PluginSlot, useSlotEntries } from '../../../plugin-core/slots';
 import { useSettings } from '../../../stores/settings';
 import { Button, Toggle } from '../../../ui';
 import { Group, Page } from './common';
@@ -27,7 +27,12 @@ const PLUGINS = [
 ];
 
 const THEMES = [
-  { id: 'nord-quiet', name: 'Nord Quiet', description: 'Cool greys with a muted frost accent.', version: '1.2.0' },
+  {
+    id: 'nord-quiet',
+    name: 'Nord Quiet',
+    description: 'Cool greys with a muted frost accent.',
+    version: '1.2.0',
+  },
   {
     id: 'paper-high-contrast',
     name: 'Paper, high contrast',
@@ -50,7 +55,11 @@ function ExtList({
       {entries.map((e) => (
         <div key={e.id} className="wz-ext-item">
           <span className="wz-ext-item__icon" aria-hidden="true">
-            {kind === 'plugins' ? <Puzzle size={18} strokeWidth={1.75} /> : <Brush size={18} strokeWidth={1.75} />}
+            {kind === 'plugins' ? (
+              <Puzzle size={18} strokeWidth={1.75} />
+            ) : (
+              <Brush size={18} strokeWidth={1.75} />
+            )}
           </span>
           <Toggle
             label={e.name}
@@ -65,6 +74,7 @@ function ExtList({
 }
 
 export function PluginsSection() {
+  const pluginSettings = useSlotEntries('settings.sections');
   return (
     <Page title="Plugins" lead="Plugins add buttons and menu items in fixed places of the app.">
       <Group title="Installed">
@@ -75,11 +85,13 @@ export function PluginsSection() {
           Open plugins folder
         </Button>
       </div>
-      <Group title="Plugin settings">
-        <div className="wz-plugin-settings">
-          <PluginSlot name="settings.sections" />
-        </div>
-      </Group>
+      {pluginSettings.length > 0 && (
+        <Group title="Plugin settings">
+          <div className="wz-plugin-settings">
+            <PluginSlot name="settings.sections" />
+          </div>
+        </Group>
+      )}
     </Page>
   );
 }

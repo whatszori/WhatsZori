@@ -103,7 +103,13 @@ export function ChatListPane() {
           }
         />
         {!showArchived && (
-          <Segmented label="Filter chats" value={filter} options={FILTERS} onChange={setFilter} size="sm" />
+          <Segmented
+            label="Filter chats"
+            value={filter}
+            options={FILTERS}
+            onChange={setFilter}
+            size="sm"
+          />
         )}
       </div>
 

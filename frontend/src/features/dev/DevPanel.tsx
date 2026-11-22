@@ -15,7 +15,15 @@ export function DevPanel() {
   if (!open)
     return (
       <div className="wz-dev wz-dev--closed">
-        <IconButton label="Demo controls" icon={<FlaskConical size={18} />} onClick={() => setOpen(true)} tooltipPlacement="top" />
+        <IconButton
+          label="Demo controls"
+          icon={<FlaskConical size={18} />}
+          onClick={() => {
+            setDemo(devControls!.isDemo());
+            setOpen(true);
+          }}
+          tooltipPlacement="top"
+        />
       </div>
     );
 
@@ -23,7 +31,13 @@ export function DevPanel() {
     <div className="wz-dev" role="region" aria-label="Demo controls">
       <header className="wz-dev__header">
         <span>Demo controls</span>
-        <IconButton label="Collapse" size="sm" icon={<ChevronDown size={16} />} onClick={() => setOpen(false)} tooltip={false} />
+        <IconButton
+          label="Collapse"
+          size="sm"
+          icon={<ChevronDown size={16} />}
+          onClick={() => setOpen(false)}
+          tooltip={false}
+        />
       </header>
       <Toggle
         label="Live events"

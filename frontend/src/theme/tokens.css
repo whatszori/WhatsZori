@@ -30,7 +30,7 @@
   --wz-bubble-in-text: var(--wz-text-primary);
   --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 16%, #ffffff);
   --wz-bubble-out-text: var(--wz-text-primary);
-  --wz-bubble-out-meta: color-mix(in srgb, var(--wz-accent) 45%, #3a3a40);
+  --wz-bubble-out-meta: color-mix(in srgb, var(--wz-accent) 20%, #5b5b63);
   --wz-bubble-in-meta: var(--wz-text-muted);
   --wz-bubble-border: rgb(0 0 0 / 0.06);
   --wz-bubble-deleted-border: #b0898a;
@@ -82,7 +82,8 @@
   --wz-message-gap: 2px;
   --wz-group-gap: 10px;
 
-  --wz-focus-ring: 0 0 0 2px var(--wz-bg-primary), 0 0 0 4px color-mix(in srgb, var(--wz-accent) 70%, transparent);
+  --wz-focus-ring:
+    0 0 0 2px var(--wz-bg-primary), 0 0 0 4px color-mix(in srgb, var(--wz-accent) 70%, transparent);
 
   --wz-duration-fast: 120ms;
   --wz-duration: 160ms;
@@ -118,10 +119,10 @@
   --wz-bubble-in: #232327;
   --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 26%, #1c1c1f);
   --wz-bubble-out-text: #f1f1f4;
-  --wz-bubble-out-meta: color-mix(in srgb, var(--wz-accent) 35%, #b4b4bc);
+  --wz-bubble-out-meta: color-mix(in srgb, var(--wz-accent) 15%, #a8a8b0);
   --wz-bubble-border: rgb(255 255 255 / 0.04);
   --wz-bubble-deleted-border: #a07a7b;
-  --wz-tick-read: color-mix(in srgb, var(--wz-accent) 70%, white);
+  --wz-tick-read: color-mix(in srgb, var(--wz-accent) 80%, white);
 
   --wz-danger: #e07a7a;
   --wz-warning: #d7a54c;

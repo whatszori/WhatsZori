@@ -36,7 +36,9 @@ function Broken(): never {
 }
 
 function Footer() {
-  return <p className="wz-demo-footer">Demo plugins loaded. One is broken on purpose and hidden.</p>;
+  return (
+    <p className="wz-demo-footer">Demo plugins loaded. One is broken on purpose and hidden.</p>
+  );
 }
 
 function SettingsBlock() {

@@ -61,7 +61,11 @@ export function MediaBlock({ kind, media }: { kind: MessageKind; media: MediaInf
         </button>
         <span className="wz-media__wave" aria-hidden="true">
           {bars.map((v, i) => (
-            <span key={i} className="wz-media__bar" style={{ height: `${Math.max(12, v * 100)}%` }} />
+            <span
+              key={i}
+              className="wz-media__bar"
+              style={{ height: `${Math.max(12, v * 100)}%` }}
+            />
           ))}
         </span>
         <span className="wz-media__duration">{formatDuration(media.duration ?? 0)}</span>
