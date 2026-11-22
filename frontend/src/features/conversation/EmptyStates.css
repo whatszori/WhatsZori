@@ -10,8 +10,7 @@
 }
 
 .wz-empty__wordmark {
-  font-size: 22px;
-  color: var(--wz-text-secondary);
+  margin-bottom: var(--wz-space-2);
 }
 
 .wz-empty__hint {

@@ -142,6 +142,18 @@ Only `--wz-accent` needs to change to re-tint the app. The others are derived wi
 | `--wz-warning` / `--wz-warning-soft` | Offline banner |
 | `--wz-success` | Online dot |
 
+## Logo
+
+The logo is rendered inline (`<Logo />`), so its lettering follows the app theme. "Whats" uses
+`--wz-text-primary`; the rest is set by these variables. Themes may change them, but the mark is
+the brand, so keep it recognizable.
+
+| Variable | Use |
+| --- | --- |
+| `--wz-logo-bubble` | Fill of the message-bubble mark |
+| `--wz-logo-sun` | The rising sun in the mark and on the wordmark's Z |
+| `--wz-logo-accent` | The "Zori" part of the wordmark (lighter in dark mode) |
+
 ## Avatars
 
 Avatars are initials on a tinted circle. The hue comes from the name (9 fixed hues); a theme sets

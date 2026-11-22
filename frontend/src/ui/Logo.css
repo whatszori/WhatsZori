@@ -1,0 +1,29 @@
+.wz-logo {
+  display: block;
+  flex: none;
+}
+
+/* the mark keeps its brand colors in every theme; only the lettering follows the theme */
+.wz-logo__bubble {
+  fill: var(--wz-logo-bubble);
+}
+
+.wz-logo__sun {
+  fill: var(--wz-logo-sun);
+}
+
+.wz-logo__z {
+  stroke: #ffffff;
+}
+
+.wz-logo__ink {
+  stroke: var(--wz-text-primary);
+}
+
+.wz-logo__accent {
+  stroke: var(--wz-logo-accent);
+}
+
+.wz-logo__dot {
+  fill: var(--wz-logo-accent);
+}

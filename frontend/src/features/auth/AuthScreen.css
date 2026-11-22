@@ -24,9 +24,8 @@
   text-align: center;
 }
 
-.wz-auth__wordmark {
-  color: var(--wz-text-muted);
-  font-size: var(--wz-font-size-md);
+.wz-auth__logo {
+  margin-bottom: var(--wz-space-1);
 }
 
 .wz-auth__title {

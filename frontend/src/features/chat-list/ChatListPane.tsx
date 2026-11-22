@@ -15,7 +15,15 @@ import { PluginSlot } from '../../plugin-core/slots';
 import { buildChatList, type ChatFilter } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
-import { IconButton, Input, Menu, Segmented, type MenuEntry, type PopoverAnchor } from '../../ui';
+import {
+  IconButton,
+  Input,
+  Logo,
+  Menu,
+  Segmented,
+  type MenuEntry,
+  type PopoverAnchor,
+} from '../../ui';
 import { ChatList } from './ChatList';
 import './ChatListPane.css';
 
@@ -92,7 +100,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
         ) : rail ? (
           <h1 className="wz-chat-pane__title wz-chat-pane__title--large">Chats</h1>
         ) : (
-          <span className="wz-wordmark">WhatsZori</span>
+          <Logo className="wz-wordmark" height={22} />
         )}
         <div className="wz-chat-pane__actions">
           <PluginSlot name="sidebar.header" />

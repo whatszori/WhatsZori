@@ -4,6 +4,7 @@ export { Button } from './Button';
 export { Dialog } from './Dialog';
 export { IconButton } from './IconButton';
 export { Input } from './Input';
+export { Logo } from './Logo';
 export { Menu, MenuItem, type MenuEntry } from './Menu';
 export { Popover, type PopoverAnchor } from './Popover';
 export { Segmented } from './Segmented';

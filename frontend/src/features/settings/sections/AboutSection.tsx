@@ -2,7 +2,7 @@ import { LogOut } from 'lucide-react';
 import { backend } from '../../../api';
 import { useConnection } from '../../../stores/connection';
 import { useUI } from '../../../stores/ui';
-import { Button } from '../../../ui';
+import { Button, Logo } from '../../../ui';
 import { Group, Page } from './common';
 
 export function AboutSection() {
@@ -10,7 +10,7 @@ export function AboutSection() {
   return (
     <Page title="About">
       <div className="wz-settings-group">
-        <div className="wz-wordmark">WhatsZori</div>
+        <Logo height={34} />
         <p className="wz-about__version">
           Version {__APP_VERSION__} · frontend preview with mock backend
         </p>

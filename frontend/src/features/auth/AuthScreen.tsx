@@ -3,7 +3,7 @@ import { ArrowLeft, Smartphone } from 'lucide-react';
 import { backend, devControls } from '../../api';
 import { formatPairingCode, isValidPhone } from '../../lib/format';
 import { useConnection } from '../../stores/connection';
-import { Button, Input, Spinner } from '../../ui';
+import { Button, Input, Logo, Spinner } from '../../ui';
 import { FakeQR } from './FakeQR';
 import './AuthScreen.css';
 
@@ -184,7 +184,7 @@ export function AuthScreen() {
   return (
     <main className="wz-auth">
       <div className="wz-auth__card">
-        <div className="wz-wordmark wz-auth__wordmark">WhatsZori</div>
+        <Logo className="wz-auth__logo" height={30} />
         {busy ? (
           <div className="wz-auth__busy" role="status">
             <Spinner size={20} />

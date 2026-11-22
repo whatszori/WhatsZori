@@ -75,6 +75,10 @@
   --wz-space-7: 32px;
   --wz-space-8: 40px;
 
+  --wz-logo-bubble: #3d6fb4;
+  --wz-logo-sun: #f5b860;
+  --wz-logo-accent: #3d6fb4;
+
   --wz-sidebar-width: 340px;
   --wz-header-height: 56px;
   --wz-chat-item-height: 68px;
@@ -133,6 +137,7 @@
   --wz-avatar-text-lightness: 82%;
 
   --wz-shadow-popover: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px rgb(0 0 0 / 0.35);
+  --wz-logo-accent: #6f9be0;
   --wz-scrim: rgb(0 0 0 / 0.5);
 }
 

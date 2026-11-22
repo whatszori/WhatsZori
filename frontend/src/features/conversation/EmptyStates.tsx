@@ -1,3 +1,4 @@
+import { Logo } from '../../ui';
 import './EmptyStates.css';
 
 const SHORTCUTS: [string, string][] = [
@@ -10,7 +11,7 @@ const SHORTCUTS: [string, string][] = [
 export function NoChatSelected() {
   return (
     <div className="wz-empty">
-      <div className="wz-wordmark wz-empty__wordmark">WhatsZori</div>
+      <Logo height={40} className="wz-empty__wordmark" />
       <p className="wz-empty__hint">Pick a chat on the left to start.</p>
       <dl className="wz-empty__shortcuts">
         {SHORTCUTS.map(([k, label]) => (

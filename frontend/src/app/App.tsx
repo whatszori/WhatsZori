@@ -1,6 +1,6 @@
 import { AuthScreen } from '../features/auth/AuthScreen';
 import { useConnection } from '../stores/connection';
-import { Spinner } from '../ui';
+import { Logo, Spinner } from '../ui';
 import { MainLayout } from './MainLayout';
 import { AppProviders } from './providers';
 import './App.css';
@@ -11,6 +11,7 @@ function Screens() {
   if (!ready)
     return (
       <div className="wz-splash">
+        <Logo variant="mark" height={64} />
         <Spinner size={20} />
       </div>
     );
