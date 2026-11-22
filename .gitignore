@@ -1,5 +1,10 @@
 node_modules/
-frontend/dist/
+# build output; .gitkeep stays so //go:embed all:frontend/dist works on a fresh clone
+frontend/dist/*
+!frontend/dist/.gitkeep
+bin/
+.task/
+*.syso
 *.log
 .DS_Store
 MEMORY.md

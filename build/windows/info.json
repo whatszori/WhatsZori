@@ -1,0 +1,17 @@
+{
+	"fixed": {
+		"file_version": "0.1.0",
+		"product_version": "0.1.0"
+	},
+	"info": {
+		"0409": {
+			"FileVersion": "0.1.0",
+			"ProductVersion": "0.1.0",
+			"CompanyName": "obzori",
+			"FileDescription": "Desktop WhatsApp client",
+			"LegalCopyright": "(c) 2026, obzori",
+			"ProductName": "WhatsZori",
+			"Comments": "Unofficial client, not affiliated with WhatsApp or Meta"
+		}
+	}
+}

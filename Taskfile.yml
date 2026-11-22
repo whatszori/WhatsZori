@@ -1,0 +1,49 @@
+version: '3'
+
+# `wails3 build`, `wails3 dev` and `wails3 package` run the tasks below.
+
+vars:
+  APP_NAME: "WhatsZori"
+  BIN_DIR: "bin"
+  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
+  # same default as frontend/vite.config.ts, so `npm run dev` and `wails3 dev` agree
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 5173}}'
+  GOOS: '{{.GOOS | default OS}}'
+
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+
+tasks:
+  build:
+    summary: Builds the application
+    cmds:
+      - task: "{{.GOOS}}:build"
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: "{{.GOOS}}:package"
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: "{{.GOOS}}:run"
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  check:
+    summary: Go vet and tests, frontend typecheck, lint and tests
+    cmds:
+      - go vet . ./internal/...
+      - go test . ./internal/...
+      - task: common:frontend:run
+        vars: { SCRIPT: typecheck }
+      - task: common:frontend:run
+        vars: { SCRIPT: lint }
+      - task: common:frontend:run
+        vars: { SCRIPT: test }
