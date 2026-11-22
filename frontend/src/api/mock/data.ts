@@ -375,6 +375,7 @@ export function createMockDB(now = Date.now(), seed = 7): MockDB {
   }
 
   addShowcase(db, now, pk);
+  addMandarin(db, now, pk);
 
   for (const [jid, list] of db.messages) refreshChatPreview(db, jid, list);
   return db;
@@ -642,4 +643,96 @@ export function buildChatInfo(db: MockDB, jid: JID): ChatInfo {
     createdAt: (list[0]?.timestamp ?? chat.lastActivity) - 3 * 86_400_000,
     createdBy: others[0]?.name,
   };
+}
+
+// A real-looking 1:1 chat from yesterday, typed in as-is (typos included).
+function addMandarin(db: MockDB, now: number, pk: () => string): void {
+  const name = 'Мандарин';
+  const jid = jidFor(name, false);
+  const them = { jid, name };
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const at = (h: number, m: number) => {
+    const d = new Date(yesterday);
+    d.setHours(h, m, 0, 0);
+    return d.getTime();
+  };
+
+  const msg = (
+    fromMe: boolean,
+    h: number,
+    m: number,
+    text: string,
+    extra: Partial<Message> = {},
+  ): Message => ({
+    pk: pk(),
+    id: `3EB0MAND${db.nextPk}`,
+    chatJid: jid,
+    senderJid: fromMe ? ME.jid : them.jid,
+    senderName: fromMe ? ME.name : them.name,
+    fromMe,
+    timestamp: at(h, m),
+    kind: 'text',
+    text,
+    status: fromMe ? 'read' : undefined,
+    reactions: [],
+    ...extra,
+  });
+  const quote = (m: Message) => ({
+    pk: m.pk,
+    senderName: m.senderName,
+    fromMe: m.fromMe,
+    kind: m.kind,
+    text: m.text,
+  });
+  // stands in for a custom Telegram sticker reaction, which WhatsApp doesn't have
+  const sticker = '🩵';
+
+  const list: Message[] = [
+    msg(true, 2, 4, 'уже спишь или как?'),
+    msg(true, 2, 4, 'мой батя либо самый настоящий воздух'),
+    msg(true, 2, 4, 'либо он будет проверять завтра'),
+    msg(true, 2, 5, 'кароче, спокойной ночи'),
+    msg(true, 2, 5, 'и удачи там'),
+    msg(true, 2, 5, 'да в целом во всем удачи тебе', {
+      reactions: [
+        { emoji: '❤️', count: 1, mine: false },
+        { emoji: sticker, count: 1, mine: false },
+      ],
+    }),
+    msg(true, 12, 9, 'ой'),
+    msg(true, 12, 9, 'пр пр'),
+  ];
+  const owner = msg(true, 12, 10, 'давай щас зайду и овнерку передашь?', {
+    reactions: [
+      { emoji: '👌', count: 1, mine: false },
+      { emoji: sticker, count: 1, mine: false },
+    ],
+  });
+  list.push(owner, msg(true, 12, 10, 'я там зашел ес шо'), msg(true, 12, 10, 'и в чат щас зайду'));
+  const thanks = msg(true, 12, 10, 'спасибо то что выручила');
+  list.push(
+    thanks,
+    msg(true, 12, 10, 'я так быстро никогда не удалял чаты, лол'),
+    msg(false, 12, 10, 'д', { replyTo: quote(owner) }),
+    msg(false, 12, 10, 'д кнш', { replyTo: quote(thanks) }),
+    msg(false, 12, 11, 'вс'),
+    msg(true, 12, 11, 'огромное спасибо'),
+  );
+
+  db.members.set(jid, [them]);
+  db.messages.set(jid, list);
+  db.chats.set(jid, {
+    jid,
+    name,
+    isGroup: false,
+    pinned: false,
+    archived: false,
+    muted: false,
+    unread: 0,
+    lastMessage: null,
+    lastActivity: list[list.length - 1].timestamp,
+    lastSeen: at(12, 14),
+    online: false,
+  });
 }
