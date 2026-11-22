@@ -146,6 +146,8 @@ export interface AppSettings {
   };
   plugins: Record<string, boolean>;
   themes: Record<string, boolean>;
+  // "themeId/moduleId" -> on/off, only for optional modules the user touched
+  themeModules: Record<string, boolean>;
 }
 
 export interface BackendEvents {

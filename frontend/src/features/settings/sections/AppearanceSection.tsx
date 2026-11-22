@@ -46,6 +46,8 @@ export function AppearanceSection() {
     update((s) => ({ ...s, appearance: { ...s.appearance, ...patch } }));
   const theme = resolveTheme(a.theme);
   const isCustom = !!a.accent && a.accent.startsWith('#');
+  // with a theme on and no accent picked, the theme's own accent is in use, not a preset
+  const themed = useSettings((s) => Object.values(s.settings.themes).some(Boolean));
 
   return (
     <Page title="Appearance" lead="Changes apply right away.">
@@ -64,7 +66,11 @@ export function AppearanceSection() {
         </Row>
         <Row
           label="Accent color"
-          description="Used for selection, your messages and badges."
+          description={
+            themed && !a.accent && !a.useSystemAccent
+              ? 'Using the active theme’s accent. Pick one to override it.'
+              : 'Used for selection, your messages and badges.'
+          }
           id="wz-accent-label"
           stack
         >
@@ -75,7 +81,8 @@ export function AppearanceSection() {
                 type="button"
                 role="radio"
                 aria-checked={
-                  !a.useSystemAccent && (a.accent === p.id || (!a.accent && p.id === 'slate'))
+                  !a.useSystemAccent &&
+                  (a.accent === p.id || (!a.accent && !themed && p.id === 'slate'))
                 }
                 aria-label={p.name}
                 title={p.name}

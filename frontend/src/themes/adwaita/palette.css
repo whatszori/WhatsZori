@@ -1,0 +1,128 @@
+/* libadwaita 1.6 named colors, mapped onto --wz-* */
+
+:root {
+  --adw-accent-bg: #3584e4;
+  --adw-window-bg: #fafafb;
+  --adw-view-bg: #ffffff;
+  --adw-headerbar-bg: #ffffff;
+  --adw-headerbar-shade: rgb(0 0 6 / 0.12);
+  --adw-sidebar-bg: #ebebed;
+  --adw-card-bg: #ffffff;
+  --adw-popover-bg: #ffffff;
+  --adw-dialog-bg: #fafafb;
+  --adw-fg: rgb(0 0 6 / 0.8);
+  --adw-dim: rgb(0 0 6 / 0.55);
+  --adw-shade: rgb(0 0 6 / 0.07);
+  --adw-border: rgb(0 0 6 / 0.15);
+  --adw-button: rgb(0 0 6 / 0.1);
+  --adw-button-hover: rgb(0 0 6 / 0.15);
+  --adw-card-shadow:
+    0 0 0 1px rgb(0 0 6 / 0.03), 0 1px 3px 1px rgb(0 0 6 / 0.07), 0 2px 6px 2px rgb(0 0 6 / 0.03);
+
+  /* blue_4 rather than blue_3 so white text on it passes AA */
+  --wz-accent: #1c71d8;
+  --wz-accent-fg: #ffffff;
+
+  --wz-bg-app: var(--adw-window-bg);
+  --wz-bg-primary: var(--adw-view-bg);
+  --wz-bg-secondary: var(--adw-sidebar-bg);
+  --wz-bg-elevated: var(--adw-popover-bg);
+  --wz-bg-hover: rgb(0 0 6 / 0.05);
+  /* GNOME sidebars select with a neutral shade, not the accent */
+  --wz-bg-active: rgb(0 0 6 / 0.1);
+  --wz-bg-input: rgb(0 0 6 / 0.06);
+  --wz-bg-conversation: var(--adw-window-bg);
+
+  --wz-text-primary: var(--adw-fg);
+  --wz-text-secondary: rgb(0 0 6 / 0.7);
+  --wz-text-muted: var(--adw-dim);
+
+  --wz-border: var(--adw-shade);
+  --wz-border-strong: var(--adw-border);
+
+  --wz-bubble-in: var(--adw-card-bg);
+  --wz-bubble-border: rgb(0 0 6 / 0.05);
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 14%, #ffffff);
+  --wz-bubble-deleted-border: color-mix(in srgb, #c01c28 55%, #ffffff);
+
+  --wz-danger: #c01c28;
+  --wz-warning: #9c6e03;
+  --wz-success: #1b8553;
+
+  --wz-avatar-saturation: 45%;
+  --wz-avatar-lightness: 80%;
+  --wz-avatar-text-lightness: 28%;
+
+  --wz-shadow-popover: 0 1px 5px 1px rgb(0 0 0 / 0.09), 0 2px 14px 3px rgb(0 0 0 / 0.05);
+
+  --wz-radius-sm: 6px;
+  --wz-radius-md: 9px;
+  --wz-radius-lg: 12px;
+  --wz-radius-bubble: 12px;
+
+  --wz-font-ui:
+    'Adwaita Sans', Cantarell, Inter, system-ui, -apple-system, 'Segoe UI', 'Noto Sans', sans-serif;
+  --wz-font-mono: 'Adwaita Mono', 'Source Code Pro', ui-monospace, 'Cascadia Mono', monospace;
+  --wz-focus-ring: 0 0 0 2px color-mix(in srgb, var(--wz-accent) 50%, transparent);
+}
+
+[data-theme='dark'] {
+  --adw-window-bg: #222226;
+  --adw-view-bg: #1d1d20;
+  --adw-headerbar-bg: #2e2e32;
+  --adw-headerbar-shade: rgb(0 0 6 / 0.36);
+  --adw-sidebar-bg: #2e2e32;
+  --adw-card-bg: rgb(255 255 255 / 0.08);
+  --adw-popover-bg: #36363a;
+  --adw-dialog-bg: #36363a;
+  --adw-fg: #ffffff;
+  --adw-dim: rgb(255 255 255 / 0.55);
+  --adw-shade: rgb(0 0 6 / 0.36);
+  --adw-border: rgb(255 255 255 / 0.15);
+  --adw-button: rgb(255 255 255 / 0.1);
+  --adw-button-hover: rgb(255 255 255 / 0.15);
+  --adw-card-shadow: 0 0 0 1px rgb(0 0 6 / 0.36), 0 1px 3px 1px rgb(0 0 0 / 0.15);
+
+  --wz-accent: #3584e4;
+  --wz-accent-fg: #ffffff;
+
+  --wz-bg-hover: rgb(255 255 255 / 0.07);
+  --wz-bg-active: rgb(255 255 255 / 0.1);
+  --wz-bg-input: rgb(255 255 255 / 0.08);
+
+  --wz-text-secondary: rgb(255 255 255 / 0.75);
+
+  --wz-border: rgb(255 255 255 / 0.08);
+
+  /* translucent card bg doesn't work under bubbles, so a solid equivalent */
+  --wz-bubble-in: #2e2e32;
+  --wz-bubble-border: rgb(0 0 6 / 0.3);
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 30%, #222226);
+  --wz-bubble-deleted-border: color-mix(in srgb, #ff7b63 55%, #222226);
+
+  --wz-danger: #ff7b63;
+  --wz-warning: #f8e45c;
+  --wz-success: #78e9ab;
+
+  --wz-avatar-saturation: 30%;
+  --wz-avatar-lightness: 35%;
+  --wz-avatar-text-lightness: 88%;
+
+  --wz-shadow-popover: 0 1px 5px 1px rgb(0 0 0 / 0.25), 0 2px 14px 3px rgb(0 0 0 / 0.2);
+}
+
+.wz-sidebar {
+  background: var(--adw-sidebar-bg);
+}
+
+.wz-resizer {
+  background: var(--adw-shade);
+}
+
+.wz-chat-list__header {
+  color: var(--adw-dim);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}

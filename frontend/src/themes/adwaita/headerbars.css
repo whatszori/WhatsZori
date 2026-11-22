@@ -1,0 +1,72 @@
+/* AdwHeaderBar: flat, bold centered title, bottom shade instead of a border */
+
+.wz-conv-header {
+  position: relative;
+  height: 47px;
+  padding: 0 6px;
+  background: var(--adw-headerbar-bg);
+  border-bottom: none;
+  box-shadow: inset 0 -1px var(--adw-headerbar-shade);
+}
+
+.wz-conv-header .wz-avatar {
+  margin-left: 6px;
+}
+
+.wz-conv-header__text {
+  position: absolute;
+  left: 50%;
+  max-width: calc(100% - 260px);
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.wz-conv-header__name {
+  font-weight: 700;
+}
+
+.wz-conv-header__status {
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-conv-header__actions {
+  margin-left: auto;
+}
+
+/* sidebar header bar sits on the sidebar color */
+.wz-chat-pane__header,
+.wz-settings__nav-header {
+  position: relative;
+  height: 47px;
+  justify-content: center;
+}
+
+.wz-chat-pane__header > .wz-wordmark {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--wz-font-size-md);
+  font-weight: 700;
+}
+
+.wz-chat-pane__actions {
+  margin-left: auto;
+}
+
+.wz-settings__nav-header > .wz-tooltip-anchor {
+  position: absolute;
+  left: 6px;
+}
+
+.wz-settings__title {
+  font-size: var(--wz-font-size-md);
+  font-weight: 700;
+}
+
+/* bottom bar */
+.wz-composer {
+  background: var(--adw-headerbar-bg);
+  border-top: none;
+  box-shadow: inset 0 1px var(--adw-headerbar-shade);
+}

@@ -81,8 +81,14 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   - Privacy / ghost mode: hide online, hide typing, read receipts (Always / Never / On reply),
     with the note that delivery receipts can't be hidden.
   - Anti-delete & history: three toggles.
-  - Plugins and Themes: placeholder lists with toggles and an "Open folder" button.
+  - Plugins: placeholder list with toggles and an "Open folder" button.
+  - Themes: real list from the theme registry. Each theme toggles on/off, and its optional
+    modules toggle individually.
   - Marketplace ("Coming soon") and About (version, disclaimer, links, log out).
+- **Modular themes** (`src/themes/`): a theme is a folder with `manifest.json` plus CSS modules,
+  and the loader injects one `<style>` per enabled theme. The built-in **Adwaita** theme (GNOME /
+  libadwaita look) has 5 modules: palette (required), GTK widgets, header bars, boxed lists, and
+  accent bubbles (off by default). Screenshots: `screenshots/adwaita-*.png`.
 - **Plugin core**: typed slot registry, `<PluginSlot>` with a per-entry error boundary, and all 7
   slots placed. `plugin-core/types.ts` is self-contained, ready to move into plugin-sdk. With
   `?demo=1`, a demo plugin adds a header button, a context-menu item, a sidebar footer line and a
@@ -90,7 +96,7 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   working.
 - **Keyboard**: Ctrl+K, Ctrl+, (toggles settings), Alt+Up/Down (previous/next chat), Esc
   (topmost layer first, then reply/edit, then settings).
-- **Screenshots** in [screenshots/](screenshots/): auth, the main view, a chat with deleted and
+- **Screenshots** in [screenshots/](screenshots/): the Adwaita theme (`adwaita-*`), auth, the main view, a chat with deleted and
   edited messages in light and dark, edit history, context menu, delete confirmation, a group chat,
   settings appearance (light and dark) and privacy, and the live demo.
 - **Checked in a real browser** (Edge via playwright-core): 16 checks passed. These cover:
@@ -114,7 +120,8 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 - Media are placeholders sized from the real aspect ratio; no thumbnails yet.
 - Emoji picker is a fixed 24-emoji grid.
 - Ghost-mode settings are stored but have no effect beyond the mock.
-- Plugin and theme lists are hard-coded placeholders; nothing loads plugins or theme CSS yet.
+- The plugin list is a hard-coded placeholder; nothing loads plugins yet. Themes load only from
+  the bundled `src/themes/` folder, not yet from a user folder on disk.
 - Full-text message search exists in the backend (`messages.search`), but there is no search
   results UI. The sidebar search filters chats by name and last message only.
 
@@ -128,7 +135,8 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 5. Message search results UI (in-chat search, plus global results in the sidebar).
 6. Plugin loader: load plugin bundles, build `PluginContext`, settings persistence per plugin.
    Move `plugin-core/types.ts` into plugin-sdk.
-7. Theme loader: read CSS files from the themes folder and inject them in order.
+7. Themes from disk: have the Go side read the user's themes folder and hand over the same
+   `ThemePackage` shape that `themes/registry.ts` builds for bundled themes.
 8. Component tests for the message list and composer (React Testing Library), and a Playwright
    smoke test in the repo once CI exists.
 9. Push the Windows accent color from Go into the "Use system accent" option.

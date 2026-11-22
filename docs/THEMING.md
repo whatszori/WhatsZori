@@ -35,6 +35,48 @@ Source of truth: [`frontend/src/theme/tokens.css`](../frontend/src/theme/tokens.
 
 Keep text contrast at WCAG AA (4.5:1 for body text) against the surfaces it sits on.
 
+## Theme packages
+
+A theme is a folder. Bundled themes live in `frontend/src/themes/<id>/`. User themes will later
+come from the app's themes folder through the Go side, in the same format.
+
+```
+themes/adwaita/
+  manifest.json
+  palette.css          required
+  widgets.css
+  headerbars.css
+  boxed-lists.css
+  accent-bubbles.css   off by default
+```
+
+`manifest.json`:
+
+```json
+{
+  "id": "adwaita",
+  "name": "Adwaita",
+  "version": "0.1.0",
+  "author": "WhatsZori",
+  "description": "GNOME / libadwaita look",
+  "modules": [
+    { "id": "palette", "name": "Palette", "file": "palette.css", "required": true },
+    { "id": "headerbars", "name": "Header bars", "file": "headerbars.css" },
+    { "id": "accent-bubbles", "name": "Accent bubbles", "file": "accent-bubbles.css", "default": false }
+  ]
+}
+```
+
+- `required` modules are always on and get no toggle in Settings → Themes.
+- Optional modules are on unless `"default": false`. The user's choices are stored in settings as
+  `themeModules["adwaita/headerbars"]`.
+- Enabled modules are joined in manifest order into one `<style data-wz-theme="adwaita">` at the
+  end of `<head>`. `<html data-wz-themes="adwaita">` lists the active themes.
+- A theme may keep its own private variables (Adwaita uses `--adw-*`) and map them onto `--wz-*`.
+- Whatever you set on `:root`, also set under `[data-theme='dark']`. Both selectors have the same
+  specificity, so a light-only value would leak into dark mode.
+- If the user picked an accent, it's set inline on `<html>` and beats the theme's `--wz-accent`.
+
 ## Accent and derived colors
 
 Only `--wz-accent` needs to change to re-tint the app. The others are derived with `color-mix()`.

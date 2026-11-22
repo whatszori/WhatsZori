@@ -1,0 +1,41 @@
+{
+  "id": "adwaita",
+  "name": "Adwaita",
+  "version": "0.1.0",
+  "author": "WhatsZori",
+  "description": "GNOME / libadwaita look: neutral greys, boxed lists, flat header bars.",
+  "modules": [
+    {
+      "id": "palette",
+      "name": "Palette",
+      "description": "libadwaita colors, fonts and radii.",
+      "file": "palette.css",
+      "required": true
+    },
+    {
+      "id": "widgets",
+      "name": "GTK widgets",
+      "description": "Buttons, entries, switches, popovers and dialogs drawn the GTK way.",
+      "file": "widgets.css"
+    },
+    {
+      "id": "headerbars",
+      "name": "Header bars",
+      "description": "Flat header bars with centered titles.",
+      "file": "headerbars.css"
+    },
+    {
+      "id": "boxed-lists",
+      "name": "Boxed lists",
+      "description": "Settings as rounded cards, like GNOME preferences.",
+      "file": "boxed-lists.css"
+    },
+    {
+      "id": "accent-bubbles",
+      "name": "Accent bubbles",
+      "description": "Your messages in solid accent color with rounder bubbles.",
+      "file": "accent-bubbles.css",
+      "default": false
+    }
+  ]
+}

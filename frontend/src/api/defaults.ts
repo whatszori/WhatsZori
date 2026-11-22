@@ -10,7 +10,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   history: { keepDeleted: true, keepEditHistory: true, autoDownloadMedia: false },
   plugins: { 'message-timestamps': true, 'translate-button': false, 'quick-reply-templates': true },
-  themes: { 'nord-quiet': false, 'paper-high-contrast': false },
+  themes: {},
+  themeModules: {},
 };
 
 export const DEFAULT_GHOST: GhostSettings = {

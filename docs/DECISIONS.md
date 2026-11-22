@@ -32,3 +32,9 @@ One line each, with the reason.
 - External links in messages use `target="_blank"`. Under Wails they'll need to go through `BrowserOpenURL`, which is a backend concern.
 - Two ESLint warnings remain from `react-hooks/incompatible-library` on `useVirtualizer` (TanStack Virtual can't be memoized by the React Compiler). They're warnings, not errors, and expected for that library.
 - Screenshots were taken with `playwright-core` driving the system Edge install (no browser download), from a script kept outside the repo so the project has no Playwright dependency.
+- Themes are packages: a folder with `manifest.json` and CSS modules. A module can be required, on by default, or off by default; the user's per-module choices live in `settings.themeModules` as `themeId/moduleId`. Splitting a theme this way lets people take, say, Adwaita's widgets without its header bars.
+- Built-in themes are bundled with `import.meta.glob(..., { query: '?raw' })` so they work offline in the Wails binary. User themes from disk will arrive from Go in the same `ThemePackage` shape.
+- Theme CSS is injected as `<style data-wz-theme>` at the end of `<head>`, so it wins over app CSS at equal specificity without `!important`.
+- A user-picked accent (inline on `<html>`) still beats a theme's accent. With no accent picked, the theme's accent is used, and the Appearance page says so instead of highlighting a preset.
+- Adwaita uses blue_4 (`#1c71d8`) as its light accent rather than `#3584e4`, so white text on it passes WCAG AA. Accent bubbles are darkened for the same reason.
+- Vitest turns CSS imports (even `?raw`) into empty strings, so the theme test only checks that every file a manifest lists exists.

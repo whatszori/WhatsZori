@@ -1,0 +1,102 @@
+/* AdwPreferencesGroup: each settings group becomes a rounded card of rows */
+
+.wz-settings {
+  background: var(--adw-window-bg);
+}
+
+.wz-settings__nav {
+  background: var(--adw-sidebar-bg);
+  border-right: 1px solid var(--adw-shade);
+}
+
+.wz-settings__nav-item {
+  height: 38px;
+  font-weight: 500;
+  color: var(--adw-fg);
+}
+
+.wz-settings__nav-item--active .wz-settings__nav-icon {
+  color: inherit;
+}
+
+.wz-settings__content {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.wz-settings-page__title {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.wz-settings-group__title {
+  margin-bottom: var(--wz-space-3);
+  color: var(--adw-fg);
+  font-size: var(--wz-font-size-md);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wz-settings-group__body {
+  overflow: hidden;
+  border-radius: var(--wz-radius-lg);
+  background: var(--adw-card-bg);
+  box-shadow: var(--adw-card-shadow);
+}
+
+.wz-settings-group__body > * {
+  min-height: 56px;
+  padding-left: var(--wz-space-3);
+  padding-right: var(--wz-space-3);
+}
+
+.wz-settings-group__body > * + * {
+  border-top: 1px solid var(--adw-shade);
+}
+
+/* the appearance preview is a row of its own */
+.wz-settings-group__body > .wz-preview {
+  margin: 0;
+  padding: var(--wz-space-3) 0;
+  border: none;
+  border-top: 1px solid var(--adw-shade);
+  border-radius: 0;
+}
+
+.wz-settings-group__body .wz-ext-list {
+  padding: 0;
+}
+
+.wz-settings-group__body .wz-ext-item {
+  padding-left: var(--wz-space-3);
+  padding-right: var(--wz-space-3);
+}
+
+.wz-settings-group__body .wz-ext-item + .wz-ext-item,
+.wz-settings-group__body .wz-theme-entry + .wz-theme-entry {
+  border-top: 1px solid var(--adw-shade);
+}
+
+.wz-settings-group__body .wz-theme-modules {
+  margin-right: var(--wz-space-3);
+}
+
+.wz-ext-item__icon {
+  border: none;
+  background: var(--adw-button);
+  color: var(--adw-fg);
+}
+
+.wz-note {
+  border: none;
+  border-radius: var(--wz-radius-lg);
+  background: var(--adw-card-bg);
+  box-shadow: var(--adw-card-shadow);
+}
+
+.wz-coming-soon {
+  border: none;
+  background: var(--adw-card-bg);
+  box-shadow: var(--adw-card-shadow);
+}

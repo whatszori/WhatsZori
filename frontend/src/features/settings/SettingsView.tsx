@@ -5,7 +5,8 @@ import { IconButton, useLayer } from '../../ui';
 import { AboutSection } from './sections/AboutSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { HistorySection } from './sections/HistorySection';
-import { MarketplaceSection, PluginsSection, ThemesSection } from './sections/ExtensionsSections';
+import { MarketplaceSection, PluginsSection } from './sections/ExtensionsSections';
+import { ThemesSection } from './sections/ThemesSection';
 import { PrivacySection } from './sections/PrivacySection';
 import './SettingsView.css';
 

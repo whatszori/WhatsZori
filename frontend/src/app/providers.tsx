@@ -6,6 +6,8 @@ import { useConnection } from '../stores/connection';
 import { effectiveAccent, useSettings } from '../stores/settings';
 import { applyAppearance } from '../theme/theme-manager';
 import { registerDemoPlugins } from '../plugin-core/demo';
+import { applyThemes } from '../themes/loader';
+import { BUILTIN_THEMES } from '../themes/registry';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const settings = useSettings((s) => s.settings);
@@ -25,6 +27,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
       density: settings.appearance.density,
       fontScale: settings.appearance.fontScale,
     });
+  }, [settings]);
+
+  useEffect(() => {
+    applyThemes(BUILTIN_THEMES, settings);
   }, [settings]);
 
   useEffect(() => {

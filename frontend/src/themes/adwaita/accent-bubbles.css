@@ -1,0 +1,64 @@
+/* Solid accent bubbles for your messages, like GNOME chat apps. Darkened so white text stays AA. */
+
+:root {
+  --wz-radius-bubble: 18px;
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 92%, black);
+  --wz-bubble-out-text: #ffffff;
+  --wz-bubble-out-meta: rgb(255 255 255 / 0.8);
+  --wz-tick-read: #ffffff;
+}
+
+[data-theme='dark'] {
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 72%, black);
+  --wz-bubble-out-text: #ffffff;
+  --wz-bubble-out-meta: rgb(255 255 255 / 0.8);
+  --wz-tick-read: #ffffff;
+}
+
+.wz-bubble--out {
+  box-shadow: none;
+}
+
+.wz-bubble--out .wz-bubble__text a,
+.wz-bubble--out .wz-quote__name,
+.wz-bubble--out .wz-quote__text {
+  color: #ffffff;
+}
+
+.wz-bubble--out .wz-quote {
+  border-left-color: rgb(255 255 255 / 0.8);
+  background: rgb(255 255 255 / 0.14);
+}
+
+.wz-bubble--out .wz-media__doc-icon,
+.wz-bubble--out .wz-media--image,
+.wz-bubble--out .wz-media--video {
+  background: rgb(255 255 255 / 0.16);
+  color: rgb(255 255 255 / 0.85);
+}
+
+.wz-bubble--out .wz-media__doc-meta,
+.wz-bubble--out .wz-media__duration,
+.wz-bubble--out .wz-media__label {
+  color: rgb(255 255 255 / 0.8);
+}
+
+.wz-bubble--out .wz-media__bar {
+  background: rgb(255 255 255 / 0.6);
+}
+
+.wz-bubble--out .wz-media__voice-play {
+  background: #ffffff;
+  color: var(--wz-accent);
+}
+
+/* dashed outline would vanish on a solid bubble */
+.wz-bubble--out.wz-bubble--deleted {
+  outline-color: rgb(255 255 255 / 0.7);
+  outline-offset: -3px;
+}
+
+.wz-bubble--out .wz-bubble__deleted {
+  color: rgb(255 255 255 / 0.85);
+  border-top-color: rgb(255 255 255 / 0.4);
+}

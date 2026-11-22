@@ -1,0 +1,228 @@
+/* buttons: flat in header bars, tinted elsewhere */
+
+.wz-button {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--wz-radius-sm);
+  font-weight: 700;
+}
+
+.wz-button--secondary {
+  background: var(--adw-button);
+}
+
+.wz-button--secondary:not(:disabled):hover {
+  background: var(--adw-button-hover);
+}
+
+/* destructive-action */
+.wz-button--danger {
+  background: var(--wz-danger);
+  color: #fff;
+}
+
+.wz-button--danger:not(:disabled):hover {
+  background: color-mix(in srgb, var(--wz-danger) 88%, black);
+}
+
+[data-theme='dark'] .wz-button--danger {
+  background: #c01c28;
+}
+
+.wz-icon-button {
+  width: 34px;
+  height: 34px;
+  color: var(--adw-fg);
+}
+
+.wz-icon-button--sm {
+  width: 28px;
+  height: 28px;
+}
+
+.wz-icon-button:not(:disabled):hover {
+  background: var(--wz-bg-hover);
+}
+
+.wz-icon-button--active,
+.wz-icon-button[aria-expanded='true'] {
+  background: var(--adw-button);
+}
+
+/* entries */
+
+.wz-input {
+  height: 34px;
+  border: none;
+  border-radius: var(--wz-radius-sm);
+  background: var(--wz-bg-input);
+}
+
+.wz-input:focus-within {
+  background: var(--wz-bg-input);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wz-accent) 50%, transparent);
+}
+
+.wz-composer__input {
+  border: none;
+  border-radius: 18px;
+}
+
+.wz-composer__input:focus {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--wz-accent) 50%, transparent);
+}
+
+/* GtkSwitch */
+
+.wz-toggle__switch {
+  width: 46px;
+  height: 26px;
+  border-radius: 14px;
+  background: var(--adw-button-hover);
+}
+
+.wz-toggle__thumb {
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.2),
+    0 0 0 1px rgb(0 0 0 / 0.04);
+}
+
+.wz-toggle__switch[aria-checked='true'] .wz-toggle__thumb {
+  transform: translateX(20px);
+}
+
+/* AdwToggleGroup */
+
+.wz-segmented {
+  padding: 3px;
+  gap: 3px;
+  border-radius: var(--wz-radius-md);
+  background: var(--adw-button);
+}
+
+.wz-segmented__item {
+  border-radius: var(--wz-radius-sm);
+  font-weight: 700;
+  color: var(--adw-fg);
+}
+
+.wz-segmented__item--selected {
+  background: var(--adw-view-bg);
+  box-shadow: 0 1px 3px rgb(0 0 6 / 0.12);
+}
+
+[data-theme='dark'] .wz-segmented__item--selected {
+  background: rgb(255 255 255 / 0.18);
+  box-shadow: none;
+}
+
+/* popovers and menus */
+
+.wz-popover {
+  border: none;
+  border-radius: var(--wz-radius-lg);
+  box-shadow:
+    0 0 0 1px var(--adw-shade),
+    var(--wz-shadow-popover);
+}
+
+.wz-menu {
+  padding: 6px;
+}
+
+.wz-menu__item {
+  height: 34px;
+  padding: 0 10px;
+}
+
+.wz-menu__separator {
+  margin: 6px 0;
+}
+
+/* AdwAlertDialog: centered heading, pill responses */
+
+.wz-dialog {
+  border: none;
+  border-radius: 18px;
+  background: var(--adw-dialog-bg);
+}
+
+.wz-dialog__header {
+  position: relative;
+  justify-content: center;
+  padding: var(--wz-space-6) var(--wz-space-7) var(--wz-space-2);
+}
+
+.wz-dialog__header .wz-tooltip-anchor {
+  position: absolute;
+  top: var(--wz-space-2);
+  right: var(--wz-space-2);
+}
+
+.wz-dialog__title {
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.wz-dialog__body {
+  padding: 0 var(--wz-space-7) var(--wz-space-6);
+  text-align: center;
+}
+
+.wz-dialog .wz-info-list {
+  text-align: left;
+}
+
+.wz-dialog__footer {
+  gap: var(--wz-space-3);
+  padding: 0 var(--wz-space-6) var(--wz-space-6);
+  border-top: none;
+}
+
+.wz-dialog__footer .wz-button {
+  flex: 1;
+  height: 40px;
+  border-radius: var(--wz-radius-full);
+}
+
+/* misc */
+
+.wz-badge {
+  font-weight: 700;
+}
+
+.wz-tooltip {
+  padding: 6px 10px;
+  border-radius: var(--wz-radius-sm);
+  background: color-mix(in srgb, var(--adw-popover-bg) 92%, black);
+  color: var(--adw-fg);
+  font-weight: 400;
+  box-shadow: 0 0 0 1px var(--adw-shade);
+}
+
+.wz-day {
+  border: none;
+  background: var(--adw-button);
+  font-weight: 700;
+}
+
+.wz-jump-bottom {
+  border: none;
+  background: var(--adw-popover-bg);
+  color: var(--adw-fg);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-width: 2px;
+  background-color: rgb(127 127 127 / 0.5);
+}

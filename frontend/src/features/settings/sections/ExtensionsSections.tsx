@@ -1,4 +1,4 @@
-import { Brush, FolderOpen, Puzzle } from 'lucide-react';
+import { FolderOpen, Puzzle } from 'lucide-react';
 import { PluginSlot, useSlotEntries } from '../../../plugin-core/slots';
 import { useSettings } from '../../../stores/settings';
 import { Button, Toggle } from '../../../ui';
@@ -26,46 +26,25 @@ const PLUGINS = [
   },
 ];
 
-const THEMES = [
-  {
-    id: 'nord-quiet',
-    name: 'Nord Quiet',
-    description: 'Cool greys with a muted frost accent.',
-    version: '1.2.0',
-  },
-  {
-    id: 'paper-high-contrast',
-    name: 'Paper, high contrast',
-    description: 'Stronger borders and text for bright rooms.',
-    version: '0.9.0',
-  },
-];
-
 function ExtList({
-  kind,
   entries,
 }: {
-  kind: 'plugins' | 'themes';
   entries: { id: string; name: string; description: string; version: string }[];
 }) {
-  const state = useSettings((s) => s.settings[kind]);
+  const state = useSettings((s) => s.settings.plugins);
   const update = useSettings((s) => s.update);
   return (
     <div className="wz-ext-list">
       {entries.map((e) => (
         <div key={e.id} className="wz-ext-item">
           <span className="wz-ext-item__icon" aria-hidden="true">
-            {kind === 'plugins' ? (
-              <Puzzle size={18} strokeWidth={1.75} />
-            ) : (
-              <Brush size={18} strokeWidth={1.75} />
-            )}
+            <Puzzle size={18} strokeWidth={1.75} />
           </span>
           <Toggle
             label={e.name}
             description={`${e.description} · v${e.version}`}
             checked={!!state[e.id]}
-            onChange={(on) => update((s) => ({ ...s, [kind]: { ...s[kind], [e.id]: on } }))}
+            onChange={(on) => update((s) => ({ ...s, plugins: { ...s.plugins, [e.id]: on } }))}
           />
         </div>
       ))}
@@ -78,7 +57,7 @@ export function PluginsSection() {
   return (
     <Page title="Plugins" lead="Plugins add buttons and menu items in fixed places of the app.">
       <Group title="Installed">
-        <ExtList kind="plugins" entries={PLUGINS} />
+        <ExtList entries={PLUGINS} />
       </Group>
       <div className="wz-settings-actions">
         <Button icon={<FolderOpen size={16} />} onClick={() => undefined}>
@@ -92,21 +71,6 @@ export function PluginsSection() {
           </div>
         </Group>
       )}
-    </Page>
-  );
-}
-
-export function ThemesSection() {
-  return (
-    <Page title="Themes" lead="Themes are CSS files that override the --wz-* variables.">
-      <Group title="Installed">
-        <ExtList kind="themes" entries={THEMES} />
-      </Group>
-      <div className="wz-settings-actions">
-        <Button icon={<FolderOpen size={16} />} onClick={() => undefined}>
-          Open themes folder
-        </Button>
-      </div>
     </Page>
   );
 }

@@ -334,3 +334,19 @@
   flex-direction: column;
   gap: var(--wz-space-3);
 }
+
+.wz-theme-entry + .wz-theme-entry {
+  border-top: 1px solid var(--wz-border);
+}
+
+.wz-theme-modules {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 var(--wz-space-3) 48px;
+  padding-left: var(--wz-space-4);
+  border-left: 1px solid var(--wz-border);
+}
+
+.wz-theme-modules .wz-toggle {
+  padding: var(--wz-space-2) 0;
+}
