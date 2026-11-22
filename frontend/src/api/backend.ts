@@ -1,6 +1,8 @@
 import type {
   AppSettings,
   AuthStatus,
+  ConfigFolder,
+  UserTheme,
   BackendEventName,
   BackendEvents,
   Chat,
@@ -15,6 +17,7 @@ import type {
   Reaction,
   SearchHit,
 } from './types';
+import type { SystemPalette } from './events';
 
 // Mirrors the planned Wails services one-to-one, so the Wails bindings can implement it directly.
 export interface AuthService {
@@ -59,9 +62,41 @@ export interface SettingsService {
   set(settings: AppSettings): Promise<void>;
 }
 
+export interface SystemService {
+  version(): Promise<string>;
+  // 'browser' outside the desktop app, otherwise the Go GOOS (windows, linux, darwin)
+  platform(): Promise<string>;
+  isSafeMode(): Promise<boolean>;
+  // tells the Go side this start went fine, so the next one isn't in safe mode
+  bootOK(): Promise<void>;
+  openExternal(url: string): Promise<void>;
+  openConfigFolder(kind: ConfigFolder): Promise<void>;
+}
+
+export interface SystemThemeService {
+  get(): Promise<SystemPalette>;
+}
+
+export interface WindowService {
+  // match the native title bar and window background to the page (no-op in a browser)
+  setTheme(dark: boolean, background: string): Promise<void>;
+}
+
+export interface UserThemeService {
+  list(): Promise<UserTheme[]>;
+  // URL to load the file from; the hash busts the webview cache after an edit
+  href(file: string, hash: string): string;
+}
+
 export type Unsubscribe = () => void;
 
 export interface Backend {
+  // 'mock' in a plain browser, 'wails' inside the desktop app (Go for system bits, mock for WA)
+  readonly kind: 'mock' | 'wails';
+  system: SystemService;
+  systemTheme: SystemThemeService;
+  userThemes: UserThemeService;
+  window: WindowService;
   auth: AuthService;
   chats: ChatService;
   messages: MessageService;

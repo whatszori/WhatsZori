@@ -1,3 +1,5 @@
+import type { WzEvents } from './events';
+
 export type JID = string;
 // local primary key from our own store; WA message ids aren't unique across chats
 export type MessagePK = string;
@@ -190,9 +192,27 @@ export interface AppSettings {
   themes: Record<string, boolean>;
   // "themeId/moduleId" -> on/off, only for optional modules the user touched
   themeModules: Record<string, boolean>;
+  // file name of the enabled CSS theme from the user's themes folder
+  userTheme: string | null;
+  ui: {
+    sidebarWidth: number;
+  };
 }
 
-export interface BackendEvents {
+// a single-file CSS theme from <config>/themes, as listed by the Go side
+export interface UserTheme {
+  file: string;
+  id: string;
+  name: string;
+  author: string;
+  version: string;
+  description: string;
+  hash: string;
+}
+
+export type ConfigFolder = 'root' | 'themes' | 'plugins' | 'media';
+
+export interface BackendEvents extends WzEvents {
   'auth:qr': QRPayload;
   'auth:state': AuthStatus;
   'conn:state': { state: ConnState };

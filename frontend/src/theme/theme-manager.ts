@@ -6,6 +6,10 @@ export interface AppearanceOptions {
   theme: ThemeMode;
   // preset id, a '#rrggbb' custom color, or null for the theme default
   accent: string | null;
+  // text color on the accent; null keeps the theme's --wz-accent-fg
+  accentFg?: string | null;
+  // what the OS says, when we know better than prefers-color-scheme (the Go side in Wails)
+  systemScheme?: 'light' | 'dark' | null;
   density: Density;
   layout: Layout;
   fontScale: number;
@@ -25,8 +29,12 @@ const darkQuery = (): MediaQueryList | null =>
     ? window.matchMedia('(prefers-color-scheme: dark)')
     : null;
 
-export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
+export function resolveTheme(
+  mode: ThemeMode,
+  systemScheme?: 'light' | 'dark' | null,
+): 'light' | 'dark' {
   if (mode !== 'system') return mode;
+  if (systemScheme) return systemScheme;
   return darkQuery()?.matches ? 'dark' : 'light';
 }
 
@@ -43,12 +51,14 @@ let listening = false;
 function apply(): void {
   if (!current) return;
   const root = document.documentElement;
-  const theme = resolveTheme(current.theme);
+  const theme = resolveTheme(current.theme, current.systemScheme);
   root.dataset.theme = theme;
 
   const accent = resolveAccent(current.accent, theme);
   if (accent) root.style.setProperty('--wz-accent', accent);
   else root.style.removeProperty('--wz-accent');
+  if (accent && current.accentFg) root.style.setProperty('--wz-accent-fg', current.accentFg);
+  else root.style.removeProperty('--wz-accent-fg');
 
   root.dataset.density = current.density;
   root.dataset.layout = current.layout;
@@ -62,4 +72,28 @@ export function applyAppearance(opts: AppearanceOptions): void {
     darkQuery()?.addEventListener('change', apply);
     listening = true;
   }
+}
+
+// "rgb(18, 18, 20)" -> "#121214"; null for anything with transparency or that doesn't parse
+export function cssColorToHex(color: string): string | null {
+  const m = /^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)(?:[\s,/]+([\d.]+%?))?\s*\)$/i.exec(
+    color.trim(),
+  );
+  if (!m) return /^#[0-9a-f]{6}$/i.test(color.trim()) ? color.trim().toLowerCase() : null;
+  if (m[4] !== undefined) {
+    const a = m[4].endsWith('%') ? parseFloat(m[4]) / 100 : parseFloat(m[4]);
+    if (a < 1) return null;
+  }
+  return (
+    '#' +
+    [m[1], m[2], m[3]].map((n) => Math.min(255, Number(n)).toString(16).padStart(2, '0')).join('')
+  );
+}
+
+// What the native window should look like now: dark or light chrome, and the page background so
+// resize gaps and the next startup match.
+export function nativeTheme(doc = document): { dark: boolean; background: string } {
+  const dark = doc.documentElement.dataset.theme === 'dark';
+  const bg = doc.body ? cssColorToHex(getComputedStyle(doc.body).backgroundColor) : null;
+  return { dark, background: bg ?? '' };
 }

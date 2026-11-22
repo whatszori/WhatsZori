@@ -4,36 +4,103 @@ import { bindBackendEvents } from '../stores/bind-events';
 import { useChats } from '../stores/chats';
 import { useConnection } from '../stores/connection';
 import { useProfile } from '../stores/profile';
-import { effectiveAccent, useSettings } from '../stores/settings';
-import { applyAppearance } from '../theme/theme-manager';
+import { effectiveAccent, systemScheme, useSettings } from '../stores/settings';
+import { clampSidebar, useUI } from '../stores/ui';
+import { applyAppearance, nativeTheme } from '../theme/theme-manager';
 import { registerDemoPlugins } from '../plugin-core/demo';
 import { applyThemes } from '../themes/loader';
 import { BUILTIN_THEMES } from '../themes/registry';
+import { applyUserTheme, keepUserThemeLast, useUserThemes } from '../themes/user-themes';
+
+// long enough that a plugin or theme that breaks the UI on load has had its chance to
+const BOOT_OK_AFTER = 4000;
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const settings = useSettings((s) => s.settings);
+  const system = useSettings((s) => s.system);
+  const loaded = useSettings((s) => s.loaded);
+  const safeMode = useSettings((s) => s.safeMode);
   const authState = useConnection((s) => s.auth.state);
+  const userThemes = useUserThemes((s) => s.themes);
 
   useEffect(() => {
-    const off = bindBackendEvents(backend);
-    void useSettings.getState().load();
+    const offs = [
+      bindBackendEvents(backend),
+      backend.on('wz:systheme:changed', (p) => useSettings.getState().setSystem(p)),
+      backend.on('wz:theme:changed', (c) => useUserThemes.getState().fileChanged(c)),
+    ];
+    void useSettings
+      .getState()
+      .load()
+      .then(() => {
+        const s = useSettings.getState().settings;
+        useUI.setState({ sidebarWidth: clampSidebar(s.ui.sidebarWidth) });
+      });
     void useConnection.getState().init();
-    return off;
+    void useUserThemes.getState().load();
+    const bootTimer = window.setTimeout(
+      () => void backend.system.bootOK().catch(() => {}),
+      BOOT_OK_AFTER,
+    );
+    return () => {
+      offs.forEach((off) => off());
+      window.clearTimeout(bootTimer);
+    };
   }, []);
 
   useEffect(() => {
+    const { accent, accentFg } = effectiveAccent(settings, system);
     applyAppearance({
       theme: settings.appearance.theme,
-      accent: effectiveAccent(settings),
+      accent,
+      accentFg,
+      systemScheme: systemScheme(system),
       density: settings.appearance.density,
       layout: settings.appearance.layout ?? 'panels',
       fontScale: settings.appearance.fontScale,
     });
-  }, [settings]);
+    applyThemes(BUILTIN_THEMES, settings);
+    keepUserThemeLast();
+  }, [settings, system]);
 
   useEffect(() => {
-    applyThemes(BUILTIN_THEMES, settings);
-  }, [settings]);
+    const file = settings.userTheme;
+    const theme = file ? userThemes.find((t) => t.file === file) : undefined;
+    applyUserTheme(theme ? theme.file : null, theme?.hash ?? '');
+  }, [settings.userTheme, userThemes]);
+
+  // tell the native window once the page has its real colors, so the title bar and the
+  // background behind the webview match (and the next start opens in the right colors)
+  useEffect(() => {
+    if (!loaded || backend.kind !== 'wails') return;
+    const id = requestAnimationFrame(() => {
+      const { dark, background } = nativeTheme();
+      void backend.window.setTheme(dark, background).catch(() => {});
+    });
+    return () => cancelAnimationFrame(id);
+  }, [loaded, settings, system, userThemes]);
+
+  // links inside a webview would otherwise open in a second webview window
+  useEffect(() => {
+    if (backend.kind !== 'wails') return;
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button > 1) return;
+      const a = (e.target as Element | null)?.closest?.('a[href]');
+      if (!(a instanceof HTMLAnchorElement)) return;
+      const url = new URL(a.href, location.href);
+      if (url.origin === location.origin) return;
+      e.preventDefault();
+      void backend.system
+        .openExternal(url.href)
+        .catch((err) => console.warn('[wz] open link', err));
+    };
+    document.addEventListener('click', onClick, true);
+    document.addEventListener('auxclick', onClick, true);
+    return () => {
+      document.removeEventListener('click', onClick, true);
+      document.removeEventListener('auxclick', onClick, true);
+    };
+  }, []);
 
   useEffect(() => {
     if (authState !== 'logged-in') return;
@@ -44,9 +111,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
   }, [authState]);
 
   useEffect(() => {
-    if (!isDemo) return;
+    // safe mode is exactly for "a plugin broke startup", so plugins stay off
+    if (!isDemo || !loaded || safeMode) return;
     return registerDemoPlugins();
-  }, []);
+  }, [loaded, safeMode]);
 
   return <>{children}</>;
 }

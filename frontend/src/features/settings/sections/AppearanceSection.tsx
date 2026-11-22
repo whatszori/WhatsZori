@@ -1,6 +1,6 @@
 import { Pipette } from 'lucide-react';
-import type { AppSettings, Message } from '../../../api';
-import { useSettings } from '../../../stores/settings';
+import { backend, type AppSettings, type Message } from '../../../api';
+import { systemScheme, useSettings } from '../../../stores/settings';
 import { ACCENT_PRESETS, resolveTheme } from '../../../theme/theme-manager';
 import { Segmented, Toggle } from '../../../ui';
 import { Bubble } from '../../conversation/Bubble';
@@ -44,7 +44,14 @@ export function AppearanceSection() {
   const update = useSettings((s) => s.update);
   const set = (patch: Partial<Appearance>) =>
     update((s) => ({ ...s, appearance: { ...s.appearance, ...patch } }));
-  const theme = resolveTheme(a.theme);
+  const system = useSettings((s) => s.system);
+  const theme = resolveTheme(a.theme, systemScheme(system));
+  const systemAccentNote =
+    backend.kind === 'wails'
+      ? system?.accent
+        ? `Takes the accent from your OS (${system.accent}) and follows it when it changes.`
+        : 'Your OS doesn’t report an accent color, so your pick below is used.'
+      : 'Takes the accent from your OS. Browsers can’t read it, so a fixed color stands in.';
   const isCustom = !!a.accent && a.accent.startsWith('#');
   // with a theme on and no accent picked, the theme's own accent is in use, not a preset
   const themed = useSettings((s) => Object.values(s.settings.themes).some(Boolean));
@@ -113,7 +120,7 @@ export function AppearanceSection() {
           </div>
           <Toggle
             label="Use system accent color"
-            description="Takes the accent from your OS. Mocked in this build."
+            description={systemAccentNote}
             checked={a.useSystemAccent}
             onChange={(useSystemAccent) => set({ useSystemAccent })}
           />

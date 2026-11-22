@@ -1,4 +1,5 @@
 import { FolderOpen, Puzzle } from 'lucide-react';
+import { backend } from '../../../api';
 import { PluginSlot, useSlotEntries } from '../../../plugin-core/slots';
 import { useSettings } from '../../../stores/settings';
 import { Button, Toggle } from '../../../ui';
@@ -60,7 +61,12 @@ export function PluginsSection() {
         <ExtList entries={PLUGINS} />
       </Group>
       <div className="wz-settings-actions">
-        <Button icon={<FolderOpen size={16} />} onClick={() => undefined}>
+        <Button
+          icon={<FolderOpen size={16} />}
+          disabled={backend.kind !== 'wails'}
+          title={backend.kind === 'wails' ? undefined : 'Available in the desktop app'}
+          onClick={() => void backend.system.openConfigFolder('plugins')}
+        >
           Open plugins folder
         </Button>
       </div>

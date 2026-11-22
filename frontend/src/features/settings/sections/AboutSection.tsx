@@ -12,7 +12,10 @@ export function AboutSection() {
       <div className="wz-settings-group">
         <Logo height={34} />
         <p className="wz-about__version">
-          Version {__APP_VERSION__} · frontend preview with mock backend
+          Version {__APP_VERSION__} ·{' '}
+          {backend.kind === 'wails'
+            ? 'desktop app, WhatsApp connection still mocked'
+            : 'browser preview with mock backend'}
         </p>
       </div>
       <Group title="Disclaimer">

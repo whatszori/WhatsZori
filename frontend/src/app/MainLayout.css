@@ -76,6 +76,35 @@ body.wz-resizing * {
   background: var(--wz-warning-soft);
 }
 
+.wz-banner--safe-mode {
+  color: var(--wz-text-primary);
+}
+
+.wz-banner__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: var(--wz-space-2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--wz-radius-sm);
+  background: transparent;
+  color: var(--wz-text-muted);
+  cursor: pointer;
+}
+
+.wz-banner__close:hover {
+  background: var(--wz-bg-hover);
+  color: var(--wz-text-primary);
+}
+
+.wz-banner__close:focus-visible {
+  outline: none;
+  box-shadow: var(--wz-focus-ring);
+}
+
 @keyframes wz-banner-in {
   from {
     opacity: 0;

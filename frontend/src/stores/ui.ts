@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import type { JID, MessagePK } from '../api';
+import { DEFAULT_SETTINGS } from '../api/defaults';
+import { useSettings } from './settings';
 
 export type View = 'chats' | 'settings';
 // what the rail layout's sidebar shows besides chats and settings
@@ -25,17 +27,9 @@ export interface ComposerState {
 
 export const SIDEBAR_MIN = 260;
 export const SIDEBAR_MAX = 480;
-const SIDEBAR_KEY = 'wz.sidebarWidth';
 
-function readWidth(): number {
-  try {
-    const v = Number(localStorage.getItem(SIDEBAR_KEY));
-    if (v >= SIDEBAR_MIN && v <= SIDEBAR_MAX) return v;
-  } catch {
-    // storage blocked, fall through
-  }
-  return 340;
-}
+export const clampSidebar = (w: number) =>
+  Number.isFinite(w) ? Math.round(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, w))) : 340;
 
 const EMPTY_COMPOSER: ComposerState = { draft: '', replyTo: null, editing: null, stashed: '' };
 
@@ -83,7 +77,7 @@ export const useUI = create<UIState>((set, get) => {
     chatInfoOpen: false,
     activeChat: null,
     railPanel: 'chats',
-    sidebarWidth: readWidth(),
+    sidebarWidth: DEFAULT_SETTINGS.ui.sidebarWidth,
     focusMessage: null,
     composer: {},
     infoMessage: null,
@@ -105,13 +99,11 @@ export const useUI = create<UIState>((set, get) => {
     closeSettings: () => set({ view: 'chats' }),
     setSettingsSection: (settingsSection) => set({ settingsSection }),
     setSidebarWidth(w) {
-      const width = Math.round(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, w)));
+      const width = clampSidebar(w);
+      if (width === get().sidebarWidth) return;
       set({ sidebarWidth: width });
-      try {
-        localStorage.setItem(SIDEBAR_KEY, String(width));
-      } catch {
-        // not fatal, width just won't persist
-      }
+      // persisted with the rest of the settings (Go in the desktop app, localStorage in a browser)
+      useSettings.getState().update((s) => ({ ...s, ui: { ...s.ui, sidebarWidth: width } }));
     },
     jumpTo: (jid, pk) =>
       set((s) => ({ focusMessage: { jid, pk, nonce: (s.focusMessage?.nonce ?? 0) + 1 } })),

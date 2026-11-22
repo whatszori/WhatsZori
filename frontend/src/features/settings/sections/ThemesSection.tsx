@@ -1,5 +1,7 @@
-import { Brush, FolderOpen } from 'lucide-react';
+import { Brush, FileCode, FolderOpen } from 'lucide-react';
+import { backend, type UserTheme } from '../../../api';
 import { useSettings } from '../../../stores/settings';
+import { useUserThemes } from '../../../themes/user-themes';
 import { isModuleEnabled, moduleKey } from '../../../themes/loader';
 import { BUILTIN_THEMES } from '../../../themes/registry';
 import type { ThemePackage } from '../../../themes/types';
@@ -59,7 +61,56 @@ function ThemeEntry({ pkg }: { pkg: ThemePackage }) {
   );
 }
 
+function UserThemeEntry({ theme }: { theme: UserTheme }) {
+  const active = useSettings((s) => s.settings.userTheme === theme.file);
+  const update = useSettings((s) => s.update);
+  const meta = [
+    theme.version && `v${theme.version}`,
+    theme.author && `by ${theme.author}`,
+    theme.file,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  return (
+    <div className="wz-ext-item">
+      <span className="wz-ext-item__icon" aria-hidden="true">
+        <FileCode size={18} strokeWidth={1.75} />
+      </span>
+      <Toggle
+        label={theme.name}
+        description={[theme.description, meta].filter(Boolean).join(' · ')}
+        checked={active}
+        // one file theme at a time; turning another on replaces it
+        onChange={(on) => update((s) => ({ ...s, userTheme: on ? theme.file : null }))}
+      />
+    </div>
+  );
+}
+
+function UserThemes() {
+  const themes = useUserThemes((s) => s.themes);
+  const desktop = backend.kind === 'wails';
+  return (
+    <Group title="From your themes folder">
+      {themes.length > 0 ? (
+        <div className="wz-ext-list">
+          {themes.map((t) => (
+            <UserThemeEntry key={t.file} theme={t} />
+          ))}
+        </div>
+      ) : (
+        <p className="wz-setting-row wz-setting-row__desc">
+          {desktop
+            ? 'Drop a .css file into the themes folder and it shows up here. Edits apply as soon as you save.'
+            : 'Themes from disk work in the desktop app.'}
+        </p>
+      )}
+    </Group>
+  );
+}
+
 export function ThemesSection() {
+  const desktop = backend.kind === 'wails';
   return (
     <Page
       title="Themes"
@@ -72,8 +123,14 @@ export function ThemesSection() {
           ))}
         </div>
       </Group>
+      <UserThemes />
       <div className="wz-settings-actions">
-        <Button icon={<FolderOpen size={16} />} onClick={() => undefined}>
+        <Button
+          icon={<FolderOpen size={16} />}
+          disabled={!desktop}
+          title={desktop ? undefined : 'Available in the desktop app'}
+          onClick={() => void backend.system.openConfigFolder('themes')}
+        >
           Open themes folder
         </Button>
       </div>

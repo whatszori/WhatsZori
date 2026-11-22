@@ -18,9 +18,30 @@ import type {
   SearchHit,
 } from '../types';
 import { buildChatInfo, createMockDB, preview, refreshChatPreview, type MockDB } from './data';
-import { DEFAULT_GHOST, DEFAULT_SETTINGS } from '../defaults';
+import { DEFAULT_GHOST, withDefaults } from '../defaults';
+import type { SystemPalette } from '../events';
+import type { UserTheme } from '../types';
 import { Emitter } from './emitter';
 import { Simulator } from './simulator';
+
+// Browsers don't expose the OS accent, so "Use system accent" gets a calm blue here.
+export const MOCK_SYSTEM_ACCENT = '#4a6fa5';
+
+const darkQuery = (): MediaQueryList | null =>
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-color-scheme: dark)')
+    : null;
+
+function browserPalette(): SystemPalette {
+  const q = darkQuery();
+  return {
+    source: 'browser',
+    scheme: q ? (q.matches ? 'dark' : 'light') : 'none',
+    accent: MOCK_SYSTEM_ACCENT,
+    accentFg: '#ffffff',
+    raw: {},
+  };
+}
 
 export interface DevControls {
   simulateScan(): void;
@@ -54,6 +75,7 @@ function readStore(): Partial<{
 }
 
 export class MockBackend implements Backend {
+  readonly kind = 'mock' as const;
   readonly db: MockDB;
   private emitter = new Emitter();
   private auth_: AuthStatus = { state: 'logged-out', me: null };
@@ -71,7 +93,7 @@ export class MockBackend implements Backend {
     this.db = createMockDB(opts.now);
     for (const list of this.db.messages.values()) for (const m of list) this.byPk.set(m.pk, m);
     const stored = opts.persist ? readStore() : {};
-    this.settings_ = { ...clone(DEFAULT_SETTINGS), ...stored.settings };
+    this.settings_ = withDefaults(stored.settings);
     this.ghost_ = { ...DEFAULT_GHOST, ...stored.ghost };
     this.profile_ = {
       name: 'Alex Morgan',
@@ -84,6 +106,9 @@ export class MockBackend implements Backend {
       window.setTimeout(() => this.setConn('connected'), 700);
     }
     this.simulator = new Simulator(this);
+    darkQuery()?.addEventListener('change', () =>
+      this.emit('wz:systheme:changed', browserPalette()),
+    );
   }
 
   private wait(): Promise<void> {
@@ -361,6 +386,32 @@ export class MockBackend implements Backend {
       this.settings_ = clone(s);
       this.save();
     },
+  };
+
+  system = {
+    version: async (): Promise<string> => __APP_VERSION__,
+    platform: async (): Promise<string> => 'browser',
+    isSafeMode: async (): Promise<boolean> => false,
+    bootOK: async (): Promise<void> => undefined,
+    openExternal: async (url: string): Promise<void> => {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    },
+    // there's no config folder in a browser; the buttons are disabled in mock mode
+    openConfigFolder: async (): Promise<void> => undefined,
+  };
+
+  systemTheme = {
+    get: async (): Promise<SystemPalette> => browserPalette(),
+  };
+
+  window = {
+    setTheme: async (): Promise<void> => undefined,
+  };
+
+  userThemes = {
+    list: async (): Promise<UserTheme[]> => [],
+    href: (file: string, hash: string) =>
+      `/wz-themes/${encodeURIComponent(file)}${hash ? `?h=${hash}` : ''}`,
   };
 
   insert(m: Message): void {

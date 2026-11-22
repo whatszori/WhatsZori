@@ -15,6 +15,7 @@ import { buildChatList, navigationOrder } from '../stores/chat-selectors';
 import { useChats } from '../stores/chats';
 import { SIDEBAR_MAX, SIDEBAR_MIN, useUI } from '../stores/ui';
 import { ConnectionBanner } from './ConnectionBanner';
+import { SafeModeBanner } from './SafeModeBanner';
 import './MainLayout.css';
 
 function Resizer() {
@@ -133,6 +134,7 @@ export function MainLayout() {
         style={{ ['--wz-sidebar-width' as string]: `${width}px` }}
       >
         <ConnectionBanner />
+        <SafeModeBanner />
         <div className="wz-app__body">
           <NavRail />
           <aside className="wz-sidebar" aria-label="Sidebar">
@@ -149,6 +151,7 @@ export function MainLayout() {
   return (
     <div className="wz-app" style={{ ['--wz-sidebar-width' as string]: `${width}px` }}>
       <ConnectionBanner />
+      <SafeModeBanner />
       <div className="wz-app__body">
         <aside className="wz-sidebar" aria-label="Chats">
           <ChatListPane />
