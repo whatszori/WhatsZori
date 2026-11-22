@@ -1,0 +1,87 @@
+/* NavigationView / ListView selection: neutral fill plus a 3px accent pill on the left */
+
+.wz-chat-item,
+.wz-settings__nav-item,
+.wz-chat-list__archived {
+  position: relative;
+  border-radius: var(--wz-radius-sm);
+}
+
+.wz-chat-item:active,
+.wz-settings__nav-item:active {
+  background: var(--fl-subtle-pressed);
+}
+
+.wz-chat-item--active,
+.wz-chat-item--active:hover,
+.wz-settings__nav-item--active,
+.wz-settings__nav-item--active:hover {
+  background: var(--fl-subtle-hover);
+}
+
+.wz-chat-item--active::before,
+.wz-settings__nav-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--wz-accent);
+  transform: translateY(-50%);
+  animation: wz-fluent-pill var(--wz-duration) var(--wz-ease);
+}
+
+@keyframes wz-fluent-pill {
+  from {
+    height: 6px;
+  }
+}
+
+.wz-chat-item:focus-visible {
+  box-shadow: var(--wz-focus-ring);
+}
+
+.wz-settings__nav-item {
+  height: 36px;
+  font-weight: 400;
+  color: var(--wz-text-primary);
+}
+
+.wz-settings__nav-item--active {
+  font-weight: 400;
+}
+
+.wz-settings__nav-icon,
+.wz-settings__nav-item--active .wz-settings__nav-icon {
+  color: var(--wz-text-primary);
+}
+
+.wz-settings__nav-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* title-bar-like headers: left-aligned, no hairline */
+
+.wz-chat-pane__header .wz-wordmark {
+  font-size: var(--wz-font-size-sm);
+  font-weight: 400;
+  color: var(--wz-text-secondary);
+}
+
+.wz-conv-header {
+  border-bottom-color: var(--fl-divider);
+}
+
+.wz-conv-header__name {
+  font-size: var(--wz-font-size-lg);
+  font-weight: 600;
+}
+
+.wz-settings__title {
+  font-size: var(--wz-font-size-sm);
+  font-weight: 400;
+  color: var(--wz-text-secondary);
+}

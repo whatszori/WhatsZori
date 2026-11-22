@@ -1,0 +1,325 @@
+/* Button: filled control with a slightly darker bottom edge */
+
+.wz-button {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--wz-radius-sm);
+  font-weight: 400;
+}
+
+.wz-button--secondary,
+.wz-button--danger {
+  background: var(--fl-control);
+  border: 1px solid var(--fl-control-stroke);
+  border-bottom-color: var(--fl-control-stroke-bottom);
+}
+
+.wz-button--secondary:not(:disabled):hover,
+.wz-button--danger:not(:disabled):hover {
+  background: var(--fl-control-hover);
+}
+
+.wz-button--secondary:not(:disabled):active,
+.wz-button--danger:not(:disabled):active {
+  background: var(--fl-control-pressed);
+  border-bottom-color: var(--fl-control-stroke);
+  color: var(--wz-text-secondary);
+}
+
+.wz-button--danger:not(:disabled):hover {
+  background: var(--fl-control-hover);
+}
+
+/* AccentButton */
+.wz-button--primary {
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-bottom-color: rgb(0 0 0 / 0.4);
+}
+
+[data-theme='dark'] .wz-button--primary {
+  border-color: rgb(255 255 255 / 0.08);
+  border-bottom-color: rgb(0 0 0 / 0.14);
+}
+
+/* subtle buttons (AppBarButton) */
+.wz-icon-button {
+  border-radius: var(--wz-radius-sm);
+}
+
+.wz-icon-button:not(:disabled):active {
+  background: var(--fl-subtle-pressed);
+  color: var(--wz-text-secondary);
+}
+
+/* TextBox: bottom stroke that turns into a 2px accent line on focus */
+
+.wz-input,
+.wz-composer__input {
+  border: 1px solid var(--fl-control-stroke);
+  border-radius: var(--wz-radius-sm);
+  background: var(--fl-control);
+  box-shadow: inset 0 -1px var(--fl-control-strong-stroke);
+}
+
+.wz-input:hover,
+.wz-composer__input:hover {
+  background: var(--fl-control-hover);
+}
+
+.wz-input:focus-within,
+.wz-composer__input:focus {
+  border-color: var(--fl-control-stroke);
+  background: var(--fl-control-input-active);
+  box-shadow: inset 0 -2px var(--wz-accent);
+}
+
+.wz-composer__input {
+  min-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.wz-composer__input:focus-visible {
+  border-radius: var(--wz-radius-sm);
+}
+
+/* ToggleSwitch: outlined when off, accent with a white knob when on */
+
+.wz-toggle__switch {
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 0.0241);
+  box-shadow: inset 0 0 0 1px var(--fl-control-strong-stroke);
+}
+
+[data-theme='dark'] .wz-toggle__switch {
+  background: rgb(0 0 0 / 0.1);
+}
+
+.wz-toggle__switch:hover {
+  background: var(--fl-subtle-hover);
+}
+
+.wz-toggle__thumb {
+  top: 5px;
+  left: 5px;
+  width: 10px;
+  height: 10px;
+  background: var(--fl-text-secondary);
+  box-shadow: none;
+  transition:
+    transform var(--wz-duration) var(--wz-ease),
+    width var(--wz-duration-fast) var(--wz-ease),
+    height var(--wz-duration-fast) var(--wz-ease),
+    top var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-toggle__switch:hover .wz-toggle__thumb {
+  top: 4px;
+  width: 12px;
+  height: 12px;
+}
+
+.wz-toggle__switch[aria-checked='true'] {
+  background: var(--wz-accent);
+  box-shadow: none;
+}
+
+.wz-toggle__switch[aria-checked='true']:hover {
+  background: var(--wz-accent-hover);
+}
+
+.wz-toggle__switch[aria-checked='true'] .wz-toggle__thumb {
+  background: var(--wz-accent-fg);
+  transform: translateX(20px);
+}
+
+.wz-toggle__switch[aria-checked='true']:hover .wz-toggle__thumb {
+  transform: translateX(19px);
+}
+
+/* SelectorBar: plain text items, the selected one gets an accent pill underneath */
+
+.wz-segmented {
+  gap: 2px;
+  padding: 0;
+  background: transparent;
+}
+
+.wz-segmented__item {
+  position: relative;
+  border-radius: var(--wz-radius-sm);
+  color: var(--wz-text-secondary);
+  font-weight: 400;
+}
+
+.wz-segmented__item:hover {
+  background: var(--fl-subtle-hover);
+}
+
+.wz-segmented__item--selected,
+[data-theme='dark'] .wz-segmented__item--selected {
+  background: transparent;
+  box-shadow: none;
+  color: var(--wz-text-primary);
+  font-weight: 600;
+}
+
+.wz-segmented__item--selected::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--wz-accent);
+  transform: translateX(-50%);
+}
+
+/* MenuFlyout */
+
+.wz-popover {
+  border: 1px solid var(--fl-flyout-stroke);
+  border-radius: var(--wz-radius-lg);
+}
+
+.wz-menu {
+  padding: 4px 0;
+}
+
+.wz-menu__item {
+  height: 32px;
+  margin: 0 4px;
+  padding: 0 11px;
+  border-radius: var(--wz-radius-sm);
+}
+
+.wz-menu__item:focus-visible {
+  outline: none;
+  box-shadow: var(--wz-focus-ring);
+}
+
+.wz-menu__separator {
+  margin: 2px 0;
+}
+
+.wz-quick-reactions {
+  margin: 0 4px 4px;
+}
+
+/* ContentDialog: left-aligned title, buttons on a darker footer band */
+
+.wz-dialog {
+  overflow: hidden;
+  border: 1px solid var(--fl-flyout-stroke);
+  border-radius: var(--wz-radius-lg);
+  background: var(--fl-layer);
+  box-shadow:
+    0 32px 64px rgb(0 0 0 / 0.19),
+    0 2px 21px rgb(0 0 0 / 0.15);
+}
+
+.wz-dialog__header {
+  padding: var(--wz-space-6) var(--wz-space-6) var(--wz-space-3);
+}
+
+.wz-dialog__title {
+  font-size: var(--wz-font-size-xl);
+  font-weight: 600;
+}
+
+/* ContentDialog has no close button when it has its own buttons */
+.wz-dialog:has(.wz-dialog__footer) .wz-dialog__header .wz-tooltip-anchor {
+  display: none;
+}
+
+.wz-dialog__body {
+  padding: 0 var(--wz-space-6) var(--wz-space-6);
+}
+
+.wz-dialog__footer {
+  gap: var(--wz-space-2);
+  padding: var(--wz-space-6);
+  background: var(--fl-mica);
+  border-top: 1px solid var(--fl-card-stroke);
+}
+
+.wz-dialog__footer .wz-button {
+  flex: 1;
+}
+
+/* the destructive response is the accent button in WinUI dialogs */
+.wz-dialog__footer .wz-button--danger {
+  order: -1;
+  background: var(--wz-accent);
+  color: var(--wz-accent-fg);
+  border-color: rgb(255 255 255 / 0.08);
+  border-bottom-color: rgb(0 0 0 / 0.4);
+}
+
+.wz-dialog__footer .wz-button--danger:not(:disabled):hover {
+  background: var(--wz-accent-hover);
+}
+
+/* ToolTip */
+
+.wz-tooltip {
+  padding: 5px 8px 6px;
+  border: 1px solid var(--fl-flyout-stroke);
+  border-radius: var(--wz-radius-sm);
+  background: var(--fl-flyout);
+  color: var(--fl-text);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 400;
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.14);
+}
+
+/* InfoBadge */
+
+.wz-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-weight: 600;
+}
+
+.wz-day {
+  border-radius: var(--wz-radius-sm);
+  border-color: var(--fl-card-stroke);
+  background: var(--fl-card);
+  font-weight: 400;
+}
+
+.wz-jump-bottom {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--wz-radius-sm);
+  border: 1px solid var(--fl-control-stroke);
+  border-bottom-color: var(--fl-control-stroke-bottom);
+  background: var(--fl-card);
+}
+
+.wz-jump-bottom:focus-visible {
+  border-radius: var(--wz-radius-sm);
+}
+
+.wz-reaction {
+  border-radius: var(--wz-radius-sm);
+}
+
+/* thin scrollbars that thicken on hover, like WinUI's ScrollBar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 5px solid transparent;
+  background-color: var(--fl-control-strong-stroke);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  border-width: 3px;
+}

@@ -1,0 +1,110 @@
+/* SettingsCard: every row is its own card, 4px apart, like the Windows 11 Settings app */
+
+.wz-settings-page__title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.wz-settings-page__lead {
+  color: var(--wz-text-secondary);
+}
+
+.wz-settings-group {
+  margin-top: var(--wz-space-6);
+}
+
+.wz-settings-group__title {
+  margin-bottom: var(--wz-space-2);
+  color: var(--wz-text-primary);
+  font-size: var(--wz-font-size-md);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wz-settings-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wz-settings-group__body > *,
+.wz-settings-group__body > * + * {
+  min-height: 68px;
+  padding: var(--wz-space-3) var(--wz-space-4);
+  border: 1px solid var(--fl-card-stroke);
+  border-radius: var(--wz-radius-sm);
+  background: var(--fl-card);
+}
+
+.wz-settings-group__body > .wz-preview {
+  margin: 0;
+  padding: var(--wz-space-3) 0;
+  background: var(--wz-bg-conversation);
+}
+
+/* list of themes/plugins: one card per entry, not one card for the whole list */
+.wz-settings-group__body > .wz-ext-list,
+.wz-settings-group__body > .wz-plugin-settings {
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  gap: 4px;
+}
+
+.wz-ext-list {
+  gap: 4px;
+}
+
+.wz-ext-item + .wz-ext-item,
+.wz-theme-entry + .wz-theme-entry {
+  border-top: none;
+}
+
+.wz-ext-list > .wz-ext-item,
+.wz-theme-entry {
+  border: 1px solid var(--fl-card-stroke);
+  border-radius: var(--wz-radius-sm);
+  background: var(--fl-card);
+}
+
+.wz-ext-list > .wz-ext-item,
+.wz-theme-entry > .wz-ext-item {
+  min-height: 68px;
+  padding: var(--wz-space-3) var(--wz-space-4);
+}
+
+/* SettingsExpander: child rows sit on a strip under the parent card */
+.wz-theme-modules {
+  margin: 0;
+  padding: 0;
+  border-left: none;
+  border-top: 1px solid var(--fl-card-stroke);
+}
+
+.wz-theme-modules .wz-toggle {
+  padding: var(--wz-space-3) var(--wz-space-4) var(--wz-space-3) 64px;
+}
+
+.wz-theme-modules .wz-toggle + .wz-toggle {
+  border-top: 1px solid var(--fl-card-stroke);
+}
+
+.wz-ext-item__icon {
+  border: none;
+  background: transparent;
+  color: var(--wz-text-primary);
+}
+
+.wz-note,
+.wz-coming-soon {
+  border: 1px solid var(--fl-card-stroke);
+  border-radius: var(--wz-radius-sm);
+  background: var(--fl-card);
+}
+
+.wz-settings-actions .wz-button {
+  min-width: 120px;
+}

@@ -1,0 +1,47 @@
+{
+  "id": "winui",
+  "name": "WinUI",
+  "version": "0.1.0",
+  "author": "WhatsZori",
+  "description": "Windows 11 / Fluent look: Mica surfaces, Segoe UI Variable, selection pills.",
+  "modules": [
+    {
+      "id": "palette",
+      "name": "Palette",
+      "description": "Fluent colors, typography, corner radii and focus visuals.",
+      "file": "palette.css",
+      "required": true
+    },
+    {
+      "id": "controls",
+      "name": "Fluent controls",
+      "description": "Buttons, text boxes, toggle switches, flyouts and content dialogs.",
+      "file": "controls.css"
+    },
+    {
+      "id": "navigation",
+      "name": "Navigation",
+      "description": "NavigationView-style lists with an accent selection pill.",
+      "file": "navigation.css"
+    },
+    {
+      "id": "mica",
+      "name": "Mica layout",
+      "description": "Sidebar on the Mica backdrop, content on a rounded layer, like Windows 11 apps.",
+      "file": "mica.css"
+    },
+    {
+      "id": "settings-cards",
+      "name": "Settings cards",
+      "description": "Each setting on its own card, like the Windows 11 Settings app.",
+      "file": "settings-cards.css"
+    },
+    {
+      "id": "accent-bubbles",
+      "name": "Accent bubbles",
+      "description": "Your messages in solid accent color, like Phone Link.",
+      "file": "accent-bubbles.css",
+      "default": false
+    }
+  ]
+}

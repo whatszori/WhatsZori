@@ -1,0 +1,48 @@
+/* Windows 11 app layout: navigation sits on the Mica backdrop, content on a layer with a rounded
+   top-left corner. Mica itself is translucent; here it's the solid fallback color. */
+
+.wz-app,
+.wz-app__body,
+.wz-sidebar {
+  background: var(--fl-mica);
+}
+
+.wz-resizer {
+  background: transparent;
+}
+
+.wz-resizer:hover,
+.wz-resizer:focus-visible {
+  background: var(--fl-control-strong-stroke);
+}
+
+.wz-main {
+  margin-top: 6px;
+  border-top: 1px solid var(--fl-card-stroke);
+  border-left: 1px solid var(--fl-card-stroke);
+  border-top-left-radius: var(--wz-radius-lg);
+  background: var(--fl-layer);
+  overflow: hidden;
+}
+
+.wz-conv-header,
+.wz-composer {
+  background: transparent;
+}
+
+.wz-composer {
+  border-top-color: var(--fl-divider);
+}
+
+.wz-settings,
+.wz-settings__nav {
+  background: transparent;
+}
+
+.wz-settings__nav {
+  border-right-color: var(--fl-divider);
+}
+
+.wz-banner {
+  background: var(--fl-mica);
+}

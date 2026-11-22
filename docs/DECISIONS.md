@@ -37,4 +37,8 @@ One line each, with the reason.
 - Theme CSS is injected as `<style data-wz-theme>` at the end of `<head>`, so it wins over app CSS at equal specificity without `!important`.
 - A user-picked accent (inline on `<html>`) still beats a theme's accent. With no accent picked, the theme's accent is used, and the Appearance page says so instead of highlighting a preset.
 - Adwaita uses blue_4 (`#1c71d8`) as its light accent rather than `#3584e4`, so white text on it passes WCAG AA. Accent bubbles are darkened for the same reason.
+- WinUI theme: Mica and acrylic are drawn with their solid fallback colors, because the brief rules out blur and translucency. The real Mica backdrop would come from the Wails window (WebView2 transparency), not from CSS.
+- WinUI follows Fluent's accent rules: AccentDark1 (`#005fb8`) with white text in light mode, AccentLight2 (`#60cdff`) with black text in dark mode. Accent bubbles use `--wz-accent-fg`, so they switch text color the same way.
+- In the WinUI dialog, the destructive action is the accent (primary) button on the left, as in ContentDialog; the close X is hidden when the dialog has its own buttons.
+- Several themes can be on at once. They're applied in name order (Adwaita, then WinUI), so the later one wins where they overlap. Mixing modules from different themes works but isn't curated.
 - Vitest turns CSS imports (even `?raw`) into empty strings, so the theme test only checks that every file a manifest lists exists.

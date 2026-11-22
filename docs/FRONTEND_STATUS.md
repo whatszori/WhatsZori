@@ -88,7 +88,10 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 - **Modular themes** (`src/themes/`): a theme is a folder with `manifest.json` plus CSS modules,
   and the loader injects one `<style>` per enabled theme. The built-in **Adwaita** theme (GNOME /
   libadwaita look) has 5 modules: palette (required), GTK widgets, header bars, boxed lists, and
-  accent bubbles (off by default). Screenshots: `screenshots/adwaita-*.png`.
+  accent bubbles (off by default). Screenshots: `screenshots/adwaita-*.png`. Built-in **WinUI**
+  theme (Windows 11 / Fluent 2) has 6 modules: palette (required), Fluent controls, navigation
+  (selection pills), Mica layout, settings cards, and accent bubbles (off by default).
+  Screenshots: `screenshots/winui-*.png`.
 - **Plugin core**: typed slot registry, `<PluginSlot>` with a per-entry error boundary, and all 7
   slots placed. `plugin-core/types.ts` is self-contained, ready to move into plugin-sdk. With
   `?demo=1`, a demo plugin adds a header button, a context-menu item, a sidebar footer line and a

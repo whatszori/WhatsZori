@@ -1,0 +1,54 @@
+/* Solid accent bubbles for your messages. Text follows --wz-accent-fg, so it's white on the light
+   theme's dark accent and black on the dark theme's light accent, same as WinUI accent fills. */
+
+:root,
+[data-theme='dark'] {
+  --wz-bubble-out: var(--wz-accent);
+  --wz-bubble-out-text: var(--wz-accent-fg);
+  --wz-bubble-out-meta: color-mix(in srgb, var(--wz-accent-fg) 78%, var(--wz-accent));
+  --wz-tick-read: var(--wz-accent-fg);
+}
+
+.wz-bubble--out {
+  box-shadow: none;
+}
+
+.wz-bubble--out .wz-bubble__text a,
+.wz-bubble--out .wz-quote__name,
+.wz-bubble--out .wz-quote__text,
+.wz-bubble--out .wz-media__doc-meta,
+.wz-bubble--out .wz-media__duration,
+.wz-bubble--out .wz-media__label {
+  color: var(--wz-accent-fg);
+}
+
+.wz-bubble--out .wz-quote {
+  border-left-color: var(--wz-accent-fg);
+  background: color-mix(in srgb, var(--wz-accent-fg) 14%, transparent);
+}
+
+.wz-bubble--out .wz-media__doc-icon,
+.wz-bubble--out .wz-media--image,
+.wz-bubble--out .wz-media--video {
+  background: color-mix(in srgb, var(--wz-accent-fg) 16%, transparent);
+  color: var(--wz-accent-fg);
+}
+
+.wz-bubble--out .wz-media__bar {
+  background: color-mix(in srgb, var(--wz-accent-fg) 60%, transparent);
+}
+
+.wz-bubble--out .wz-media__voice-play {
+  background: var(--wz-accent-fg);
+  color: var(--wz-accent);
+}
+
+.wz-bubble--out.wz-bubble--deleted {
+  outline-color: color-mix(in srgb, var(--wz-accent-fg) 70%, transparent);
+  outline-offset: -3px;
+}
+
+.wz-bubble--out .wz-bubble__deleted {
+  color: var(--wz-accent-fg);
+  border-top-color: color-mix(in srgb, var(--wz-accent-fg) 40%, transparent);
+}

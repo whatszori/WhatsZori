@@ -1,0 +1,161 @@
+/* Fluent 2 / WinUI 3 theme resources, flattened to solid colors (no acrylic, no blur) */
+
+:root {
+  --fl-mica: #f3f3f3;
+  --fl-layer: #f9f9f9;
+  --fl-card: #fbfbfb;
+  --fl-card-stroke: rgb(0 0 0 / 0.0578);
+  --fl-control: rgb(255 255 255 / 0.7);
+  --fl-control-hover: rgb(249 249 249 / 0.5);
+  --fl-control-pressed: rgb(249 249 249 / 0.3);
+  --fl-control-input-active: #ffffff;
+  --fl-control-stroke: rgb(0 0 0 / 0.0578);
+  /* the darker bottom edge that gives WinUI buttons their elevation */
+  --fl-control-stroke-bottom: rgb(0 0 0 / 0.1622);
+  --fl-control-strong-stroke: rgb(0 0 0 / 0.4458);
+  --fl-subtle-hover: rgb(0 0 0 / 0.0373);
+  --fl-subtle-pressed: rgb(0 0 0 / 0.0241);
+  --fl-divider: rgb(0 0 0 / 0.0803);
+  --fl-flyout: #fcfcfc;
+  --fl-flyout-stroke: rgb(0 0 0 / 0.0578);
+  --fl-focus-outer: rgb(0 0 0 / 0.8956);
+  --fl-focus-inner: #ffffff;
+  --fl-text: rgb(0 0 0 / 0.8956);
+  --fl-text-secondary: rgb(0 0 0 / 0.6063);
+  --fl-caution-bg: #fff4ce;
+  --fl-critical-bg: #fde7e9;
+
+  /* AccentFillColorDefault = AccentDark1 in light mode */
+  --wz-accent: #005fb8;
+  --wz-accent-fg: #ffffff;
+  /* WinUI hovers accent fills by fading them, not darkening */
+  --wz-accent-hover: color-mix(in srgb, var(--wz-accent) 90%, var(--fl-layer));
+  --wz-accent-active: color-mix(in srgb, var(--wz-accent) 80%, var(--fl-layer));
+
+  --wz-bg-app: var(--fl-mica);
+  --wz-bg-primary: var(--fl-layer);
+  --wz-bg-secondary: var(--fl-mica);
+  --wz-bg-elevated: var(--fl-flyout);
+  --wz-bg-hover: var(--fl-subtle-hover);
+  --wz-bg-active: rgb(0 0 0 / 0.06);
+  --wz-bg-input: var(--fl-control);
+  --wz-bg-conversation: var(--fl-layer);
+
+  --wz-text-primary: var(--fl-text);
+  --wz-text-secondary: var(--fl-text-secondary);
+  /* Fluent's tertiary text is below AA, so muted stays close to secondary */
+  --wz-text-muted: rgb(0 0 0 / 0.58);
+
+  --wz-border: var(--fl-divider);
+  --wz-border-strong: var(--fl-control-stroke-bottom);
+
+  --wz-bubble-in: #ffffff;
+  --wz-bubble-border: var(--fl-card-stroke);
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 12%, #ffffff);
+  --wz-bubble-deleted-border: color-mix(in srgb, #c42b1c 50%, #ffffff);
+
+  --wz-danger: #c42b1c;
+  --wz-warning: #9d5d00;
+  --wz-success: #0f7b0f;
+  --wz-danger-soft: var(--fl-critical-bg);
+  --wz-warning-soft: var(--fl-caution-bg);
+
+  /* PersonPicture is neutral, keep just a hint of hue */
+  --wz-avatar-saturation: 14%;
+  --wz-avatar-lightness: 86%;
+  --wz-avatar-text-lightness: 30%;
+
+  --wz-shadow-popover: 0 8px 16px rgb(0 0 0 / 0.14);
+  --wz-scrim: rgb(0 0 0 / 0.3);
+
+  --wz-radius-sm: 4px;
+  --wz-radius-md: 4px;
+  --wz-radius-lg: 8px;
+  --wz-radius-bubble: 8px;
+
+  --wz-font-ui:
+    'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system,
+    'Noto Sans', sans-serif;
+  --wz-font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, ui-monospace, monospace;
+  --wz-font-size-xs: calc(11px * var(--wz-font-scale));
+  --wz-font-size-sm: calc(12px * var(--wz-font-scale));
+  --wz-font-size-md: calc(14px * var(--wz-font-scale));
+  --wz-font-size-lg: calc(16px * var(--wz-font-scale));
+  --wz-font-size-xl: calc(20px * var(--wz-font-scale));
+
+  --wz-focus-ring: 0 0 0 1px var(--fl-focus-inner), 0 0 0 3px var(--fl-focus-outer);
+}
+
+[data-theme='dark'] {
+  --fl-mica: #202020;
+  --fl-layer: #272727;
+  --fl-card: #2b2b2b;
+  --fl-card-stroke: rgb(0 0 0 / 0.1);
+  --fl-control: rgb(255 255 255 / 0.0605);
+  --fl-control-hover: rgb(255 255 255 / 0.0837);
+  --fl-control-pressed: rgb(255 255 255 / 0.0326);
+  --fl-control-input-active: #1e1e1e;
+  --fl-control-stroke: rgb(255 255 255 / 0.0698);
+  --fl-control-stroke-bottom: rgb(255 255 255 / 0.093);
+  --fl-control-strong-stroke: rgb(255 255 255 / 0.5442);
+  --fl-subtle-hover: rgb(255 255 255 / 0.0605);
+  --fl-subtle-pressed: rgb(255 255 255 / 0.0419);
+  --fl-divider: rgb(255 255 255 / 0.0837);
+  --fl-flyout: #2c2c2c;
+  --fl-flyout-stroke: rgb(0 0 0 / 0.2);
+  --fl-focus-outer: #ffffff;
+  --fl-focus-inner: rgb(0 0 0 / 0.7);
+  --fl-text: #ffffff;
+  --fl-text-secondary: rgb(255 255 255 / 0.786);
+  --fl-caution-bg: #433519;
+  --fl-critical-bg: #442726;
+
+  /* AccentLight2 with black text, as WinUI does in dark mode */
+  --wz-accent: #60cdff;
+  --wz-accent-fg: #000000;
+  --wz-accent-text: var(--wz-accent);
+  --wz-accent-hover: color-mix(in srgb, var(--wz-accent) 90%, var(--fl-layer));
+  --wz-accent-active: color-mix(in srgb, var(--wz-accent) 80%, var(--fl-layer));
+
+  --wz-bg-hover: var(--fl-subtle-hover);
+  --wz-bg-active: rgb(255 255 255 / 0.0605);
+
+  --wz-text-muted: rgb(255 255 255 / 0.62);
+
+  --wz-bubble-in: #2d2d2d;
+  --wz-bubble-border: rgb(0 0 0 / 0.2);
+  --wz-bubble-out: color-mix(in srgb, var(--wz-accent) 20%, #2b2b2b);
+  --wz-bubble-out-text: #ffffff;
+  --wz-bubble-deleted-border: color-mix(in srgb, #ff99a4 50%, #272727);
+  --wz-tick-read: var(--wz-accent);
+
+  --wz-danger: #ff99a4;
+  --wz-warning: #fce100;
+  --wz-success: #6ccb5f;
+  --wz-danger-soft: var(--fl-critical-bg);
+  --wz-warning-soft: var(--fl-caution-bg);
+
+  --wz-avatar-saturation: 10%;
+  --wz-avatar-lightness: 30%;
+  --wz-avatar-text-lightness: 86%;
+
+  --wz-shadow-popover: 0 8px 16px rgb(0 0 0 / 0.26);
+  --wz-scrim: rgb(0 0 0 / 0.45);
+}
+
+.wz-wordmark {
+  font-weight: 600;
+}
+
+.wz-chat-list__header {
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wz-banner--offline {
+  color: var(--fl-text);
+  background: var(--fl-caution-bg);
+}
