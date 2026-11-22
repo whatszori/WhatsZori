@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 160" role="img" aria-labelledby="t">
+  <title id="t">WhatsZori</title>
+  <style>
+    .ink { stroke: #1b1b1f; }
+    .zori { stroke: #3d6fb4; }
+    .dot { fill: #3d6fb4; }
+    @media (prefers-color-scheme: dark) {
+      .ink { stroke: #ececef; }
+      .zori { stroke: #6f9be0; }
+      .dot { fill: #6f9be0; }
+    }
+  </style>
+
+  <!-- the mark, same drawing as logo.svg -->
+  <g transform="translate(0 12) scale(0.265)">
+    <path fill="#3d6fb4" d="M144 32H368A112 112 0 0 1 480 144V376Q480 446 506 486Q440 480 400 464H144A112 112 0 0 1 32 352V144A112 112 0 0 1 144 32Z"/>
+    <circle fill="#f5b860" cx="314" cy="300" r="46"/>
+    <path fill="none" stroke="#ffffff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" d="M160 168H352L160 330H352"/>
+  </g>
+
+  <!-- letters are drawn as monoline strokes (no font needed): cap height 100, x-height 70 -->
+  <g transform="translate(170 30)" fill="none" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- W -->
+    <path class="ink" d="M0 0L18 100L36 34L54 100L72 0"/>
+    <!-- h -->
+    <path class="ink" d="M96 0V100M96 64Q96 30 122 30Q148 30 148 64V100"/>
+    <!-- a -->
+    <circle class="ink" cx="207" cy="65" r="31"/>
+    <path class="ink" d="M238 30V100"/>
+    <!-- t -->
+    <path class="ink" d="M266 6V82Q266 100 284 100M258 34H284"/>
+    <!-- s -->
+    <path class="ink" d="M338 40Q330 30 316 30Q300 30 300 47Q300 60 318 64Q338 68 338 84Q338 100 318 100Q303 100 296 90"/>
+    <!-- Z with a small sun on its horizon -->
+    <circle fill="#f5b860" stroke="none" cx="410" cy="90" r="16"/>
+    <path class="zori" d="M366 0H426L366 100H426"/>
+    <!-- o -->
+    <circle class="zori" cx="491" cy="65" r="33"/>
+    <!-- r -->
+    <path class="zori" d="M550 30V100M550 66Q550 30 584 32"/>
+    <!-- i -->
+    <path class="zori" d="M604 30V100"/>
+    <circle class="dot" stroke="none" cx="604" cy="5" r="9"/>
+  </g>
+</svg>
