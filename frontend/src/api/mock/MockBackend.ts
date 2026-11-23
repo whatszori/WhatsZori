@@ -537,12 +537,13 @@ export class MockBackend implements Backend {
       this.emit('msg:reaction', { chatJid: m.chatJid, pk, reactions: clone(next) });
       return clone(next);
     },
-    search: async (query: string): Promise<SearchHit[]> => {
+    search: async (query: string, only?: JID): Promise<SearchHit[]> => {
       await this.wait();
       const q = query.trim().toLowerCase();
       if (!q) return [];
       const hits: SearchHit[] = [];
       for (const [jid, list] of this.db.messages) {
+        if (only && jid !== only) continue;
         const chat = this.db.chats.get(jid)!;
         for (const m of list) {
           if (m.text.toLowerCase().includes(q))
@@ -550,7 +551,7 @@ export class MockBackend implements Backend {
         }
       }
       hits.sort((a, b) => b.message.timestamp - a.message.timestamp);
-      return clone(hits.slice(0, 50));
+      return clone(hits.slice(0, only ? 200 : 50));
     },
     attachFile: async (): Promise<Message | null> => null,
     // the browser preview keeps the voice note as a placeholder bubble; nothing is uploaded

@@ -144,7 +144,7 @@ func TestSearchFTS(t *testing.T) {
 	v := repo.View{Me: "me@s.whatsapp.net"}
 	check := func(q string, want int) {
 		t.Helper()
-		hits, err := v.Search(ctx, db, q, 10)
+		hits, err := v.Search(ctx, db, q, "", 10)
 		if err != nil {
 			t.Fatalf("search %q: %v", q, err)
 		}
@@ -188,5 +188,18 @@ func TestMergeChat(t *testing.T) {
 	r, _ := repo.ReactionsFor(ctx, db, pn, []string{"A"}, pn)
 	if len(r["A"]) != 1 || !r["A"][0].Mine {
 		t.Errorf("reaction not moved: %+v", r)
+	}
+}
+
+func TestSearchInOneChat(t *testing.T) {
+	ctx := context.Background()
+	db := openDB(t)
+	insert(t, db, "a@s.whatsapp.net", "1", 1, "lunch at noon")
+	insert(t, db, "b@s.whatsapp.net", "2", 2, "lunch tomorrow?")
+	v := repo.View{Me: "me@s.whatsapp.net"}
+	all, _ := v.Search(ctx, db, "lunch", "", 10)
+	one, _ := v.Search(ctx, db, "lunch", "b@s.whatsapp.net", 10)
+	if len(all) != 2 || len(one) != 1 || one[0].ChatJID != "b@s.whatsapp.net" {
+		t.Errorf("all=%d one=%+v", len(all), one)
 	}
 }

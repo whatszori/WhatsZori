@@ -307,10 +307,16 @@ func (s *Messages) React(pk, emoji string) ([]domain.Reaction, error) {
 	return s.c.Sender.React(ctx, id, emoji)
 }
 
-func (s *Messages) Search(query string) ([]domain.SearchHit, error) {
+// Search finds messages everywhere, or only in jid when it's set. In one chat it returns more,
+// since the in-chat search steps through all of them.
+func (s *Messages) Search(query, jid string) ([]domain.SearchHit, error) {
 	ctx, cancel := call()
 	defer cancel()
-	return s.c.View(ctx).Search(ctx, s.c.DB, query, 50)
+	limit := 50
+	if jid != "" {
+		limit = 200
+	}
+	return s.c.View(ctx).Search(ctx, s.c.DB, query, jid, limit)
 }
 
 var errNoPicker = errors.New("file picking isn't available")

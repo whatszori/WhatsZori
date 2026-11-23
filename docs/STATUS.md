@@ -74,8 +74,10 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
 - **Avatars**: profile pictures and group photos in the chat list, chat header, info panel, member
   list and your own profile, with the initials as fallback (no picture, hidden, offline). Cached on
   disk, refreshed daily or when WhatsApp says a picture changed.
-- **Search** with FTS5 (prefix matching, any script) behind `messages.search`. There's still no
-  search-results screen; the sidebar search filters chats by name, as before.
+- **Search** with FTS5 (prefix matching, any script): typing two or more characters in the sidebar
+  search shows matching chats and, under them, matching messages from all chats (newest first,
+  click jumps to the message). Ctrl+F or the magnifier in a chat opens search inside it: "1 of N",
+  Enter/Shift+Enter or the arrows step through, matches are marked in the bubbles.
 - **Frontend**: real QR, toasts (new: there was no toast UI), sync progress in the connection
   banner, real images/video/voice/documents in bubbles, typing notifications from the composer,
   attach button, and the draft comes back when a send is refused.

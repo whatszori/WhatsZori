@@ -47,8 +47,12 @@ export function Revoke(pk: string): $CancellablePromise<void> {
     return $Call.ByID(2457255330, pk);
 }
 
-export function Search(query: string): $CancellablePromise<domain$0.SearchHit[] | null> {
-    return $Call.ByID(4055087344, query);
+/**
+ * Search finds messages everywhere, or only in jid when it's set. In one chat it returns more,
+ * since the in-chat search steps through all of them.
+ */
+export function Search(query: string, jid: string): $CancellablePromise<domain$0.SearchHit[] | null> {
+    return $Call.ByID(4055087344, query, jid);
 }
 
 export function SendText(jid: string, text: string, replyToPk: string): $CancellablePromise<domain$0.Message> {

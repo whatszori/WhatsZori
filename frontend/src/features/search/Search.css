@@ -1,0 +1,129 @@
+.wz-mark {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--wz-accent) 28%, transparent);
+  color: inherit;
+}
+
+.wz-hits {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--wz-border);
+}
+
+.wz-hits__title {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+  margin: 0;
+  padding: var(--wz-space-3) var(--wz-space-4) var(--wz-space-1);
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wz-hits__count {
+  font-weight: 500;
+}
+
+.wz-hits__empty {
+  padding: var(--wz-space-3) var(--wz-space-4);
+}
+
+.wz-hits__list {
+  flex: 1;
+  margin: 0;
+  padding: 0 var(--wz-space-2) var(--wz-space-2);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.wz-hit {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-3);
+  width: 100%;
+  padding: var(--wz-space-2);
+  border: 0;
+  border-radius: var(--wz-radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wz-hit:hover,
+.wz-hit:focus-visible {
+  background: var(--wz-bg-hover);
+  outline: none;
+}
+
+.wz-hit__text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.wz-hit__top {
+  display: flex;
+  gap: var(--wz-space-2);
+}
+
+.wz-hit__chat {
+  flex: 1;
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wz-hit__time {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-hit__body {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+
+.wz-hit__sender {
+  color: var(--wz-text-primary);
+}
+
+/* while searching, matching chats get the top part and messages the rest */
+.wz-chat-pane--searching .wz-chat-list {
+  flex: 0 1 auto;
+  max-height: 45%;
+}
+
+.wz-chat-search {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-1);
+  padding: var(--wz-space-2) var(--wz-space-3);
+  border-bottom: 1px solid var(--wz-border);
+  background: var(--wz-bg-primary);
+}
+
+.wz-chat-search .wz-input {
+  flex: 1;
+}
+
+.wz-chat-search__count {
+  min-width: 72px;
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

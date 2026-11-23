@@ -91,7 +91,8 @@ export interface MessageService {
   edit(pk: MessagePK, text: string): Promise<void>;
   revoke(pk: MessagePK): Promise<void>;
   react(pk: MessagePK, emoji: string): Promise<Reaction[]>;
-  search(query: string): Promise<SearchHit[]>;
+  // jid limits it to one chat
+  search(query: string, jid?: JID): Promise<SearchHit[]>;
   // opens the system file picker and sends the choice; null when cancelled
   attachFile(jid: JID): Promise<Message | null>;
   // a voice note recorded in the page (WebM/Opus); waveform is 0..100 per bar

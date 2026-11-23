@@ -21,7 +21,8 @@ func ftsQuery(s string) string {
 	return strings.Join(terms, " ")
 }
 
-func (v View) Search(ctx context.Context, q DBTX, query string, limit int) ([]domain.SearchHit, error) {
+// Search finds messages matching query, newest first; chat narrows it to one chat ("" = all).
+func (v View) Search(ctx context.Context, q DBTX, query, chat string, limit int) ([]domain.SearchHit, error) {
 	fq := ftsQuery(query)
 	if fq == "" {
 		return []domain.SearchHit{}, nil
@@ -31,7 +32,8 @@ func (v View) Search(ctx context.Context, q DBTX, query string, limit int) ([]do
 	}
 	rows, err := scanMessages(q.QueryContext(ctx, `
 		SELECT `+prefixed("m.", msgCols)+` FROM messages_fts f JOIN messages m ON m.pk = f.rowid
-		WHERE messages_fts MATCH ? ORDER BY m.ts DESC LIMIT ?`, fq, limit))
+		WHERE messages_fts MATCH ?1 AND (?2 = '' OR m.chat_jid = ?2)
+		ORDER BY m.ts DESC, m.pk DESC LIMIT ?3`, fq, chat, limit))
 	if err != nil {
 		return nil, err
 	}

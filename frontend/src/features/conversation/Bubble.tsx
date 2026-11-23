@@ -1,10 +1,11 @@
 import { memo, type MouseEvent } from 'react';
 import { MoreHorizontal, Trash2, Ban } from 'lucide-react';
-import type { Message, MessagePK } from '../../api';
+import type { JID, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
 import { PluginSlot } from '../../plugin-core/slots';
 import type { PopoverAnchor } from '../../ui';
+import { Marked } from '../search/MessageHits';
 import { MediaBlock } from './Media';
 import { useUI } from '../../stores/ui';
 import { StatusTicks } from './StatusTicks';
@@ -25,7 +26,9 @@ interface BubbleProps extends BubbleHandlers {
   highlighted: boolean;
 }
 
-function Text({ text }: { text: string }) {
+function Text({ text, chat }: { text: string; chat: JID }) {
+  // only this chat's bubbles re-render when its Ctrl+F query changes
+  const query = useUI((s) => (s.searchHighlight?.jid === chat ? s.searchHighlight.query : ''));
   return (
     <>
       {linkify(text).map((p, i) =>
@@ -34,7 +37,7 @@ function Text({ text }: { text: string }) {
             {p.value}
           </a>
         ) : (
-          <span key={i}>{p.value}</span>
+          <span key={i}>{query ? <Marked text={p.value} query={query} /> : p.value}</span>
         ),
       )}
     </>
@@ -161,7 +164,7 @@ export const Bubble = memo(function Bubble({
               )}
               {m.text && (
                 <p className="wz-bubble__text wz-selectable" dir="auto">
-                  <Text text={m.text} />
+                  <Text text={m.text} chat={m.chatJid} />
                   <span className="wz-bubble__meta-spacer" aria-hidden="true">
                     <Meta m={m} />
                   </span>

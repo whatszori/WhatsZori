@@ -54,6 +54,11 @@ interface UIState {
   // items: what ←/→ walk through; default is what's loaded in the chat
   viewer: { jid: JID; pk: MessagePK; items?: Message[] } | null;
   searchFocusNonce: number;
+  // words to mark in the bubbles of one chat while its Ctrl+F bar is open
+  searchHighlight: { jid: JID; query: string } | null;
+  chatSearchOpen: boolean;
+  setSearchHighlight(v: { jid: JID; query: string } | null): void;
+  setChatSearchOpen(open: boolean): void;
   openChat(jid: JID | null): void;
   setRailPanel(panel: RailPanel): void;
   openSettings(section?: SettingsSection, direct?: boolean): void;
@@ -93,9 +98,14 @@ export const useUI = create<UIState>((set, get) => {
     infoMessage: null,
     viewer: null,
     searchFocusNonce: 0,
+    searchHighlight: null,
+    chatSearchOpen: false,
+    setSearchHighlight: (searchHighlight) => set({ searchHighlight }),
+    setChatSearchOpen: (chatSearchOpen) => set({ chatSearchOpen }),
     openChat: (jid) =>
       set((s) => ({
         activeChat: jid,
+        chatSearchOpen: s.activeChat === jid ? s.chatSearchOpen : false,
         view: 'chats',
         chatInfoOpen: s.activeChat === jid ? s.chatInfoOpen : false,
         infoJid: s.activeChat === jid ? s.infoJid : null,

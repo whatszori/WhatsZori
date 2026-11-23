@@ -141,8 +141,11 @@ export class WailsBackend implements Backend {
     revoke: (pk: MessagePK) => Messages.Revoke(pk),
     react: async (pk: MessagePK, emoji: string): Promise<Reaction[]> =>
       (await Messages.React(pk, emoji)) ?? [],
-    search: async (query: string): Promise<SearchHit[]> =>
-      ((await Messages.Search(query)) ?? []).map((h) => ({ ...h, message: message(h.message) })),
+    search: async (query: string, jid?: JID): Promise<SearchHit[]> =>
+      ((await Messages.Search(query, jid ?? '')) ?? []).map((h) => ({
+        ...h,
+        message: message(h.message),
+      })),
     listShared: async (
       jid: JID,
       kind: SharedKind,

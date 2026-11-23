@@ -16,6 +16,7 @@ import { buildChatList } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
 import { IconButton, Input, Logo, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
+import { MessageHits } from '../search/MessageHits';
 import { ChatList } from './ChatList';
 import { FilterChips } from './FilterChips';
 import './ChatListPane.css';
@@ -66,6 +67,8 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
     [chats, filter, query],
   );
 
+  const searching = !showArchived && query.trim().length >= 2;
+
   useEffect(() => {
     if (nonce === 0) return;
     searchRef.current?.focus();
@@ -73,7 +76,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
   }, [nonce]);
 
   return (
-    <div className="wz-chat-pane">
+    <div className={`wz-chat-pane${searching ? ' wz-chat-pane--searching' : ''}`}>
       <header className="wz-chat-pane__header">
         {showArchived ? (
           <>
@@ -172,6 +175,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
       </div>
 
       <ChatList view={list} showArchived={showArchived} query={query} filter={filter} />
+      {searching && <MessageHits query={query} />}
 
       <PluginSlot name="sidebar.footer" className="wz-chat-pane__footer" />
     </div>

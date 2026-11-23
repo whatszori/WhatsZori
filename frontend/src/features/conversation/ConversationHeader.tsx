@@ -9,6 +9,7 @@ import {
   MoreVertical,
   Pin,
   PinOff,
+  Search,
 } from 'lucide-react';
 import type { Chat } from '../../api';
 import { formatLastSeen, pluralize } from '../../lib/format';
@@ -40,6 +41,7 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
   const typing = typingMap ? Object.values(typingMap) : [];
   const status = statusLine(chat, typing);
   const infoOpen = useUI((s) => s.chatInfoOpen);
+  const searchOpen = useUI((s) => s.chatSearchOpen);
   const [menu, setMenu] = useState<PopoverAnchor | null>(null);
   const close = useCallback(() => setMenu(null), []);
   const chats = useChats.getState();
@@ -95,6 +97,13 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
       </button>
       <div className="wz-conv-header__actions">
         <PluginSlot name="chat.header.actions" props={{ chat: toPluginChat(chat) }} />
+        <IconButton
+          label="Search in chat"
+          hint="Ctrl F"
+          icon={<Search size={18} />}
+          active={searchOpen}
+          onClick={() => useUI.getState().setChatSearchOpen(!searchOpen)}
+        />
         <IconButton
           label={chat.muted ? 'Unmute' : 'Mute'}
           icon={chat.muted ? <BellOff size={18} /> : <Bell size={18} />}

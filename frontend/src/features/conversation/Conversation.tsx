@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { JID } from '../../api';
 import { useChats } from '../../stores/chats';
+import { ChatSearch } from '../search/ChatSearch';
 import { useUI } from '../../stores/ui';
 import { ChatInfoPanel } from '../chat-info/ChatInfoPanel';
 import { Composer } from '../composer/Composer';
@@ -13,6 +14,20 @@ export function Conversation({ jid }: { jid: JID }) {
   const chat = useChats((s) => s.chats[jid]);
   const unread = chat?.unread ?? 0;
   const infoOpen = useUI((s) => s.chatInfoOpen);
+  const searchOpen = useUI((s) => s.chatSearchOpen);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        useUI.getState().setChatSearchOpen(true);
+        // already open: Ctrl+F again just refocuses the box
+        document.querySelector<HTMLInputElement>('.wz-chat-search input')?.select();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // always tell the backend on open, it also uses this as "the chat the user is looking at"
   useEffect(() => {
@@ -28,6 +43,13 @@ export function Conversation({ jid }: { jid: JID }) {
     <div className="wz-conversation-wrap">
       <section className="wz-conversation" aria-label={chat.name}>
         <ConversationHeader chat={chat} />
+        {searchOpen && (
+          <ChatSearch
+            key={jid}
+            jid={jid}
+            onClose={() => useUI.getState().setChatSearchOpen(false)}
+          />
+        )}
         <MessageList chat={chat} />
         <Composer chat={chat} />
       </section>
