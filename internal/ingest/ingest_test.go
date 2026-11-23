@@ -716,3 +716,74 @@ func TestBackfillRoundVideos(t *testing.T) {
 		t.Error("backfill ran twice")
 	}
 }
+
+func TestGroupMembershipHistory(t *testing.T) {
+	ctx := context.Background()
+	e := newEnv(t)
+	carol := types.NewJID("491700000003", types.DefaultUserServer)
+	e.handle(t, &events.GroupInfo{JID: group, Sender: &alice, Timestamp: tick(), Join: []types.JID{bob}, Promote: []types.JID{bob}})
+	e.handle(t, &events.GroupInfo{JID: group, Sender: &bob, Timestamp: tick(), Leave: []types.JID{bob}})
+	e.handle(t, &events.GroupInfo{JID: group, Sender: &alice, Timestamp: tick(), Leave: []types.JID{carol}})
+
+	hs := &events.HistorySync{Data: &waHistorySync.HistorySync{
+		SyncType: waHistorySync.HistorySync_RECENT.Enum(),
+		Conversations: []*waHistorySync.Conversation{{ID: proto.String(group.String()), Messages: []*waHistorySync.HistorySyncMsg{{
+			Message: &waWeb.WebMessageInfo{
+				Key:                   &waCommon.MessageKey{ID: proto.String("STUB"), RemoteJID: proto.String(group.String()), Participant: proto.String(alice.String())},
+				MessageStubType:       waWeb.WebMessageInfo_GROUP_PARTICIPANT_ADD.Enum(),
+				MessageStubParameters: []string{carol.String()},
+				MessageTimestamp:      proto.Uint64(1_700_000_000),
+			},
+		}}}},
+	}}
+	e.handle(t, hs)
+
+	evs, err := repo.GroupEvents(ctx, e.db, group.String(), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, ev := range evs {
+		got = append(got, ev.Kind+" "+ev.Actor+" "+ev.Target)
+	}
+	want := []string{
+		"remove " + alice.String() + " " + carol.String(),
+		"leave " + bob.String() + " " + bob.String(),
+		"add " + alice.String() + " " + bob.String(),
+		"promote " + alice.String() + " " + bob.String(),
+		"add " + alice.String() + " " + carol.String(), // from history, oldest
+	}
+	// same timestamp for add and promote of bob: compare as sets per position pair
+	if len(got) != len(want) {
+		t.Fatalf("events %v, want %v", got, want)
+	}
+	seen := map[string]int{}
+	for _, g := range got {
+		seen[g]++
+	}
+	for _, w := range want {
+		if seen[w] == 0 {
+			t.Errorf("missing event %q in %v", w, got)
+		}
+		seen[w]--
+	}
+	if got[len(got)-1] != want[len(want)-1] {
+		t.Errorf("oldest event = %q, want the history one", got[len(got)-1])
+	}
+	if _, err := repo.GetMessageByID(ctx, e.db, group.String(), "STUB"); err != repo.ErrNotFound {
+		t.Error("membership stub stored as a message")
+	}
+}
+
+func TestGif(t *testing.T) {
+	ctx := context.Background()
+	e := newEnv(t)
+	e.handle(t, &events.Message{Info: info(alice, alice, "GIF"), Message: &waE2E.Message{VideoMessage: &waE2E.VideoMessage{
+		GifPlayback: proto.Bool(true), Mimetype: proto.String("video/mp4"), FileLength: proto.Uint64(9000),
+	}}})
+	m := e.msg(t, alice, "GIF")
+	dto, _ := repo.View{Me: me.String()}.Message(ctx, e.db, m.PK)
+	if m.Kind != repo.KindGif || dto.Kind != domain.KindVideo || !dto.Media.Gif {
+		t.Errorf("gif: kind=%s dto=%+v", m.Kind, dto.Media)
+	}
+}

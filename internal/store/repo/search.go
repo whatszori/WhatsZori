@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"unicode"
@@ -65,13 +66,17 @@ func prefixed(p, cols string) string {
 
 func (v View) ChatInfo(ctx context.Context, q DBTX, jid string) (domain.ChatInfo, error) {
 	c, err := GetChat(ctx, q, jid)
-	if err != nil {
+	noChat := false
+	if errors.Is(err, ErrNotFound) && !strings.HasSuffix(jid, "@g.us") {
+		// a group member we never talked to directly
+		c, noChat = ChatRow{JID: jid}, true
+	} else if err != nil {
 		return domain.ChatInfo{}, err
 	}
-	info := domain.ChatInfo{JID: jid, RecentMedia: []domain.MediaRef{}}
+	info := domain.ChatInfo{JID: jid, RecentMedia: []domain.MediaRef{}, NoChat: noChat, Name: c.Name}
 	err = q.QueryRowContext(ctx, `
 		SELECT
-			COALESCE(SUM(kind IN ('image', 'video')), 0),
+			COALESCE(SUM(kind IN ('image', 'video', 'gif')), 0),
 			COALESCE(SUM(kind = 'document'), 0),
 			COALESCE(SUM(body LIKE '%http://%' OR body LIKE '%https://%'), 0),
 			COALESCE(SUM(is_deleted = 1 AND raw IS NOT NULL), 0),
@@ -82,7 +87,7 @@ func (v View) ChatInfo(ctx context.Context, q DBTX, jid string) (domain.ChatInfo
 	}
 	rows, err := q.QueryContext(ctx, `
 		SELECT m.pk, m.kind, md.width, md.height, md.duration FROM messages m JOIN media md ON md.message_pk = m.pk
-		WHERE m.chat_jid = ? AND m.kind IN ('image', 'video') ORDER BY m.ts DESC LIMIT 6`, jid)
+		WHERE m.chat_jid = ? AND m.kind IN ('image', 'video', 'gif') ORDER BY m.ts DESC LIMIT 6`, jid)
 	if err != nil {
 		return info, err
 	}
@@ -102,6 +107,9 @@ func (v View) ChatInfo(ctx context.Context, q DBTX, jid string) (domain.ChatInfo
 
 	if !c.IsGroup {
 		ct, _ := GetContact(ctx, q, jid)
+		if info.Name == "" {
+			info.Name = v.Name(ct, jid)
+		}
 		info.About = ct.About
 		info.Phone = PhoneOf(jid)
 		return info, nil

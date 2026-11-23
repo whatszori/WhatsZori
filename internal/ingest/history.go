@@ -147,6 +147,13 @@ func (in *Ingester) conversation(ctx context.Context, tx *sql.Tx, fx *effects, c
 		if web == nil {
 			continue
 		}
+		if isGroup {
+			if handled, err := in.historyStub(ctx, tx, chat, web); err != nil {
+				return err
+			} else if handled {
+				continue
+			}
+		}
 		if web.GetMessageStubType() == waWeb.WebMessageInfo_REVOKE && web.GetMessage() == nil {
 			// deleted before we were linked; all we know is that it existed
 			sender := chat

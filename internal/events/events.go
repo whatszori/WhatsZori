@@ -25,6 +25,8 @@ const (
 	ChatUpdate   = "chat:update"
 	ChatRemoved  = "chat:removed"
 	AvatarChange = "avatar:changed"
+	ChatCleared  = "chat:cleared"
+	ExportProg   = "export:progress"
 	Presence     = "presence"
 	ChatTyping   = "chat:typing"
 	SyncProgress = "sync:progress"
@@ -35,7 +37,7 @@ const (
 var All = []string{
 	SystemThemeChanged, ThemeChanged,
 	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction,
-	ChatUpdate, ChatRemoved, AvatarChange, Presence, ChatTyping, SyncProgress, Toast,
+	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, Presence, ChatTyping, SyncProgress, Toast,
 }
 
 func init() {
@@ -54,6 +56,8 @@ func init() {
 	application.RegisterEvent[domain.ChatUpdateEvent](ChatUpdate)
 	application.RegisterEvent[domain.ChatRemovedEvent](ChatRemoved)
 	application.RegisterEvent[domain.AvatarChangedEvent](AvatarChange)
+	application.RegisterEvent[domain.ChatRemovedEvent](ChatCleared)
+	application.RegisterEvent[domain.ExportProgressEvent](ExportProg)
 	application.RegisterEvent[domain.PresenceEvent](Presence)
 	application.RegisterEvent[domain.TypingEvent](ChatTyping)
 	application.RegisterEvent[domain.SyncProgressEvent](SyncProgress)

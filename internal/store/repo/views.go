@@ -14,7 +14,7 @@ func UIKind(kind string) domain.MessageKind {
 	switch kind {
 	case KindImage:
 		return domain.KindImage
-	case KindVideo, KindRound:
+	case KindVideo, KindRound, KindGif:
 		return domain.KindVideo
 	case KindAudio, KindVoice:
 		return domain.KindVoice
@@ -202,6 +202,7 @@ func mediaInfo(med MediaRow, m MessageRow) *domain.MediaInfo {
 		Duration: med.Duration,
 		Caption:  m.Body,
 		Round:    m.Kind == KindRound,
+		Gif:      m.Kind == KindGif,
 	}
 	for _, b := range med.Waveform {
 		info.Waveform = append(info.Waveform, float64(b)/100)
@@ -220,6 +221,8 @@ func previewText(m MessageRow) string {
 		return "Video"
 	case KindRound:
 		return "Video message"
+	case KindGif:
+		return "GIF"
 	case KindAudio, KindVoice:
 		return "Voice message"
 	case KindDocument:
@@ -235,10 +238,14 @@ func (v View) Chat(ctx context.Context, q DBTX, c ChatRow) (domain.Chat, error) 
 	if err != nil {
 		return domain.Chat{}, err
 	}
-	return v.chat(ctx, q, c, contacts[c.JID])
+	lists, err := ListsOf(ctx, q)
+	if err != nil {
+		return domain.Chat{}, err
+	}
+	return v.chat(ctx, q, c, contacts[c.JID], lists)
 }
 
-func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow) (domain.Chat, error) {
+func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow, lists map[string][]int64) (domain.Chat, error) {
 	now := time.Now().UnixMilli()
 	dto := domain.Chat{
 		JID:          c.JID,
@@ -250,6 +257,8 @@ func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow) (
 		Muted:        c.Muted(now),
 		Unread:       c.Unread,
 		LastActivity: c.LastTS,
+		Favorite:     c.Favorite,
+		Lists:        lists[c.JID],
 	}
 	if dto.Name == "" {
 		if c.JID == v.Me {
@@ -300,9 +309,13 @@ func (v View) Chats(ctx context.Context, q DBTX) ([]domain.Chat, error) {
 	if err != nil {
 		return nil, err
 	}
+	lists, err := ListsOf(ctx, q)
+	if err != nil {
+		return nil, err
+	}
 	out := make([]domain.Chat, 0, len(rows))
 	for _, c := range rows {
-		dto, err := v.chat(ctx, q, c, contacts[c.JID])
+		dto, err := v.chat(ctx, q, c, contacts[c.JID], lists)
 		if err != nil {
 			return nil, err
 		}

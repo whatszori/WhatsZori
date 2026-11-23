@@ -20,6 +20,7 @@ func (in *Ingester) Backfill(ctx context.Context) error {
 	}{
 		// builds before video-note support stored them as plain videos
 		{"round-videos", backfillRoundVideos},
+		{"gifs", backfillGifs},
 	}
 	for _, f := range fixes {
 		var n int
@@ -43,7 +44,16 @@ func (in *Ingester) Backfill(ctx context.Context) error {
 	return nil
 }
 
+func backfillGifs(ctx context.Context, tx *sql.Tx) error {
+	return retag(ctx, tx, repo.KindGif, func(m *waE2E.Message) bool { return m.GetVideoMessage().GetGifPlayback() })
+}
+
 func backfillRoundVideos(ctx context.Context, tx *sql.Tx) error {
+	return retag(ctx, tx, repo.KindRound, func(m *waE2E.Message) bool { return m.GetPtvMessage() != nil })
+}
+
+// retag moves stored videos whose raw proto matches to a finer kind
+func retag(ctx context.Context, tx *sql.Tx, kind string, match func(*waE2E.Message) bool) error {
 	rows, err := tx.QueryContext(ctx, `SELECT pk, raw FROM messages WHERE kind = ? AND raw IS NOT NULL`, repo.KindVideo)
 	if err != nil {
 		return err
@@ -57,7 +67,7 @@ func backfillRoundVideos(ctx context.Context, tx *sql.Tx) error {
 			return err
 		}
 		var m waE2E.Message
-		if proto.Unmarshal(raw, &m) == nil && m.GetPtvMessage() != nil {
+		if proto.Unmarshal(raw, &m) == nil && match(&m) {
 			round = append(round, pk)
 		}
 	}
@@ -66,7 +76,7 @@ func backfillRoundVideos(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 	for _, pk := range round {
-		if _, err := tx.ExecContext(ctx, `UPDATE messages SET kind = ? WHERE pk = ?`, repo.KindRound, pk); err != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE messages SET kind = ? WHERE pk = ?`, kind, pk); err != nil {
 			return err
 		}
 	}

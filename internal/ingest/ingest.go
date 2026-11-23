@@ -167,7 +167,20 @@ func (in *Ingester) Handle(evt any) error {
 	case *events.GroupInfo:
 		return in.run(ctx, func(tx *sql.Tx, fx *effects) error { return in.groupChange(ctx, tx, fx, e) })
 	case *events.JoinedGroup:
-		return in.run(ctx, func(tx *sql.Tx, fx *effects) error { return in.UpsertGroup(ctx, tx, fx, &e.GroupInfo) })
+		return in.run(ctx, func(tx *sql.Tx, fx *effects) error {
+			if err := in.UpsertGroup(ctx, tx, fx, &e.GroupInfo); err != nil {
+				return err
+			}
+			// we were added (or joined by link)
+			kind, actor := repo.GroupAdd, ""
+			if e.Sender != nil {
+				actor = in.jids.Key(ctx, *e.Sender)
+			}
+			if e.Reason == "invite" || actor == "" {
+				kind = repo.GroupJoin
+			}
+			return repo.AddGroupEvent(ctx, tx, e.JID.String(), repo.GroupEvent{TS: ms(in.now()), Kind: kind, Actor: actor, Target: in.Me(ctx)})
+		})
 	case *events.Pin:
 		return in.chatFlag(ctx, e.JID, func(tx *sql.Tx, jid string) error {
 			return repo.SetPinned(ctx, tx, jid, e.Action.GetPinned())
@@ -452,7 +465,7 @@ const AutoDownloadLimit = 16 << 20
 
 func autoDownloadable(kind string, size int64) bool {
 	switch kind {
-	case repo.KindImage, repo.KindVoice, repo.KindSticker, repo.KindRound:
+	case repo.KindImage, repo.KindVoice, repo.KindSticker, repo.KindRound, repo.KindGif:
 		return size <= AutoDownloadLimit
 	}
 	return false
@@ -803,6 +816,11 @@ func (in *Ingester) UpsertGroup(ctx context.Context, tx *sql.Tx, fx *effects, g 
 		CreatedAt: ms(g.GroupCreated), CreatedBy: creator, MemberCount: len(g.Participants)}); err != nil {
 		return err
 	}
+	if !g.GroupCreated.IsZero() {
+		if err := repo.AddGroupEvent(ctx, tx, jid, repo.GroupEvent{TS: ms(g.GroupCreated), Kind: repo.GroupCreate, Actor: creator}); err != nil {
+			return err
+		}
+	}
 	ps := make([]repo.Participant, 0, len(g.Participants))
 	for _, p := range g.Participants {
 		if !p.LID.IsEmpty() && !p.PhoneNumber.IsEmpty() {
@@ -822,6 +840,9 @@ func (in *Ingester) UpsertGroup(ctx context.Context, tx *sql.Tx, fx *effects, g 
 func (in *Ingester) groupChange(ctx context.Context, tx *sql.Tx, fx *effects, e *events.GroupInfo) error {
 	jid := e.JID.String()
 	if err := repo.EnsureChat(ctx, tx, jid, true); err != nil {
+		return err
+	}
+	if err := in.liveGroupEvents(ctx, tx, e); err != nil {
 		return err
 	}
 	if e.Name != nil {

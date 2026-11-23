@@ -38,7 +38,9 @@ const (
 	KindImage = "image"
 	KindVideo = "video"
 	// video note ("кружок", PtvMessage): a round video, played inline
-	KindRound    = "round"
+	KindRound = "round"
+	// a GIF: an mp4 that plays muted and loops
+	KindGif      = "gif"
 	KindAudio    = "audio"
 	KindVoice    = "voice"
 	KindDocument = "document"

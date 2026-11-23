@@ -87,6 +87,9 @@ type Chat struct {
 	Unread       int             `json:"unread"`
 	LastMessage  *MessagePreview `json:"lastMessage"`
 	LastActivity int64           `json:"lastActivity"`
+	// only in WhatsZori, not synced with the phone
+	Favorite bool    `json:"favorite,omitempty"`
+	Lists    []int64 `json:"lists,omitempty"`
 	// presence comes through its own event; these stay empty in snapshots
 	LastSeen *int64 `json:"lastSeen,omitempty"`
 	Online   bool   `json:"online,omitempty"`
@@ -121,6 +124,48 @@ type ChatInfo struct {
 	RecentMedia []MediaRef    `json:"recentMedia"`
 	DeletedKept int           `json:"deletedKept"`
 	Edited      int           `json:"edited"`
+	// 1:1 only: we blocked them (as far as we know; needs a connection to check)
+	Blocked bool `json:"blocked,omitempty"`
+	// a contact we have no chat with yet
+	NoChat bool `json:"noChat,omitempty"`
+	// display name, for contacts opened from a group
+	Name string `json:"name"`
+}
+
+type ChatList struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Position int    `json:"position"`
+}
+
+type GroupEvent struct {
+	At         int64  `json:"at"`
+	Kind       string `json:"kind"`
+	ActorJID   string `json:"actorJid"`
+	ActorName  string `json:"actorName"`
+	TargetJID  string `json:"targetJid"`
+	TargetName string `json:"targetName"`
+}
+
+type ExportOptions struct {
+	JID string `json:"jid"`
+	// photo, video, voice, round, sticker, gif, file
+	Media []string `json:"media"`
+	// per file, 0 = no limit
+	MaxBytes int64 `json:"maxBytes"`
+	// html, json or txt
+	Format string `json:"format"`
+	// ms, 0 = open-ended
+	From int64 `json:"from"`
+	To   int64 `json:"to"`
+}
+
+type ExportProgressEvent struct {
+	JID   string `json:"jid"`
+	Done  int    `json:"done"`
+	Total int    `json:"total"`
+	// collecting, media, writing, done, failed, cancelled
+	Phase string `json:"phase"`
 }
 
 type MediaInfo struct {
@@ -134,6 +179,8 @@ type MediaInfo struct {
 	Caption  string    `json:"caption,omitempty"`
 	// a video note: shown as a circle and played inline
 	Round bool `json:"round,omitempty"`
+	// plays muted on a loop, like any GIF
+	Gif bool `json:"gif,omitempty"`
 }
 
 type ReplyRef struct {

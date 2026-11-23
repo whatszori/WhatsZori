@@ -19,18 +19,19 @@ type ChatRow struct {
 	CreatedAt   int64
 	CreatedBy   string
 	MemberCount int
+	Favorite    bool
 }
 
 func (c ChatRow) Muted(nowMS int64) bool {
 	return c.MutedUntil == -1 || c.MutedUntil > nowMS
 }
 
-const chatCols = `jid, name, is_group, pinned, archived, muted_until, unread, last_ts, description, created_at, created_by, member_count`
+const chatCols = `jid, name, is_group, pinned, archived, muted_until, unread, last_ts, description, created_at, created_by, member_count, favorite`
 
 func scanChat(s interface{ Scan(...any) error }) (ChatRow, error) {
 	var c ChatRow
 	err := s.Scan(&c.JID, &c.Name, &c.IsGroup, &c.Pinned, &c.Archived, &c.MutedUntil, &c.Unread, &c.LastTS,
-		&c.Description, &c.CreatedAt, &c.CreatedBy, &c.MemberCount)
+		&c.Description, &c.CreatedAt, &c.CreatedBy, &c.MemberCount, &c.Favorite)
 	return c, err
 }
 
@@ -152,8 +153,12 @@ func MergeChat(ctx context.Context, q DBTX, from, to string) error {
 		{`UPDATE chats SET
 			name = CASE WHEN name = '' THEN ? ELSE name END,
 			unread = unread + ?, last_ts = MAX(last_ts, ?),
-			pinned = MAX(pinned, ?), archived = MIN(archived, ?), muted_until = MAX(muted_until, ?)
-		  WHERE jid = ?`, []any{src.Name, src.Unread, src.LastTS, b2i(src.Pinned), b2i(src.Archived), src.MutedUntil, to}},
+			pinned = MAX(pinned, ?), archived = MIN(archived, ?), muted_until = MAX(muted_until, ?),
+			favorite = MAX(favorite, ?)
+		  WHERE jid = ?`, []any{src.Name, src.Unread, src.LastTS, b2i(src.Pinned), b2i(src.Archived), src.MutedUntil, b2i(src.Favorite), to}},
+		{`UPDATE OR IGNORE chat_list_members SET chat_jid = ? WHERE chat_jid = ?`, []any{to, from}},
+		{`UPDATE group_events SET actor_jid = ? WHERE actor_jid = ?`, []any{to, from}},
+		{`UPDATE group_events SET target_jid = ? WHERE target_jid = ?`, []any{to, from}},
 		{`UPDATE OR IGNORE messages SET chat_jid = ? WHERE chat_jid = ?`, []any{to, from}},
 		{`UPDATE messages SET sender_jid = ? WHERE sender_jid = ?`, []any{to, from}},
 		{`UPDATE OR IGNORE reactions SET chat_jid = ? WHERE chat_jid = ?`, []any{to, from}},

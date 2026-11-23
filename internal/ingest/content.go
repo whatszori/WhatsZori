@@ -60,6 +60,10 @@ func extract(msg *waE2E.Message) content {
 	case msg.VideoMessage != nil:
 		m := msg.GetVideoMessage()
 		c.kind, c.body, ctx = repo.KindVideo, m.GetCaption(), m
+		if m.GetGifPlayback() {
+			// WhatsApp sends GIFs as short mp4s with this flag
+			c.kind = repo.KindGif
+		}
 		c.media = &repo.MediaRow{MediaType: "video", Mime: m.GetMimetype(), Size: int64(m.GetFileLength()),
 			Width: int(m.GetWidth()), Height: int(m.GetHeight()), Duration: int(m.GetSeconds()), MediaKey: m.GetMediaKey(),
 			DirectPath: m.GetDirectPath(), FileSHA256: m.GetFileSHA256(), FileEncSHA256: m.GetFileEncSHA256(),
