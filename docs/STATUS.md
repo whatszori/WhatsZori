@@ -48,6 +48,7 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
 - **Media**: auto-download of photos, voice notes and stickers up to 16 MB, everything else on
   demand. `/wz-media/<pk>` serves the file with Range support, downloads on demand, falls back to
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
+- **WhatsZori's own notifications on Windows** (default there): themed cards in the corner that never steal focus, reply and mark-as-read inside, restylable by themes (`--wz-ntf-*`) and plugins (`notification.card`, `notification.accessories`). Windows' own toasts are one switch away.
 - **Desktop notifications** on Windows and on Linux (GNOME, KDE Plasma and any freedesktop
   notification server): avatar, chat and sender, text or "📷 Photo / 🎤 Voice message", batching,
   a rate limit, one summary after being offline, reply from the notification (Windows, KDE; GNOME

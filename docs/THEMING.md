@@ -218,3 +218,31 @@ Useful hooks for themes (not exhaustive):
 - Primitives: `.wz-button--primary/--secondary/--ghost/--danger`, `.wz-icon-button`, `.wz-toggle`,
   `.wz-segmented`, `.wz-menu`, `.wz-popover`, `.wz-dialog`, `.wz-badge`, `.wz-avatar`
 - Plugin slots render inside `.wz-plugin-slot[data-slot="…"]`.
+
+## Notifications (desktop app, Windows)
+
+WhatsZori's own notifications are a separate small window running the same frontend, so your
+theme, accent and user CSS theme apply there too. The cards use these variables, set on
+`.wz-ntf-stack`; override them in a theme:
+
+| Variable | Default | |
+| --- | --- | --- |
+| `--wz-ntf-width` | `360px` | card width |
+| `--wz-ntf-bg` | `--wz-bg-elevated` | card background |
+| `--wz-ntf-fg` | `--wz-text-primary` | text |
+| `--wz-ntf-muted` | `--wz-text-muted` | app name, time |
+| `--wz-ntf-border` | `--wz-border` | card and button borders |
+| `--wz-ntf-radius` | `12px` | corner radius |
+| `--wz-ntf-shadow` | `--wz-shadow-popover` | card shadow |
+| `--wz-ntf-accent` | `--wz-accent` | reply field and send button |
+| `--wz-ntf-gap` | `8px` | space between stacked cards |
+
+Stable class names for anything else: `.wz-ntf` (card), `.wz-ntf__head`, `.wz-ntf__main`,
+`.wz-ntf__title`, `.wz-ntf__body`, `.wz-ntf__actions`, `.wz-ntf__action`, `.wz-ntf__reply`,
+`.wz-ntf__input`, `.wz-ntf--summary` (summaries like "12 new messages"). The page has
+`html[data-window="toast"]`, if a theme wants to style the toast window differently. Its
+background always stays transparent.
+
+Plugins have two slots: `notification.card` replaces the whole card (props: `notification` and
+`controls` with `open`, `markRead`, `reply(text)`, `dismiss`; a crashing plugin card falls back
+to the stock one), and `notification.accessories` adds something inside the stock card.
