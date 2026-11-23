@@ -214,6 +214,7 @@ export class WailsBackend implements Backend {
 
   window = {
     setTheme: (dark: boolean, background: string) => Window.SetTheme(dark, background),
+    setUnread: (count: number) => Window.SetUnread(count),
   };
 
   on<E extends BackendEventName>(event: E, handler: (payload: BackendEvents[E]) => void) {

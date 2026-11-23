@@ -49,6 +49,15 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   useAppearance();
 
+  // the tray icon and taskbar badge count chats like the rail badge: unread, not muted or archived
+  const unreadChats = useChats(
+    (s) => Object.values(s.chats).filter((c) => c.unread > 0 && !c.muted && !c.archived).length,
+  );
+  useEffect(() => {
+    if (backend.kind !== 'wails') return;
+    void backend.window.setUnread(authState === 'logged-in' ? unreadChats : 0).catch(() => {});
+  }, [unreadChats, authState]);
+
   // tell the native window once the page has its real colors, so the title bar and the
   // background behind the webview match (and the next start opens in the right colors)
   useEffect(() => {

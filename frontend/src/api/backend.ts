@@ -150,6 +150,8 @@ export interface SystemThemeService {
 export interface WindowService {
   // match the native title bar and window background to the page (no-op in a browser)
   setTheme(dark: boolean, background: string): Promise<void>;
+  // unread chats, for the tray icon and the taskbar badge
+  setUnread(count: number): Promise<void>;
 }
 
 export interface UserThemeService {

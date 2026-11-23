@@ -236,6 +236,10 @@ export interface AppSettings {
     layout?: 'panels' | 'rail';
     fontScale: number;
   };
+  tray: {
+    // closing the window keeps WhatsZori running in the tray (desktop app)
+    closeToTray: boolean;
+  };
   notifications: {
     enabled: boolean;
     // who wrote and what; off = just "New message"

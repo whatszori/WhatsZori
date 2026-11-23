@@ -617,6 +617,7 @@ export class MockBackend implements Backend {
 
   window = {
     setTheme: async (): Promise<void> => undefined,
+    setUnread: async (): Promise<void> => undefined,
   };
 
   userThemes = {

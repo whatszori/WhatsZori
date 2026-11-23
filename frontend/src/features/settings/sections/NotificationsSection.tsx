@@ -10,6 +10,7 @@ type Notifications = AppSettings['notifications'];
 
 export function NotificationsSection() {
   const n = useSettings((s) => s.settings.notifications);
+  const settings = useSettings((s) => s.settings);
   const update = useSettings((s) => s.update);
   const set = (patch: Partial<Notifications>) =>
     update((s) => ({ ...s, notifications: { ...s.notifications, ...patch } }));
@@ -101,6 +102,16 @@ export function NotificationsSection() {
           </Button>
         </div>
       </Group>
+      {backend.kind === 'wails' && (
+        <Group title="Window">
+          <Toggle
+            label="Keep running in the tray"
+            description="Closing the window hides it; WhatsZori keeps receiving messages and notifying. Quit from the tray icon."
+            checked={settings.tray.closeToTray}
+            onChange={(closeToTray) => update((s) => ({ ...s, tray: { ...s.tray, closeToTray } }))}
+          />
+        </Group>
+      )}
       <p className="wz-note">
         <Info size={16} strokeWidth={1.75} aria-hidden="true" />
         <span>

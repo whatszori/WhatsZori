@@ -12,3 +12,10 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 export function SetTheme(dark: boolean, background: string): $CancellablePromise<void> {
     return $Call.ByID(2328173385, dark, background);
 }
+
+/**
+ * SetUnread is the number of chats with unread messages, as the chat list counts them.
+ */
+export function SetUnread(n: number): $CancellablePromise<void> {
+    return $Call.ByID(2124835411, n);
+}
