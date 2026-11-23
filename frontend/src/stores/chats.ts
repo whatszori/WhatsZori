@@ -25,6 +25,12 @@ interface ChatsState {
   markRead(jid: JID): Promise<void>;
 }
 
+// WhatsApp doesn't always send "paused": someone who closes the app or loses signal mid-word
+// stays "composing" forever. Phones re-send composing every few seconds while typing, so a state
+// that isn't refreshed for this long is stale.
+export const TYPING_TTL = 12_000;
+const typingTimers = new Map<string, number>();
+
 export const useChats = create<ChatsState>((set, get) => {
   // optimistic toggle, rolled back if the backend says no
   const patch = async (jid: JID, p: Partial<Chat>, call: () => Promise<void>) => {
@@ -66,19 +72,36 @@ export const useChats = create<ChatsState>((set, get) => {
     setFilter: (filter) => set({ filter }),
     setQuery: (query) => set({ query }),
     setShowArchived: (showArchived) => set({ showArchived }),
-    setTyping: (chatJid, senderJid, name, typing) =>
+    setTyping: (chatJid, senderJid, name, typing) => {
+      const key = `${chatJid}|${senderJid}`;
+      window.clearTimeout(typingTimers.get(key));
+      typingTimers.delete(key);
+      if (typing) {
+        typingTimers.set(
+          key,
+          window.setTimeout(() => get().setTyping(chatJid, senderJid, name, false), TYPING_TTL),
+        );
+      }
       set((s) => {
         const cur = { ...(s.typing[chatJid] ?? {}) };
         if (typing) cur[senderJid] = name;
         else delete cur[senderJid];
         return { typing: { ...s.typing, [chatJid]: cur } };
-      }),
-    setPresence: (jid, online, lastSeen) =>
+      });
+    },
+    setPresence: (jid, online, lastSeen) => {
+      // gone offline means not typing anymore, in any chat
+      if (!online) {
+        for (const [chatJid, senders] of Object.entries(get().typing)) {
+          if (senders[jid] !== undefined) get().setTyping(chatJid, jid, senders[jid], false);
+        }
+      }
       set((s) => {
         const chat = s.chats[jid];
         if (!chat) return s;
         return { chats: { ...s.chats, [jid]: { ...chat, online, lastSeen } } };
-      }),
+      });
+    },
     setPinned: (jid, pinned) => patch(jid, { pinned }, () => backend.chats.setPinned(jid, pinned)),
     setArchived: (jid, archived) =>
       patch(jid, { archived }, () => backend.chats.setArchived(jid, archived)),

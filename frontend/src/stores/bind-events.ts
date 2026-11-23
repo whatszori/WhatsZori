@@ -16,6 +16,12 @@ export function bindBackendEvents(be: Backend): () => void {
     be.on('conn:state', ({ state }) => useConnection.getState().setConn(state)),
     be.on('msg:batch', ({ messages }) => {
       useMessages.getState().receive(messages);
+      // a message from someone ends their typing in that chat
+      const chats = useChats.getState();
+      for (const m of messages) {
+        const name = chats.typing[m.chatJid]?.[m.senderJid];
+        if (!m.fromMe && name !== undefined) chats.setTyping(m.chatJid, m.senderJid, name, false);
+      }
       // reading the chat right now counts as read
       const active = useUI.getState().activeChat;
       if (active && messages.some((m) => m.chatJid === active && !m.fromMe) && !document.hidden) {
