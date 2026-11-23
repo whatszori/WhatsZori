@@ -1,4 +1,5 @@
 import type {
+  PluginInfo,
   StatusGroup,
   ChangeKind,
   ChangePage,
@@ -123,6 +124,21 @@ export interface MessageService {
   ): Promise<MessagePage>;
 }
 
+export interface PluginService {
+  list(): Promise<PluginInfo[]>;
+  setEnabled(id: string, on: boolean): Promise<void>;
+  isSafeMode(): Promise<boolean>;
+  // where the plugin's module is served from
+  url(id: string, file: string): string;
+  settings(id: string): Promise<Record<string, string>>;
+  setSetting(id: string, key: string, value: string): Promise<void>;
+  deleteSetting(id: string, key: string): Promise<void>;
+  storageGet(id: string, key: string): Promise<string | null>;
+  storageSet(id: string, key: string, value: string): Promise<void>;
+  storageDelete(id: string, key: string): Promise<void>;
+  storageKeys(id: string): Promise<string[]>;
+}
+
 export interface StatusService {
   // the last day of statuses, or everything kept
   list(all: boolean): Promise<StatusGroup[]>;
@@ -205,6 +221,7 @@ export interface Backend {
   privacy: PrivacyService;
   contacts: ContactService;
   status: StatusService;
+  plugins: PluginService;
   media: MediaService;
   export: ExportService;
   notifications: NotificationService;

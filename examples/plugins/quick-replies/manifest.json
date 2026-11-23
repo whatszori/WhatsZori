@@ -1,0 +1,8 @@
+{
+  "id": "quick-replies",
+  "name": "Quick replies",
+  "version": "1.0.0",
+  "description": "A composer button that inserts saved replies, edited in its settings.",
+  "author": "WhatsZori",
+  "main": "index.js"
+}

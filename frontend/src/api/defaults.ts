@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   tray: { closeToTray: true },
   notifications: { enabled: true, preview: true, sound: true, style: 'auto' },
   history: { keepDeleted: true, keepEditHistory: true, autoDownloadMedia: true },
-  plugins: { 'message-timestamps': true, 'translate-button': false, 'quick-reply-templates': true },
+  plugins: {},
   themes: {},
   themeModules: {},
   userTheme: null,

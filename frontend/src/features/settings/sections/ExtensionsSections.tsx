@@ -1,73 +1,117 @@
-import { FolderOpen, Puzzle } from 'lucide-react';
-import { backend } from '../../../api';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { AlertTriangle, FolderOpen, Puzzle, RefreshCw } from 'lucide-react';
+import { backend, type PluginInfo } from '../../../api';
+import {
+  isRunning,
+  onPluginsChanged,
+  pluginError,
+  startPlugin,
+  stopPlugin,
+} from '../../../plugin-core/loader';
 import { PluginSlot, useSlotEntries } from '../../../plugin-core/slots';
 import { useSettings } from '../../../stores/settings';
+import { toastError } from '../../../stores/toasts';
 import { Button, Toggle } from '../../../ui';
 import { Group, Page } from './common';
 
-// Placeholder entries until plugin loading exists.
-const PLUGINS = [
-  {
-    id: 'message-timestamps',
-    name: 'Exact timestamps',
-    description: 'Show seconds in message times.',
-    version: '0.1.0',
-  },
-  {
-    id: 'translate-button',
-    name: 'Translate',
-    description: 'Adds a translate action to the message menu.',
-    version: '0.3.2',
-  },
-  {
-    id: 'quick-reply-templates',
-    name: 'Reply templates',
-    description: 'Insert saved snippets from the composer.',
-    version: '1.0.0',
-  },
-];
-
-function ExtList({
-  entries,
-}: {
-  entries: { id: string; name: string; description: string; version: string }[];
-}) {
-  const state = useSettings((s) => s.settings.plugins);
-  const update = useSettings((s) => s.update);
-  return (
-    <div className="wz-ext-list">
-      {entries.map((e) => (
-        <div key={e.id} className="wz-ext-item">
-          <span className="wz-ext-item__icon" aria-hidden="true">
-            <Puzzle size={18} strokeWidth={1.75} />
-          </span>
-          <Toggle
-            label={e.name}
-            description={`${e.description} · v${e.version}`}
-            checked={!!state[e.id]}
-            onChange={(on) => update((s) => ({ ...s, plugins: { ...s.plugins, [e.id]: on } }))}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
+let version = 0;
+const subscribe = (fn: () => void) =>
+  onPluginsChanged(() => {
+    version++;
+    fn();
+  });
 
 export function PluginsSection() {
   const pluginSettings = useSlotEntries('settings.sections');
+  const safeMode = useSettings((s) => s.safeMode);
+  const [list, setList] = useState<PluginInfo[] | null>(null);
+  // re-render when a plugin starts, stops or fails
+  useSyncExternalStore(subscribe, () => version);
+
+  const load = useCallback(() => {
+    backend.plugins
+      .list()
+      .then(setList)
+      .catch((err) => toastError(err));
+  }, []);
+  useEffect(load, [load]);
+
+  const toggle = async (p: PluginInfo, on: boolean) => {
+    try {
+      await backend.plugins.setEnabled(p.id, on);
+      if (!safeMode) {
+        if (on) await startPlugin(p);
+        else stopPlugin(p.id);
+      }
+      load();
+    } catch (err) {
+      toastError(err);
+    }
+  };
+
+  const desktop = backend.kind === 'wails';
   return (
-    <Page title="Plugins" lead="Plugins add buttons and menu items in fixed places of the app.">
+    <Page
+      title="Plugins"
+      lead="Plugins add buttons, menu items and settings in fixed places of the app. Put a plugin's folder into the plugins folder, then turn it on here."
+    >
+      {safeMode && (
+        <p className="wz-note">
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span>Safe mode is on, so no plugin runs. Restart normally to load them again.</span>
+        </p>
+      )}
       <Group title="Installed">
-        <ExtList entries={PLUGINS} />
+        {list && list.length === 0 && (
+          <p className="wz-settings-hint">
+            {desktop
+              ? 'No plugins yet. Each plugin is a folder with a manifest.json and its script.'
+              : 'Plugins load from the config folder in the desktop app.'}
+          </p>
+        )}
+        <div className="wz-ext-list">
+          {(list ?? []).map((p) => {
+            const failed = p.error || pluginError(p.id);
+            return (
+              <div key={p.id} className="wz-ext-item">
+                <span className="wz-ext-item__icon" aria-hidden="true">
+                  {failed ? (
+                    <AlertTriangle size={18} strokeWidth={1.75} />
+                  ) : (
+                    <Puzzle size={18} strokeWidth={1.75} />
+                  )}
+                </span>
+                <Toggle
+                  label={p.name}
+                  description={[
+                    p.description,
+                    p.version && `v${p.version}`,
+                    p.author && `by ${p.author}`,
+                    failed && `Can't load: ${failed}`,
+                    p.enabled && !failed && !safeMode && !isRunning(p.id) && 'starting…',
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  checked={p.enabled}
+                  disabled={!!p.error && !p.enabled}
+                  onChange={(on) => void toggle(p, on)}
+                />
+              </div>
+            );
+          })}
+        </div>
       </Group>
       <div className="wz-settings-actions">
         <Button
           icon={<FolderOpen size={16} />}
-          disabled={backend.kind !== 'wails'}
-          title={backend.kind === 'wails' ? undefined : 'Available in the desktop app'}
+          disabled={!desktop}
+          title={desktop ? undefined : 'Available in the desktop app'}
           onClick={() => void backend.system.openConfigFolder('plugins')}
         >
           Open plugins folder
+        </Button>
+        <Button icon={<RefreshCw size={16} />} onClick={load}>
+          Look again
         </Button>
       </div>
       {pluginSettings.length > 0 && (

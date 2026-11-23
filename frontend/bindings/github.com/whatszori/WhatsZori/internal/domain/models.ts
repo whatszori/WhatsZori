@@ -413,6 +413,28 @@ export interface NotificationOpenEvent {
     "reply": boolean;
 }
 
+/**
+ * a plugin folder in <config>/plugins
+ */
+export interface PluginInfo {
+    "id": string;
+    "name": string;
+    "version": string;
+    "description": string;
+    "author": string;
+
+    /**
+     * the module to load, relative to the plugin folder
+     */
+    "main": string;
+    "enabled": boolean;
+
+    /**
+     * why it can't be loaded (bad manifest, missing file); empty when fine
+     */
+    "error"?: string;
+}
+
 export interface PollInfo {
     "name": string;
     "options": PollOption[] | null;

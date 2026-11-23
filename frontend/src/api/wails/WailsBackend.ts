@@ -8,6 +8,7 @@ import {
   Media,
   Messages,
   Notifications,
+  Plugins,
   Privacy,
   Profile,
   Settings,
@@ -25,6 +26,7 @@ import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
+  PluginInfo,
   StatusGroup,
   ChangeItem,
   ChangeKind,
@@ -209,6 +211,23 @@ export class WailsBackend implements Backend {
   contacts = {
     list: async (): Promise<Contact[]> => (await Contacts.List()) ?? [],
     lookup: (phone: string): Promise<Contact> => Contacts.Lookup(phone),
+  };
+
+  plugins = {
+    list: async (): Promise<PluginInfo[]> => (await Plugins.List()) ?? [],
+    setEnabled: (id: string, on: boolean) => Plugins.SetEnabled(id, on),
+    isSafeMode: () => Plugins.IsSafeMode(),
+    url: (id: string, file: string) =>
+      `/wz-plugins/${encodeURIComponent(id)}/${file.split('/').map(encodeURIComponent).join('/')}`,
+    settings: async (id: string): Promise<Record<string, string>> =>
+      ((await Plugins.Settings(id)) ?? {}) as Record<string, string>,
+    setSetting: (id: string, key: string, value: string) => Plugins.SetSetting(id, key, value),
+    deleteSetting: (id: string, key: string) => Plugins.DeleteSetting(id, key),
+    storageGet: async (id: string, key: string): Promise<string | null> =>
+      (await Plugins.StorageGet(id, key)) ?? null,
+    storageSet: (id: string, key: string, value: string) => Plugins.StorageSet(id, key, value),
+    storageDelete: (id: string, key: string) => Plugins.StorageDelete(id, key),
+    storageKeys: async (id: string): Promise<string[]> => (await Plugins.StorageKeys(id)) ?? [],
   };
 
   status = {

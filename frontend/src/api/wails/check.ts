@@ -43,6 +43,7 @@ export type Checks = [
   Assert<SameKeys<T.SearchHit, Go.SearchHit>>,
   Assert<SameKeys<T.PollInfo, Go.PollInfo>>,
   Assert<SameKeys<T.StatusItem, Go.StatusItem>>,
+  Assert<SameKeys<T.PluginInfo, Go.PluginInfo>>,
   Assert<SameKeys<T.StatusGroup, Go.StatusGroup>>,
   Assert<SameKeys<T.ChangeItem, Go.ChangeItem>>,
   Assert<SameKeys<T.ChangePage, Go.ChangePage>>,

@@ -47,7 +47,7 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 			case strings.HasPrefix(p, PluginsPrefix):
 				rest := strings.TrimPrefix(p, PluginsPrefix)
 				id, _, _ := strings.Cut(rest, "/")
-				if !validPluginID(id) {
+				if !ValidPluginID(id) {
 					http.NotFound(w, r)
 					return
 				}
@@ -80,7 +80,8 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 
 var pluginIDRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`)
 
-func validPluginID(id string) bool {
+// ValidPluginID is what a plugin folder (and id) may be called.
+func ValidPluginID(id string) bool {
 	return pluginIDRe.MatchString(id) && !strings.Contains(id, "..")
 }
 

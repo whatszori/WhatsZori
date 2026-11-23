@@ -285,6 +285,20 @@ type StatusUpdateEvent struct {
 	JID string `json:"jid"`
 }
 
+// a plugin folder in <config>/plugins
+type PluginInfo struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+	Author      string `json:"author"`
+	// the module to load, relative to the plugin folder
+	Main    string `json:"main"`
+	Enabled bool   `json:"enabled"`
+	// why it can't be loaded (bad manifest, missing file); empty when fine
+	Error string `json:"error,omitempty"`
+}
+
 type EditVersion struct {
 	Text string `json:"text"`
 	At   int64  `json:"at"`

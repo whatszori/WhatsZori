@@ -271,6 +271,20 @@ export interface GhostSettings {
   ghostChats: JID[];
 }
 
+// a plugin folder in <config>/plugins
+export interface PluginInfo {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  // the module to load, relative to the plugin folder
+  main: string;
+  enabled: boolean;
+  // why it can't load (bad manifest, missing file)
+  error?: string;
+}
+
 export interface StatusItem {
   message: Message;
   // opened in WhatsZori

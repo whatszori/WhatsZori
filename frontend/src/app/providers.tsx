@@ -8,6 +8,7 @@ import { useSettings } from '../stores/settings';
 import { clampSidebar, useUI } from '../stores/ui';
 import { nativeTheme } from '../theme/theme-manager';
 import { registerDemoPlugins } from '../plugin-core/demo';
+import { loadPlugins } from '../plugin-core/loader';
 import { useUserThemes } from '../themes/user-themes';
 import { useAppearance } from './useAppearance';
 
@@ -101,8 +102,18 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // safe mode is exactly for "a plugin broke startup", so plugins stay off
-    if (!isDemo || !loaded || safeMode) return;
-    return registerDemoPlugins();
+    if (!loaded || safeMode) return;
+    if (isDemo) return registerDemoPlugins();
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    void loadPlugins().then((s) => {
+      if (cancelled) s();
+      else stop = s;
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
   }, [loaded, safeMode]);
 
   return <>{children}</>;

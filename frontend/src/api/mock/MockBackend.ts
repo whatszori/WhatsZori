@@ -1,5 +1,6 @@
 import type { Backend } from '../backend';
 import type {
+  PluginInfo,
   StatusGroup,
   ChangeItem,
   ChangeKind,
@@ -760,6 +761,38 @@ export class MockBackend implements Backend {
       return { ...g, items, unseen: items.filter((it) => !it.seen).length };
     });
   }
+
+  // the browser preview has no plugin folder; its demo plugins register directly
+  private pluginKV = new Map<string, string>();
+  plugins = {
+    list: async (): Promise<PluginInfo[]> => [],
+    setEnabled: async (): Promise<void> => {
+      throw new Error('Plugins load from the config folder in the desktop app');
+    },
+    isSafeMode: async (): Promise<boolean> => false,
+    url: () => '',
+    settings: async (id: string): Promise<Record<string, string>> => {
+      const out: Record<string, string> = {};
+      for (const [k, v] of this.pluginKV) if (k.startsWith(`s:${id}:`)) out[k.split(':')[2]] = v;
+      return out;
+    },
+    setSetting: async (id: string, key: string, value: string) => {
+      this.pluginKV.set(`s:${id}:${key}`, value);
+    },
+    deleteSetting: async (id: string, key: string) => {
+      this.pluginKV.delete(`s:${id}:${key}`);
+    },
+    storageGet: async (id: string, key: string): Promise<string | null> =>
+      this.pluginKV.get(`k:${id}:${key}`) ?? null,
+    storageSet: async (id: string, key: string, value: string) => {
+      this.pluginKV.set(`k:${id}:${key}`, value);
+    },
+    storageDelete: async (id: string, key: string) => {
+      this.pluginKV.delete(`k:${id}:${key}`);
+    },
+    storageKeys: async (id: string): Promise<string[]> =>
+      [...this.pluginKV.keys()].filter((k) => k.startsWith(`k:${id}:`)).map((k) => k.split(':')[2]),
+  };
 
   status = {
     list: async (): Promise<StatusGroup[]> => {

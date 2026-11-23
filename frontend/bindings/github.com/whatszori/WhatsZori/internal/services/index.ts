@@ -8,6 +8,7 @@ import * as Export from "./export.js";
 import * as Media from "./media.js";
 import * as Messages from "./messages.js";
 import * as Notifications from "./notifications.js";
+import * as Plugins from "./plugins.js";
 import * as Privacy from "./privacy.js";
 import * as Profile from "./profile.js";
 import * as Settings from "./settings.js";
@@ -24,6 +25,7 @@ export {
     Media,
     Messages,
     Notifications,
+    Plugins,
     Privacy,
     Profile,
     Settings,

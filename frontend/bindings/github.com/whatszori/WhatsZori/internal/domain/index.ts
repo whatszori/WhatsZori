@@ -43,6 +43,7 @@ export type {
     MsgRemovedEvent,
     MsgStatusEvent,
     NotificationOpenEvent,
+    PluginInfo,
     PollInfo,
     PollOption,
     PresenceEvent,
