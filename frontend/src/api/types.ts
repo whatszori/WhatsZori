@@ -295,6 +295,12 @@ export interface UserThemePackage {
   error?: string;
 }
 
+// a sticker in the picker: a file of the user's own, or "pk:<n>" for one seen in a chat
+export interface Sticker {
+  id: string;
+  url: string;
+}
+
 export interface StatusItem {
   message: Message;
   // opened in WhatsZori

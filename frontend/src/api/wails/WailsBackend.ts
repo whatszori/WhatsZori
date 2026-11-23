@@ -13,6 +13,7 @@ import {
   Profile,
   Settings,
   Status,
+  Stickers,
   System,
   SystemTheme,
   Themes,
@@ -26,6 +27,7 @@ import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
+  Sticker,
   UserThemePackage,
   PluginInfo,
   StatusGroup,
@@ -212,6 +214,22 @@ export class WailsBackend implements Backend {
   contacts = {
     list: async (): Promise<Contact[]> => (await Contacts.List()) ?? [],
     lookup: (phone: string): Promise<Contact> => Contacts.Lookup(phone),
+  };
+
+  stickers = {
+    mine: async (): Promise<Sticker[]> => (await Stickers.Mine()) ?? [],
+    recent: async (): Promise<Sticker[]> => (await Stickers.Recent()) ?? [],
+    add: async (picture: Blob): Promise<Sticker> => {
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(',')[1] ?? '');
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(picture);
+      });
+      return Stickers.Add(b64);
+    },
+    remove: (id: string) => Stickers.Remove(id),
+    send: async (jid: JID, id: string): Promise<Message> => message(await Stickers.Send(jid, id)),
   };
 
   plugins = {

@@ -17,15 +17,17 @@ import (
 )
 
 const (
-	ThemesPrefix  = "/wz-themes/"
-	PluginsPrefix = "/wz-plugins/"
-	MediaPrefix   = "/wz-media/"
-	AvatarPrefix  = "/wz-avatar/"
+	ThemesPrefix   = "/wz-themes/"
+	PluginsPrefix  = "/wz-plugins/"
+	MediaPrefix    = "/wz-media/"
+	AvatarPrefix   = "/wz-avatar/"
+	StickersPrefix = "/wz-stickers/"
 )
 
 type Options struct {
-	ThemesDir  string
-	PluginsDir string
+	ThemesDir   string
+	PluginsDir  string
+	StickersDir string
 	// Media serves /wz-media/<pk>; nil answers 404
 	Media http.Handler
 	// Avatars serves /wz-avatar/<jid>; nil answers 404
@@ -52,6 +54,8 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 					return
 				}
 				serveFile(w, r, o.PluginsDir, rest, false)
+			case strings.HasPrefix(p, StickersPrefix):
+				serveFile(w, r, o.StickersDir, strings.TrimPrefix(p, StickersPrefix), false)
 			case strings.HasPrefix(p, AvatarPrefix):
 				if o.Avatars == nil {
 					http.NotFound(w, r)

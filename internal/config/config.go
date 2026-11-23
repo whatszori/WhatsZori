@@ -18,6 +18,8 @@ type Paths struct {
 	Plugins string
 	Media   string
 	Avatars string
+	// the user's own stickers, ready-made 512×512 WebP files
+	Stickers string
 }
 
 func (p Paths) SettingsFile() string { return filepath.Join(p.Root, "settings.json") }
@@ -38,6 +40,8 @@ func (p Paths) Dir(kind string) (string, bool) {
 		return p.Plugins, true
 	case "media":
 		return p.Media, true
+	case "stickers":
+		return p.Stickers, true
 	}
 	return "", false
 }
@@ -78,17 +82,18 @@ func Load(args []string) (Config, error) {
 
 func NewPaths(root string) Paths {
 	return Paths{
-		Root:    root,
-		Themes:  filepath.Join(root, "themes"),
-		Plugins: filepath.Join(root, "plugins"),
-		Media:   filepath.Join(root, "media"),
-		Avatars: filepath.Join(root, "avatars"),
+		Root:     root,
+		Themes:   filepath.Join(root, "themes"),
+		Plugins:  filepath.Join(root, "plugins"),
+		Media:    filepath.Join(root, "media"),
+		Avatars:  filepath.Join(root, "avatars"),
+		Stickers: filepath.Join(root, "stickers"),
 	}
 }
 
 func (p Paths) Ensure() error {
 	var errs []error
-	for _, dir := range []string{p.Root, p.Themes, p.Plugins, p.Media, p.Avatars} {
+	for _, dir := range []string{p.Root, p.Themes, p.Plugins, p.Media, p.Avatars, p.Stickers} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			errs = append(errs, err)
 		}

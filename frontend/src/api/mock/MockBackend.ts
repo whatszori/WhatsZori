@@ -1,5 +1,6 @@
 import type { Backend } from '../backend';
 import type {
+  Sticker,
   UserThemePackage,
   PluginInfo,
   StatusGroup,
@@ -762,6 +763,41 @@ export class MockBackend implements Backend {
       return { ...g, items, unseen: items.filter((it) => !it.seen).length };
     });
   }
+
+  // stickers made in the preview live as object URLs until reload
+  private stickers_: Sticker[] = [];
+  stickers = {
+    mine: async (): Promise<Sticker[]> => clone(this.stickers_),
+    recent: async (): Promise<Sticker[]> => [],
+    add: async (picture: Blob): Promise<Sticker> => {
+      const s = { id: `mock-${this.stickers_.length + 1}.webp`, url: URL.createObjectURL(picture) };
+      this.stickers_.unshift(s);
+      return clone(s);
+    },
+    remove: async (id: string): Promise<void> => {
+      this.stickers_ = this.stickers_.filter((s) => s.id !== id);
+    },
+    send: async (jid: JID): Promise<Message> => {
+      await this.wait();
+      const m: Message = {
+        pk: String(this.db.nextPk++),
+        id: `3EB0STK${this.db.nextPk}`,
+        chatJid: jid,
+        senderJid: this.db.me.jid,
+        senderName: this.db.me.name,
+        fromMe: true,
+        timestamp: Date.now(),
+        kind: 'sticker',
+        text: '',
+        status: 'pending',
+        reactions: [],
+        media: { width: 512, height: 512, mime: 'image/webp', size: 20_000 },
+      };
+      this.insert(m);
+      this.progressStatus(m);
+      return clone(m);
+    },
+  };
 
   // the browser preview has no plugin folder; its demo plugins register directly
   private pluginKV = new Map<string, string>();

@@ -299,6 +299,12 @@ type PluginInfo struct {
 	Error string `json:"error,omitempty"`
 }
 
+// a sticker in the picker: id is a file in the stickers folder, or "pk:<n>" for one seen in a chat
+type Sticker struct {
+	ID  string `json:"id"`
+	URL string `json:"url"`
+}
+
 type EditVersion struct {
 	Text string `json:"text"`
 	At   int64  `json:"at"`

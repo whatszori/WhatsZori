@@ -46,6 +46,7 @@ export type Checks = [
   Assert<SameKeys<T.PollInfo, Go.PollInfo>>,
   Assert<SameKeys<T.StatusItem, Go.StatusItem>>,
   Assert<SameKeys<T.PluginInfo, Go.PluginInfo>>,
+  Assert<SameKeys<T.Sticker, Go.Sticker>>,
   Assert<SameKeys<T.UserThemePackage, GoThemePackage>>,
   Assert<SameKeys<T.UserThemePackage['manifest'], GoThemeManifest>>,
   Assert<SameKeys<T.StatusGroup, Go.StatusGroup>>,

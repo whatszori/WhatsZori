@@ -546,6 +546,14 @@ export interface StatusUpdateEvent {
     "jid": string;
 }
 
+/**
+ * a sticker in the picker: id is a file in the stickers folder, or "pk:<n>" for one seen in a chat
+ */
+export interface Sticker {
+    "id": string;
+    "url": string;
+}
+
 export interface SyncProgressEvent {
     /**
      * 0..100; 100 means done

@@ -1,4 +1,5 @@
 import type {
+  Sticker,
   UserThemePackage,
   PluginInfo,
   StatusGroup,
@@ -140,6 +141,17 @@ export interface PluginService {
   storageKeys(id: string): Promise<string[]>;
 }
 
+export interface StickerService {
+  // the user's own, newest first
+  mine(): Promise<Sticker[]>;
+  // seen in chats lately, one per picture
+  recent(): Promise<Sticker[]>;
+  // a picture made into a sticker in the page (see make-sticker.ts)
+  add(picture: Blob): Promise<Sticker>;
+  remove(id: string): Promise<void>;
+  send(jid: JID, id: string): Promise<Message>;
+}
+
 export interface StatusService {
   // the last day of statuses, or everything kept
   list(all: boolean): Promise<StatusGroup[]>;
@@ -228,6 +240,7 @@ export interface Backend {
   contacts: ContactService;
   status: StatusService;
   plugins: PluginService;
+  stickers: StickerService;
   media: MediaService;
   export: ExportService;
   notifications: NotificationService;

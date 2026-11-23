@@ -133,6 +133,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewPrivacy(wa)),
 			application.NewService(services.NewContacts(wa)),
 			application.NewService(services.NewStatus(wa)),
+			application.NewService(services.NewStickers(wa, cfg.Paths.Stickers)),
 			application.NewService(services.NewPlugins(cfg.Paths.Plugins, wa.DB, a.boot.SafeMode)),
 			application.NewService(services.NewMedia(wa, desktop{a})),
 			application.NewService(services.NewExport(wa, desktop{a})),
@@ -144,11 +145,12 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
 			Middleware: assets.Middleware(assets.Options{
-				ThemesDir:  cfg.Paths.Themes,
-				PluginsDir: cfg.Paths.Plugins,
-				Media:      wa.Media.Handler(assets.MediaPrefix),
-				Avatars:    wa.Avatars.Handler(assets.AvatarPrefix),
-				HTMLAttrs:  a.htmlAttrs,
+				ThemesDir:   cfg.Paths.Themes,
+				PluginsDir:  cfg.Paths.Plugins,
+				StickersDir: cfg.Paths.Stickers,
+				Media:       wa.Media.Handler(assets.MediaPrefix),
+				Avatars:     wa.Avatars.Handler(assets.AvatarPrefix),
+				HTMLAttrs:   a.htmlAttrs,
 			}),
 		},
 		SingleInstance: &application.SingleInstanceOptions{

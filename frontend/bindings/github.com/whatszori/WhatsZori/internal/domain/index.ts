@@ -56,6 +56,7 @@ export type {
     StatusGroup,
     StatusItem,
     StatusUpdateEvent,
+    Sticker,
     SyncProgressEvent,
     ToastEvent,
     TypingEvent

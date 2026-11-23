@@ -14,35 +14,10 @@ import { composerFor, useUI } from '../../stores/ui';
 import { IconButton, Popover, type PopoverAnchor } from '../../ui';
 import { toastError } from '../../stores/toasts';
 import { VoiceRecorder, canRecord } from './VoiceRecorder';
+import { EmojiPicker } from '../emoji/EmojiPicker';
 import './Composer.css';
 
 const MAX_LINES = 8;
-const EMOJI = [
-  '😀',
-  '😂',
-  '🙂',
-  '😉',
-  '😍',
-  '🤔',
-  '😅',
-  '😢',
-  '😮',
-  '😴',
-  '👍',
-  '👎',
-  '👏',
-  '🙏',
-  '💪',
-  '🎉',
-  '❤️',
-  '🔥',
-  '✅',
-  '👀',
-  '☕',
-  '🍕',
-  '🌧️',
-  '🚀',
-];
 
 // Tells the other side we're typing: composing at most every few seconds while keys are
 // pressed, paused after a short idle or when the message goes out. The backend drops all of it
@@ -270,23 +245,7 @@ export function Composer({ chat }: { chat: Chat }) {
         className="wz-emoji-popover"
         restoreFocus={false}
       >
-        <div className="wz-emoji-grid">
-          {EMOJI.map((e) => (
-            <button
-              key={e}
-              type="button"
-              className="wz-emoji-grid__item"
-              aria-label={e}
-              onClick={() => {
-                insert(e);
-                closeEmoji();
-              }}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-        <p className="wz-emoji-popover__note">Full emoji picker coming later</p>
+        <EmojiPicker jid={jid} onEmoji={insert} onClose={closeEmoji} />
       </Popover>
     </div>
   );
