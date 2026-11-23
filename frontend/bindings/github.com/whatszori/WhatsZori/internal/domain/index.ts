@@ -52,6 +52,9 @@ export type {
     ReplyRef,
     SearchHit,
     SettingsChangedEvent,
+    StatusGroup,
+    StatusItem,
+    StatusUpdateEvent,
     SyncProgressEvent,
     ToastEvent,
     TypingEvent

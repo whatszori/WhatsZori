@@ -85,6 +85,9 @@ func (t *transport) SendPresence(context.Context, types.Presence) error { return
 func (t *transport) SendChatPresence(context.Context, types.JID, types.ChatPresence, types.ChatPresenceMedia) error {
 	return nil
 }
+func (t *transport) MarkPlayed(context.Context, []types.MessageID, time.Time, types.JID, types.JID) error {
+	return nil
+}
 func (t *transport) MarkRead(context.Context, []types.MessageID, time.Time, types.JID, types.JID) error {
 	t.reads++
 	return nil

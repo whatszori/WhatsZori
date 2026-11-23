@@ -210,7 +210,10 @@ function Voice({ pk, media }: { pk: MessagePK; media: MediaInfo }) {
           ref={audio}
           src={url}
           preload="none"
-          onPlay={() => setPlaying(true)}
+          onPlay={() => {
+            setPlaying(true);
+            void backend.messages.played(pk).catch(() => {});
+          }}
           onPause={() => setPlaying(false)}
           onEnded={() => {
             setPlaying(false);

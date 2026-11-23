@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -605,4 +606,42 @@ func (s *Messages) Changes(kind string, beforeAt int64, beforePk string, limit i
 	ctx, cancel := call()
 	defer cancel()
 	return s.c.View(ctx).Changes(ctx, s.c.DB, kind, beforeAt, pk, limit)
+}
+
+var errNotStatus = errors.New("not a status update")
+
+var played = struct {
+	sync.Mutex
+	pks map[int64]bool
+}{pks: map[int64]bool{}}
+
+// Played is the user starting an incoming voice note or video note: the "played" receipt, if the
+// ghost settings allow it. Once per message per run.
+func (s *Messages) Played(pk string) error {
+	id, err := parsePK(pk)
+	if err != nil {
+		return err
+	}
+	played.Lock()
+	again := played.pks[id]
+	played.pks[id] = true
+	played.Unlock()
+	if again {
+		return nil
+	}
+	ctx, cancel := call()
+	defer cancel()
+	m, err := repo.GetMessage(ctx, s.c.DB, id)
+	if err != nil || m.FromMe || m.ChatJID == repo.StatusChat {
+		return err
+	}
+	if m.Kind != repo.KindVoice && m.Kind != repo.KindAudio && m.Kind != repo.KindRound {
+		return nil
+	}
+	chat, err := types.ParseJID(m.ChatJID)
+	if err != nil {
+		return err
+	}
+	sender, _ := types.ParseJID(m.SenderJID)
+	return s.c.Gate.Played(ctx, chat, sender, m.MsgID, time.UnixMilli(m.TS))
 }

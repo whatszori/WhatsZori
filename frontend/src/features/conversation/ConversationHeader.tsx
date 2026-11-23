@@ -5,6 +5,7 @@ import {
   Bell,
   BellOff,
   CheckCheck,
+  Ghost,
   Info,
   MoreVertical,
   Pin,
@@ -15,6 +16,7 @@ import type { Chat } from '../../api';
 import { formatLastSeen, pluralize } from '../../lib/format';
 import { PluginSlot } from '../../plugin-core/slots';
 import { useChats } from '../../stores/chats';
+import { useSettings } from '../../stores/settings';
 import { useUI } from '../../stores/ui';
 import { Avatar, IconButton, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { toPluginChat } from './plugin-adapters';
@@ -42,6 +44,8 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
   const status = statusLine(chat, typing);
   const infoOpen = useUI((s) => s.chatInfoOpen);
   const searchOpen = useUI((s) => s.chatSearchOpen);
+  const ghostChats = useSettings((s) => s.ghost.ghostChats);
+  const ghosted = ghostChats.includes(chat.jid);
   const [menu, setMenu] = useState<PopoverAnchor | null>(null);
   const close = useCallback(() => setMenu(null), []);
   const chats = useChats.getState();
@@ -73,6 +77,18 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
       disabled: chat.unread === 0,
       onSelect: () => void chats.markRead(chat.jid),
     },
+    { kind: 'separator', id: 's-ghost' },
+    {
+      id: 'ghost',
+      label: ghosted ? 'Turn off ghost mode here' : 'Ghost mode in this chat',
+      icon: <Ghost />,
+      onSelect: () =>
+        useSettings.getState().setGhost({
+          ghostChats: ghosted
+            ? ghostChats.filter((j) => j !== chat.jid)
+            : [...ghostChats, chat.jid],
+        }),
+    },
   ];
 
   return (
@@ -86,7 +102,14 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
       >
         <Avatar name={chat.name} jid={chat.jid} size={36} group={chat.isGroup} />
         <span className="wz-conv-header__text">
-          <span className="wz-conv-header__name">{chat.name}</span>
+          <span className="wz-conv-header__name">
+            {chat.name}
+            {ghosted && (
+              <span className="wz-conv-header__ghost" title="Ghost mode in this chat">
+                <Ghost size={14} aria-label="Ghost mode" />
+              </span>
+            )}
+          </span>
           <span
             className={`wz-conv-header__status${status.accent ? ' wz-conv-header__status--accent' : ''}`}
             aria-live="polite"

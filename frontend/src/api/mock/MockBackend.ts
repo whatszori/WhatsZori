@@ -1,5 +1,6 @@
 import type { Backend } from '../backend';
 import type {
+  StatusGroup,
   ChangeItem,
   ChangeKind,
   ChangePage,
@@ -607,6 +608,7 @@ export class MockBackend implements Backend {
       m.poll.totalVoters = voters.size;
       this.emit('msg:batch', { messages: [clone(m)] });
     },
+    played: async (): Promise<void> => undefined,
     deleteLocal: async (jid: JID, pks: MessagePK[]): Promise<void> => {
       await this.wait();
       const list = this.db.messages.get(jid);
@@ -707,6 +709,67 @@ export class MockBackend implements Backend {
       const start = beforePk ? all.findIndex((m) => m.pk === beforePk) + 1 : 0;
       const page = all.slice(start, start + limit);
       return { messages: clone(page), hasMore: start + limit < all.length };
+    },
+  };
+
+  // a few statuses so the screen has something in the browser preview
+  private statusSeen = new Set<MessagePK>();
+  private statuses_: StatusGroup[] | null = null;
+  private statusGroups(): StatusGroup[] {
+    if (!this.statuses_) {
+      const now = Date.now();
+      const people = [...this.db.chats.values()].filter((c) => !c.isGroup).slice(0, 4);
+      const texts = [
+        'Monday again ☕',
+        'Sunset from the roof',
+        'New job, new city!',
+        'Gym streak: 30 days',
+      ];
+      const colors = ['#1e88e5', '#8e24aa', '#43a047', '#f4511e'];
+      let pk = 900000;
+      this.statuses_ = people.map((c, i) => ({
+        jid: c.jid,
+        name: c.name,
+        mine: false,
+        unseen: 0,
+        lastTs: now - i * 47 * 60_000,
+        items: Array.from({ length: (i % 2) + 1 }, (_, j) => ({
+          seen: false,
+          background: colors[(i + j) % colors.length],
+          message: {
+            pk: String(pk++),
+            id: 'STATUS' + pk,
+            chatJid: 'status@broadcast',
+            senderJid: c.jid,
+            senderName: c.name,
+            fromMe: false,
+            timestamp: now - i * 47 * 60_000 - (1 - j) * 9 * 60_000,
+            kind: 'text' as const,
+            text: texts[(i + j) % texts.length],
+            reactions: [],
+            deleted:
+              i === 2 && j === 0
+                ? { byJid: c.jid, byName: c.name, at: now - 30 * 60_000 }
+                : undefined,
+          },
+        })),
+      }));
+    }
+    return this.statuses_.map((g) => {
+      const items = g.items.map((it) => ({ ...it, seen: this.statusSeen.has(it.message.pk) }));
+      return { ...g, items, unseen: items.filter((it) => !it.seen).length };
+    });
+  }
+
+  status = {
+    list: async (): Promise<StatusGroup[]> => {
+      await this.wait();
+      return clone(this.statusGroups());
+    },
+    view: async (pk: MessagePK, ghost: boolean): Promise<boolean> => {
+      await this.wait();
+      this.statusSeen.add(pk);
+      return !ghost && !this.ghost_.statusGhost;
     },
   };
 

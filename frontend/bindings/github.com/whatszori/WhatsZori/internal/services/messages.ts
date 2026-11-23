@@ -62,6 +62,14 @@ export function ListShared(jid: string, kind: string, beforePk: string, limit: n
     return $Call.ByID(1407556369, jid, kind, beforePk, limit);
 }
 
+/**
+ * Played is the user starting an incoming voice note or video note: the "played" receipt, if the
+ * ghost settings allow it. Once per message per run.
+ */
+export function Played(pk: string): $CancellablePromise<void> {
+    return $Call.ByID(4134274327, pk);
+}
+
 export function React(pk: string, emoji: string): $CancellablePromise<domain$0.Reaction[] | null> {
     return $Call.ByID(4210929667, pk, emoji);
 }

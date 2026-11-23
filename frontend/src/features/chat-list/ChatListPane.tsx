@@ -3,6 +3,7 @@ import {
   Archive,
   ArrowLeft,
   CheckCheck,
+  CircleDashed,
   History,
   LogOut,
   MoreVertical,
@@ -122,6 +123,16 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
             </>
           ) : (
             <>
+              <IconButton
+                label="Status"
+                icon={<CircleDashed size={18} />}
+                active={view === 'status'}
+                onClick={() => {
+                  const ui = useUI.getState();
+                  if (ui.view === 'status') ui.closeStatus();
+                  else ui.openStatus();
+                }}
+              />
               <IconButton
                 label="Deleted & edited"
                 icon={<History size={18} />}

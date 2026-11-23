@@ -195,6 +195,21 @@ export interface GhostSettings {
     "hideOnline": boolean;
     "hideTyping": boolean;
     "readReceipts": ReadReceiptMode;
+
+    /**
+     * don't send "played" when we listen to a voice note
+     */
+    "hidePlayed": boolean;
+
+    /**
+     * view statuses without telling the poster; when off the UI asks each time
+     */
+    "statusGhost": boolean;
+
+    /**
+     * chats in full ghost mode: no read or played receipts, no typing, whatever the rest says
+     */
+    "ghostChats": string[] | null;
 }
 
 export interface GroupEvent {
@@ -474,6 +489,39 @@ export interface SearchHit {
 
 export interface SettingsChangedEvent {
     "key": string;
+}
+
+/**
+ * one person's status updates
+ */
+export interface StatusGroup {
+    "jid": string;
+    "name": string;
+    "mine": boolean;
+    "items": StatusItem[] | null;
+    "unseen": number;
+    "lastTs": number;
+}
+
+export interface StatusItem {
+    "message": Message;
+
+    /**
+     * opened in WhatsZori (ghost or not)
+     */
+    "seen": boolean;
+
+    /**
+     * the colour behind a text status, #rrggbb
+     */
+    "background"?: string;
+}
+
+/**
+ * a status arrived, changed or was deleted
+ */
+export interface StatusUpdateEvent {
+    "jid": string;
 }
 
 export interface SyncProgressEvent {

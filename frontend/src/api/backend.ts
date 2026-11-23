@@ -1,4 +1,5 @@
 import type {
+  StatusGroup,
   ChangeKind,
   ChangePage,
   AppSettings,
@@ -105,6 +106,8 @@ export interface MessageService {
   react(pk: MessagePK, emoji: string): Promise<Reaction[]>;
   // our vote on a poll, by option name; [] takes it back
   vote(pk: MessagePK, options: string[]): Promise<void>;
+  // an incoming voice or video note started playing ("played" receipt, ghost settings permitting)
+  played(pk: MessagePK): Promise<void>;
   // jid limits it to one chat
   search(query: string, jid?: JID): Promise<SearchHit[]>;
   // opens the system file picker and sends the choice; null when cancelled
@@ -118,6 +121,13 @@ export interface MessageService {
     beforePk: MessagePK | null,
     limit: number,
   ): Promise<MessagePage>;
+}
+
+export interface StatusService {
+  // the last day of statuses, or everything kept
+  list(all: boolean): Promise<StatusGroup[]>;
+  // the user opened one; ghost = don't tell the poster. Resolves to whether a receipt went out
+  view(pk: MessagePK, ghost: boolean): Promise<boolean>;
 }
 
 export interface ContactService {
@@ -194,6 +204,7 @@ export interface Backend {
   profile: ProfileService;
   privacy: PrivacyService;
   contacts: ContactService;
+  status: StatusService;
   media: MediaService;
   export: ExportService;
   notifications: NotificationService;

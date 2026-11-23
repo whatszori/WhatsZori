@@ -11,6 +11,7 @@ import {
   Privacy,
   Profile,
   Settings,
+  Status,
   System,
   SystemTheme,
   Themes,
@@ -24,6 +25,7 @@ import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
+  StatusGroup,
   ChangeItem,
   ChangeKind,
   ChangePage,
@@ -144,6 +146,7 @@ export class WailsBackend implements Backend {
     revoke: (pk: MessagePK) => Messages.Revoke(pk),
     forward: (pks: MessagePK[], jids: JID[]): Promise<number> => Messages.Forward(pks, jids),
     vote: (pk: MessagePK, options: string[]) => Messages.Vote(pk, options),
+    played: (pk: MessagePK) => Messages.Played(pk),
     changes: async (
       kind: ChangeKind,
       before: { at: number; pk: MessagePK } | null,
@@ -206,6 +209,15 @@ export class WailsBackend implements Backend {
   contacts = {
     list: async (): Promise<Contact[]> => (await Contacts.List()) ?? [],
     lookup: (phone: string): Promise<Contact> => Contacts.Lookup(phone),
+  };
+
+  status = {
+    list: async (all: boolean): Promise<StatusGroup[]> =>
+      ((await Status.List(all)) ?? []).map((g) => ({
+        ...g,
+        items: (g.items ?? []).map((it) => ({ ...it, message: message(it.message) })),
+      })),
+    view: (pk: MessagePK, ghost: boolean): Promise<boolean> => Status.View(pk, ghost),
   };
 
   media = {

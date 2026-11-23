@@ -4,11 +4,12 @@ import { Conversation } from '../features/conversation/Conversation';
 import { NoChatSelected } from '../features/conversation/EmptyStates';
 import { SettingsView } from '../features/settings/SettingsView';
 import { ChangesView } from '../features/changes/ChangesView';
+import { StatusView } from '../features/status/StatusView';
 import { SettingsPanel } from '../features/settings/SettingsPanel';
 import { NavRail } from '../features/nav-rail/NavRail';
 import { PlaceholderPanel } from '../features/nav-rail/PlaceholderPanel';
 import { useSettings } from '../stores/settings';
-import { CircleDashed, Phone } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { DevPanel } from '../features/dev/DevPanel';
 import { isDemo } from '../api';
 import { useHotkeys } from '../lib/hotkeys';
@@ -121,12 +122,6 @@ export function MainLayout() {
           icon={<Phone size={32} strokeWidth={1.5} />}
           text="Voice and video calls aren’t supported in WhatsZori yet."
         />
-      ) : railPanel === 'status' ? (
-        <PlaceholderPanel
-          title="Status"
-          icon={<CircleDashed size={32} strokeWidth={1.5} />}
-          text="Status updates aren’t supported in WhatsZori yet."
-        />
       ) : (
         <ChatListPane rail />
       );
@@ -143,7 +138,15 @@ export function MainLayout() {
             {sidebar}
           </aside>
           <Resizer />
-          <main className="wz-main">{view === 'changes' ? <ChangesView /> : conversation}</main>
+          <main className="wz-main">
+            {view === 'changes' ? (
+              <ChangesView />
+            ) : view === 'status' ? (
+              <StatusView />
+            ) : (
+              conversation
+            )}
+          </main>
         </div>
         {isDemo && <DevPanel />}
       </div>
@@ -164,6 +167,8 @@ export function MainLayout() {
             <SettingsView />
           ) : view === 'changes' ? (
             <ChangesView />
+          ) : view === 'status' ? (
+            <StatusView />
           ) : (
             conversation
           )}

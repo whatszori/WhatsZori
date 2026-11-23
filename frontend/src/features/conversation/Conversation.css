@@ -54,3 +54,10 @@
   align-items: center;
   gap: var(--wz-space-1);
 }
+
+.wz-conv-header__ghost {
+  display: inline-flex;
+  margin-left: 6px;
+  color: var(--wz-accent-text);
+  vertical-align: -2px;
+}

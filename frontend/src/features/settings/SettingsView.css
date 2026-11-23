@@ -427,3 +427,27 @@
   color: var(--wz-danger);
   font-size: var(--wz-font-size-sm);
 }
+
+.wz-settings-hint {
+  margin: 0;
+  padding: var(--wz-space-2) var(--wz-space-4);
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-ghost-chats {
+  margin: 0;
+  padding: 0 var(--wz-space-2) var(--wz-space-2);
+  list-style: none;
+}
+
+.wz-ghost-chats li {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+  padding: var(--wz-space-1) var(--wz-space-2);
+}
+
+.wz-ghost-chats li span {
+  flex: 1;
+}

@@ -15,6 +15,7 @@ function useActiveItem(): RailItem {
   const archived = useChats((s) => s.showArchived);
   if (view === 'settings') return 'settings';
   if (view === 'changes') return 'changes';
+  if (view === 'status') return 'status';
   if (panel !== 'chats') return panel;
   return archived ? 'archived' : 'chats';
 }
@@ -27,12 +28,17 @@ function go(item: RailItem): void {
     else ui.openSettings('appearance');
     return;
   }
+  if (item === 'status') {
+    if (ui.view === 'status') ui.closeStatus();
+    else ui.openStatus();
+    return;
+  }
   if (item === 'changes') {
     if (ui.view === 'changes') ui.closeChanges();
     else ui.openChanges();
     return;
   }
-  const panel: RailPanel = item === 'calls' || item === 'status' ? item : 'chats';
+  const panel: RailPanel = item === 'calls' ? item : 'chats';
   ui.setRailPanel(panel);
   if (panel === 'chats') chats.setShowArchived(item === 'archived');
 }

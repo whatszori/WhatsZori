@@ -263,6 +263,30 @@ export interface GhostSettings {
   hideOnline: boolean;
   hideTyping: boolean;
   readReceipts: ReadReceiptMode;
+  // don't send "played" when listening to a voice note
+  hidePlayed: boolean;
+  // view statuses without telling the poster; when off, WhatsZori asks each time
+  statusGhost: boolean;
+  // chats in full ghost mode: no read or played receipts, no typing
+  ghostChats: JID[];
+}
+
+export interface StatusItem {
+  message: Message;
+  // opened in WhatsZori
+  seen: boolean;
+  // the colour behind a text status
+  background?: string;
+}
+
+// one person's status updates
+export interface StatusGroup {
+  jid: JID;
+  name: string;
+  mine: boolean;
+  items: StatusItem[];
+  unseen: number;
+  lastTs: number;
 }
 
 export interface AppSettings {
@@ -364,6 +388,8 @@ export interface BackendEvents extends WzEvents {
   'notification:open': { chatJid: JID; pk: MessagePK; reply: boolean };
   presence: { jid: JID; online: boolean; lastSeen: number | null };
   'chat:typing': { chatJid: JID; senderJid: JID; senderName: string; typing: boolean };
+  // a status arrived, changed or was deleted
+  'status:update': { jid: JID };
   'sync:progress': SyncProgress;
   toast: Toast;
 }

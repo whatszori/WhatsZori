@@ -280,6 +280,10 @@ func (in *Ingester) flush(ctx context.Context, fx *effects) {
 		in.emit.Emit(e.name, e.data)
 	}
 	for jid := range fx.chats {
+		if jid == repo.StatusChat {
+			in.emit.Emit(evnames.StatusUpdate, domain.StatusUpdateEvent{JID: jid})
+			continue
+		}
 		c, err := repo.GetChat(ctx, in.db, jid)
 		if err != nil {
 			continue
@@ -363,9 +367,12 @@ func (in *Ingester) learnSource(ctx context.Context, tx *sql.Tx, fx *effects, sr
 
 func skipChat(j types.JID) bool {
 	switch j.Server {
-	case types.BroadcastServer, types.NewsletterServer:
-		// status updates and channels aren't part of this client yet
+	case types.NewsletterServer:
+		// channels aren't part of this client yet
 		return true
+	case types.BroadcastServer:
+		// status updates are; broadcast lists show up in the recipients' own chats
+		return j.User != types.StatusBroadcastJID.User
 	}
 	return false
 }
@@ -478,14 +485,16 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 			return err
 		}
 		// view-once media are fetched right away whatever the setting: the server drops them soon
-		if live && c.media.DirectPath != "" && (row.IsViewOnce || in.policy().AutoDownload && autoDownloadable(c.kind, c.media.Size)) {
+		// so are statuses: they're gone after a day
+		status := chat == repo.StatusChat
+		if c.media.DirectPath != "" && (status || live && (row.IsViewOnce || in.policy().AutoDownload && autoDownloadable(c.kind, c.media.Size))) {
 			fx.downloads = append(fx.downloads, pk)
 		}
 	}
 	if err := repo.BumpLastTS(ctx, tx, chat, ts); err != nil {
 		return err
 	}
-	if live && created && !info.IsFromMe {
+	if live && created && !info.IsFromMe && chat != repo.StatusChat {
 		if err := repo.IncUnread(ctx, tx, chat); err != nil {
 			return err
 		}

@@ -35,6 +35,7 @@ const (
 	NotifyOpen   = "notification:open"
 	Presence     = "presence"
 	ChatTyping   = "chat:typing"
+	StatusUpdate = "status:update"
 	SyncProgress = "sync:progress"
 	Toast        = "toast"
 )
@@ -43,7 +44,7 @@ const (
 var All = []string{
 	SystemThemeChanged, ThemeChanged, SettingsChanged, ToastShow, ToastWithdraw,
 	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction, MsgRemoved,
-	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, NotifyOpen, Presence, ChatTyping, SyncProgress, Toast,
+	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, NotifyOpen, Presence, ChatTyping, StatusUpdate, SyncProgress, Toast,
 }
 
 func init() {
@@ -71,6 +72,7 @@ func init() {
 	application.RegisterEvent[domain.NotificationOpenEvent](NotifyOpen)
 	application.RegisterEvent[domain.PresenceEvent](Presence)
 	application.RegisterEvent[domain.TypingEvent](ChatTyping)
+	application.RegisterEvent[domain.StatusUpdateEvent](StatusUpdate)
 	application.RegisterEvent[domain.SyncProgressEvent](SyncProgress)
 	application.RegisterEvent[domain.ToastEvent](Toast)
 }

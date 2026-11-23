@@ -32,6 +32,7 @@ export const WA_EVENTS = {
   notificationOpen: 'notification:open',
   presence: 'presence',
   chatTyping: 'chat:typing',
+  statusUpdate: 'status:update',
   syncProgress: 'sync:progress',
   toast: 'toast',
 } as const;

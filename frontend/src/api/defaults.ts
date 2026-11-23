@@ -23,6 +23,9 @@ export const DEFAULT_GHOST: GhostSettings = {
   hideOnline: false,
   hideTyping: false,
   readReceipts: 'always',
+  hidePlayed: false,
+  statusGhost: false,
+  ghostChats: [],
 };
 
 type Stored = Partial<{ [K in keyof AppSettings]: Partial<AppSettings[K]> | AppSettings[K] }>;

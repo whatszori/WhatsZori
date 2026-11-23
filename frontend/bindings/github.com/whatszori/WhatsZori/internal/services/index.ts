@@ -11,6 +11,7 @@ import * as Notifications from "./notifications.js";
 import * as Privacy from "./privacy.js";
 import * as Profile from "./profile.js";
 import * as Settings from "./settings.js";
+import * as Status from "./status.js";
 import * as System from "./system.js";
 import * as SystemTheme from "./systemtheme.js";
 import * as Themes from "./themes.js";
@@ -26,6 +27,7 @@ export {
     Privacy,
     Profile,
     Settings,
+    Status,
     System,
     SystemTheme,
     Themes,

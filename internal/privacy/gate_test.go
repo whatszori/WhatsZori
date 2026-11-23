@@ -41,6 +41,11 @@ func (f *fakeTransport) MarkRead(_ context.Context, ids []types.MessageID, _ tim
 	return nil
 }
 
+func (f *fakeTransport) MarkPlayed(_ context.Context, ids []types.MessageID, _ time.Time, chat, sender types.JID) error {
+	f.calls = append(f.calls, call{kind: "played", chat: chat.String(), sender: sender.String(), ids: ids})
+	return nil
+}
+
 func (f *fakeTransport) count(kind string) int {
 	n := 0
 	for _, c := range f.calls {
@@ -211,7 +216,7 @@ func TestNoTransportIsQuiet(t *testing.T) {
 // Nobody outside this package (and the whatsmeow adapter that implements the transport) may call
 // the presence, typing or read receipt methods directly.
 func TestOnlyTheGateSendsPresence(t *testing.T) {
-	banned := map[string]bool{"SendPresence": true, "SendChatPresence": true, "MarkRead": true}
+	banned := map[string]bool{"SendPresence": true, "SendChatPresence": true, "MarkRead": true, "MarkPlayed": true}
 	root := filepath.Join("..", "..")
 	allowed := map[string]bool{
 		filepath.Join(root, "internal", "privacy", "gate.go"): true,
@@ -247,5 +252,51 @@ func TestOnlyTheGateSendsPresence(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestGhostChatAndPlayed(t *testing.T) {
+	ctx := context.Background()
+	g, tr, _ := setup(domain.ReadAlways)
+	g.SetGhost(ctx, domain.GhostSettings{ReadReceipts: domain.ReadAlways, GhostChats: []string{dm.String()}})
+	g.ChatOpened(ctx, dm)
+	g.Typing(ctx, dm, true)
+	g.Played(ctx, dm, types.EmptyJID, "V1", time.Now())
+	if len(tr.calls) != 0 {
+		t.Fatalf("a ghost chat sent %+v", tr.calls)
+	}
+	g.ChatOpened(ctx, group)
+	if tr.count("read") == 0 {
+		t.Error("other chats should still get receipts")
+	}
+
+	g.SetGhost(ctx, domain.GhostSettings{ReadReceipts: domain.ReadAlways})
+	g.Played(ctx, dm, types.EmptyJID, "V1", time.Now())
+	if tr.count("played") != 1 {
+		t.Errorf("played not sent: %+v", tr.calls)
+	}
+	g.SetGhost(ctx, domain.GhostSettings{ReadReceipts: domain.ReadAlways, HidePlayed: true})
+	g.Played(ctx, dm, types.EmptyJID, "V2", time.Now())
+	if tr.count("played") != 1 {
+		t.Error("played sent with hidePlayed on")
+	}
+	if got := g.Ghost().GhostChats; got == nil {
+		t.Error("ghostChats should never be nil (the UI expects a list)")
+	}
+}
+
+func TestStatusViewed(t *testing.T) {
+	ctx := context.Background()
+	g, tr, _ := setup(domain.ReadAlways)
+	poster := types.NewJID("491700000009", types.DefaultUserServer)
+	if sent, err := g.StatusViewed(ctx, poster, "S1", time.Now()); err != nil || !sent {
+		t.Fatalf("sent=%v err=%v", sent, err)
+	}
+	if c := tr.calls[0]; c.kind != "read" || c.chat != "status@broadcast" || c.sender != poster.String() {
+		t.Errorf("receipt: %+v", c)
+	}
+	g.SetGhost(ctx, domain.GhostSettings{ReadReceipts: domain.ReadAlways, StatusGhost: true})
+	if sent, _ := g.StatusViewed(ctx, poster, "S2", time.Now()); sent || len(tr.calls) != 1 {
+		t.Error("status ghost mode still sent a receipt")
 	}
 }

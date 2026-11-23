@@ -132,6 +132,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewProfile(wa)),
 			application.NewService(services.NewPrivacy(wa)),
 			application.NewService(services.NewContacts(wa)),
+			application.NewService(services.NewStatus(wa)),
 			application.NewService(services.NewMedia(wa, desktop{a})),
 			application.NewService(services.NewExport(wa, desktop{a})),
 			application.NewService(services.NewNotifications(wa)),

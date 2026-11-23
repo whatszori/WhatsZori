@@ -45,6 +45,22 @@ func anys[T any](in []T) []any {
 	return out
 }
 
+func scanInts(rows *sql.Rows, err error) ([]int64, error) {
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []int64
+	for rows.Next() {
+		var n int64
+		if err := rows.Scan(&n); err != nil {
+			return nil, err
+		}
+		out = append(out, n)
+	}
+	return out, rows.Err()
+}
+
 func scanStrings(rows *sql.Rows, err error) ([]string, error) {
 	if err != nil {
 		return nil, err

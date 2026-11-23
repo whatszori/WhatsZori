@@ -76,6 +76,7 @@ export function RoundVideo({ pk, media }: { pk: MessagePK; media: MediaInfo }) {
     v.loop = false;
     v.muted = false;
     setMode('playing');
+    void backend.messages.played(pk).catch(() => {});
     void v.play().catch(() => setMode('paused'));
   };
 

@@ -262,6 +262,29 @@ type ChangePage struct {
 	HasMore bool         `json:"hasMore"`
 }
 
+type StatusItem struct {
+	Message Message `json:"message"`
+	// opened in WhatsZori (ghost or not)
+	Seen bool `json:"seen"`
+	// the colour behind a text status, #rrggbb
+	Background string `json:"background,omitempty"`
+}
+
+// one person's status updates
+type StatusGroup struct {
+	JID    string       `json:"jid"`
+	Name   string       `json:"name"`
+	Mine   bool         `json:"mine"`
+	Items  []StatusItem `json:"items"`
+	Unseen int          `json:"unseen"`
+	LastTS int64        `json:"lastTs"`
+}
+
+// a status arrived, changed or was deleted
+type StatusUpdateEvent struct {
+	JID string `json:"jid"`
+}
+
 type EditVersion struct {
 	Text string `json:"text"`
 	At   int64  `json:"at"`
@@ -290,9 +313,17 @@ type GhostSettings struct {
 	HideOnline   bool            `json:"hideOnline"`
 	HideTyping   bool            `json:"hideTyping"`
 	ReadReceipts ReadReceiptMode `json:"readReceipts"`
+	// don't send "played" when we listen to a voice note
+	HidePlayed bool `json:"hidePlayed"`
+	// view statuses without telling the poster; when off the UI asks each time
+	StatusGhost bool `json:"statusGhost"`
+	// chats in full ghost mode: no read or played receipts, no typing, whatever the rest says
+	GhostChats []string `json:"ghostChats"`
 }
 
-func DefaultGhost() GhostSettings { return GhostSettings{ReadReceipts: ReadAlways} }
+func DefaultGhost() GhostSettings {
+	return GhostSettings{ReadReceipts: ReadAlways, GhostChats: []string{}}
+}
 
 type Contact struct {
 	JID   string `json:"jid"`

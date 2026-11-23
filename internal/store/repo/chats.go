@@ -49,7 +49,7 @@ func GetChat(ctx context.Context, q DBTX, jid string) (ChatRow, error) {
 }
 
 func ListChatRows(ctx context.Context, q DBTX) ([]ChatRow, error) {
-	rows, err := q.QueryContext(ctx, `SELECT `+chatCols+` FROM chats ORDER BY last_ts DESC`)
+	rows, err := q.QueryContext(ctx, `SELECT `+chatCols+` FROM chats WHERE jid <> 'status@broadcast' ORDER BY last_ts DESC`)
 	if err != nil {
 		return nil, err
 	}

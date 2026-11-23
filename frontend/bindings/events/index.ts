@@ -99,6 +99,11 @@ export const NotificationOpen = "notification:open";
 export const Presence = "presence";
 
 /**
+ * Name of the custom event "status:update".
+ */
+export const StatusUpdate = "status:update";
+
+/**
  * Name of the custom event "sync:progress".
  */
 export const SyncProgress = "sync:progress";

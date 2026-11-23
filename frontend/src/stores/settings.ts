@@ -30,7 +30,7 @@ export const useSettings = create<SettingsState>((set, get) => ({
       backend.systemTheme.get().catch(() => null),
       backend.system.isSafeMode().catch(() => false),
     ]);
-    set({ settings, ghost, system, safeMode, loaded: true });
+    set({ settings, ghost: { ...DEFAULT_GHOST, ...ghost }, system, safeMode, loaded: true });
   },
   update(fn) {
     const settings = fn(get().settings);

@@ -591,8 +591,12 @@ func TestHistorySyncBatch(t *testing.T) {
 	if g.Name != "History Group" || !g.IsGroup {
 		t.Errorf("group from history: %+v", g)
 	}
-	if _, err := repo.GetChat(ctx, e.db, "status@broadcast"); err != repo.ErrNotFound {
-		t.Error("status broadcast stored as a chat")
+	// statuses are kept (for the Status screen) but never listed as a chat
+	chats, _ := repo.View{Me: me.String()}.Chats(ctx, e.db)
+	for _, c := range chats {
+		if c.JID == "status@broadcast" {
+			t.Error("status broadcast listed as a chat")
+		}
 	}
 	ct, _ := repo.GetContact(ctx, e.db, alice.String())
 	if ct.PushName != "Alice" {

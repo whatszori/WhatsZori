@@ -76,6 +76,8 @@ type PresenceTransport interface {
 	SendPresence(ctx context.Context, state types.Presence) error
 	SendChatPresence(ctx context.Context, jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error
 	MarkRead(ctx context.Context, ids []types.MessageID, ts time.Time, chat, sender types.JID) error
+	// MarkPlayed is the "played" receipt for voice notes (and view-once media)
+	MarkPlayed(ctx context.Context, ids []types.MessageID, ts time.Time, chat, sender types.JID) error
 }
 
 // MediaRef is what we keep in the media table to download an attachment later.
@@ -205,7 +207,7 @@ func (m *Meow) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnW
 	return m.Cli.IsOnWhatsApp(ctx, phones)
 }
 
-// The three below are only reachable through PresenceTransport.
+// The four below are only reachable through PresenceTransport.
 
 func (m *Meow) SendPresence(ctx context.Context, state types.Presence) error {
 	return m.Cli.SendPresence(ctx, state)
@@ -215,6 +217,9 @@ func (m *Meow) SendChatPresence(ctx context.Context, jid types.JID, state types.
 }
 func (m *Meow) MarkRead(ctx context.Context, ids []types.MessageID, ts time.Time, chat, sender types.JID) error {
 	return m.Cli.MarkRead(ctx, ids, ts, chat, sender)
+}
+func (m *Meow) MarkPlayed(ctx context.Context, ids []types.MessageID, ts time.Time, chat, sender types.JID) error {
+	return m.Cli.MarkRead(ctx, ids, ts, chat, sender, types.ReceiptTypePlayed)
 }
 
 func (m *Meow) Blocked(ctx context.Context) ([]types.JID, error) {

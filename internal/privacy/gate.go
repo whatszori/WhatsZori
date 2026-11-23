@@ -5,6 +5,7 @@ package privacy
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"time"
 
@@ -39,6 +40,9 @@ func New(reads Reads, ghost domain.GhostSettings) *Gate {
 	if ghost.ReadReceipts == "" {
 		ghost.ReadReceipts = domain.ReadAlways
 	}
+	if ghost.GhostChats == nil {
+		ghost.GhostChats = []string{}
+	}
 	return &Gate{reads: reads, ghost: ghost}
 }
 
@@ -62,6 +66,9 @@ func (g *Gate) SetGhost(ctx context.Context, s domain.GhostSettings) error {
 	case domain.ReadAlways, domain.ReadNever, domain.ReadOnReply:
 	default:
 		s.ReadReceipts = domain.ReadAlways
+	}
+	if s.GhostChats == nil {
+		s.GhostChats = []string{}
 	}
 	g.mu.Lock()
 	prev := g.ghost
@@ -95,7 +102,7 @@ func (g *Gate) Online(ctx context.Context) error {
 // Typing sends composing/paused, unless typing is hidden.
 func (g *Gate) Typing(ctx context.Context, chat types.JID, composing bool) error {
 	t, ghost := g.transport()
-	if t == nil || ghost.HideTyping {
+	if t == nil || ghost.HideTyping || ghosted(ghost, chat) {
 		return nil
 	}
 	state := types.ChatPresencePaused
@@ -107,7 +114,7 @@ func (g *Gate) Typing(ctx context.Context, chat types.JID, composing bool) error
 
 // ChatOpened is the user looking at chat. Only "always" sends read receipts for that.
 func (g *Gate) ChatOpened(ctx context.Context, chat types.JID) error {
-	if _, ghost := g.transport(); ghost.ReadReceipts != domain.ReadAlways {
+	if _, ghost := g.transport(); ghost.ReadReceipts != domain.ReadAlways || ghosted(ghost, chat) {
 		return nil
 	}
 	return g.sendReads(ctx, chat)
@@ -116,10 +123,40 @@ func (g *Gate) ChatOpened(ctx context.Context, chat types.JID) error {
 // BeforeSend runs before every outgoing message. In "on-reply" mode that's the moment we admit to
 // having read the chat.
 func (g *Gate) BeforeSend(ctx context.Context, chat types.JID) error {
-	if _, ghost := g.transport(); ghost.ReadReceipts != domain.ReadOnReply {
+	if _, ghost := g.transport(); ghost.ReadReceipts != domain.ReadOnReply || ghosted(ghost, chat) {
 		return nil
 	}
 	return g.sendReads(ctx, chat)
+}
+
+func ghosted(ghost domain.GhostSettings, chat types.JID) bool {
+	return slices.Contains(ghost.GhostChats, chat.String())
+}
+
+// Played is the user listening to a voice note: "played", unless that's hidden for everyone or
+// for this chat. sender only matters in groups.
+func (g *Gate) Played(ctx context.Context, chat, sender types.JID, id string, ts time.Time) error {
+	t, ghost := g.transport()
+	if t == nil || ghost.HidePlayed || ghosted(ghost, chat) {
+		return nil
+	}
+	if chat.Server != types.GroupServer {
+		sender = types.EmptyJID
+	}
+	return t.MarkPlayed(ctx, []types.MessageID{id}, ts, chat, sender)
+}
+
+// StatusViewed tells poster we saw their status. The UI asks first; with status ghost mode on it
+// never goes out, whatever the caller wanted. sent says whether it did.
+func (g *Gate) StatusViewed(ctx context.Context, poster types.JID, id string, ts time.Time) (sent bool, err error) {
+	t, ghost := g.transport()
+	if t == nil || ghost.StatusGhost {
+		return false, nil
+	}
+	if err := t.MarkRead(ctx, []types.MessageID{id}, ts, types.StatusBroadcastJID, poster); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (g *Gate) sendReads(ctx context.Context, chat types.JID) error {
