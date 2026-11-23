@@ -238,6 +238,10 @@ func (a *App) createWindow() {
 		// shown once the saved position has been checked against the current screens
 		Hidden: true,
 		Windows: application.WindowsWindow{
+			// voice notes record in the page; without this WebView2 asks every time
+			Permissions: map[application.CoreWebView2PermissionKind]application.CoreWebView2PermissionState{
+				application.CoreWebView2PermissionKindMicrophone: application.CoreWebView2PermissionStateAllow,
+			},
 			// set explicitly, not SystemDefault: with SystemDefault Wails would flip the title bar
 			// on OS changes even when the app theme is fixed to light or dark
 			Theme: theme,

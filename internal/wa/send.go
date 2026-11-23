@@ -27,6 +27,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/redact"
 	"github.com/whatszori/WhatsZori/internal/store"
 	"github.com/whatszori/WhatsZori/internal/store/repo"
+	"github.com/whatszori/WhatsZori/internal/voice"
 )
 
 // These are implemented elsewhere (privacy, antispam, ingest, media); interfaces here keep wa
@@ -428,6 +429,41 @@ func (s *Sender) SendFile(ctx context.Context, chat, name string, data []byte, c
 		}
 	}
 	return s.send(ctx, cli, jid, chat, msg, row, media)
+}
+
+// SendVoice sends a voice note recorded in the webview (WebM/Opus). WhatsApp wants Ogg/Opus with
+// the PTT flag; the audio is rewrapped, not re-encoded. waveform is 0..100 per bar.
+func (s *Sender) SendVoice(ctx context.Context, chat string, webm []byte, waveform []byte) (domain.Message, error) {
+	ogg, secs, err := voice.ToOgg(webm)
+	if err != nil {
+		return domain.Message{}, fmt.Errorf("couldn't prepare the recording: %w", err)
+	}
+	if secs < 0.5 {
+		return domain.Message{}, errors.New("the recording is too short")
+	}
+	cli, jid, err := s.prepare(ctx, chat, "")
+	if err != nil {
+		return domain.Message{}, err
+	}
+	up, err := cli.Upload(ctx, ogg, whatsmeow.MediaAudio)
+	if err != nil {
+		return domain.Message{}, fmt.Errorf("upload failed: %s", sendErrorText(err))
+	}
+	const mime = "audio/ogg; codecs=opus"
+	seconds := max(1, int(secs+0.5))
+	media := &repo.MediaRow{MediaType: "audio", Mime: mime, Size: int64(len(ogg)), Duration: seconds,
+		Waveform: waveform, MediaKey: up.MediaKey, DirectPath: up.DirectPath, FileSHA256: up.FileSHA256,
+		FileEncSHA256: up.FileEncSHA256, State: repo.MediaRemote}
+	if rel, err := s.Media.Save(ogg, up.FileSHA256, mime, ""); err == nil {
+		media.LocalPath, media.State = rel, repo.MediaLocal
+	}
+	msg := &waE2E.Message{AudioMessage: &waE2E.AudioMessage{
+		URL: proto.String(up.URL), DirectPath: proto.String(up.DirectPath), MediaKey: up.MediaKey,
+		Mimetype: proto.String(mime), FileEncSHA256: up.FileEncSHA256, FileSHA256: up.FileSHA256,
+		FileLength: proto.Uint64(up.FileLength), Seconds: proto.Uint32(uint32(seconds)), PTT: proto.Bool(true),
+		Waveform: waveform,
+	}}
+	return s.send(ctx, cli, jid, chat, msg, &repo.MessageRow{Kind: repo.KindVoice}, media)
 }
 
 var docMimes = map[string]string{

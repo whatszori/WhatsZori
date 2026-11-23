@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -346,6 +347,25 @@ func (s *Messages) AttachFile(jid string) (*domain.Message, error) {
 		return nil, err
 	}
 	return &m, nil
+}
+
+// SendVoice sends a voice note: data is the WebM/Opus recording, base64-encoded; waveform has
+// 0..100 per bar (WhatsApp uses 64).
+func (s *Messages) SendVoice(jid, data string, waveform []int) (domain.Message, error) {
+	raw, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return domain.Message{}, errors.New("bad recording data")
+	}
+	if len(raw) > 16<<20 {
+		return domain.Message{}, errors.New("the recording is too long")
+	}
+	wave := make([]byte, 0, len(waveform))
+	for _, v := range waveform[:min(len(waveform), 64)] {
+		wave = append(wave, byte(min(max(v, 0), 100)))
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	return s.c.Sender.SendVoice(ctx, jid, raw, wave)
 }
 
 type Profile struct{ c *core.Core }

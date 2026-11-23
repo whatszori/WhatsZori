@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -44,6 +45,8 @@ type fakeClient struct {
 	sent    []sent
 	sendErr error
 	n       int
+
+	uploaded [][]byte
 }
 
 func newFake() *fakeClient {
@@ -284,5 +287,45 @@ func TestEditWindow(t *testing.T) {
 	e.s.Now = func() time.Time { return time.Now().Add(25 * time.Minute) }
 	if err := e.s.Edit(ctx, pk, "new"); !errors.Is(err, wa.ErrEditWindow) {
 		t.Errorf("edit after the window: %v", err)
+	}
+}
+
+func (f *fakeClient) Upload(_ context.Context, data []byte, mt whatsmeow.MediaType) (whatsmeow.UploadResponse, error) {
+	f.uploaded = append(f.uploaded, data)
+	return whatsmeow.UploadResponse{URL: "https://mmg.whatsapp.net/x", DirectPath: "/v/x", MediaKey: []byte{1}, FileSHA256: make([]byte, 32), FileEncSHA256: make([]byte, 32), FileLength: uint64(len(data))}, nil
+}
+
+type saver struct{}
+
+func (saver) Save(data, sum []byte, mime, name string) (string, error) { return "ab/voice.ogg", nil }
+
+func TestSendVoice(t *testing.T) {
+	ctx := context.Background()
+	e := newEnv(t)
+	e.s.Media = saver{}
+	webm, err := os.ReadFile(filepath.Join("..", "voice", "testdata", "sine.webm"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wave := make([]byte, 64)
+	for i := range wave {
+		wave[i] = byte(i)
+	}
+	m, err := e.s.SendVoice(ctx, alice.String(), webm, wave)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.Kind != domain.KindVoice || m.Media == nil || m.Media.Duration != 2 || len(m.Media.Waveform) != 64 {
+		t.Fatalf("message: %+v %+v", m, m.Media)
+	}
+	am := e.cli.sent[0].msg.GetAudioMessage()
+	if !am.GetPTT() || am.GetSeconds() != 2 || am.GetMimetype() != "audio/ogg; codecs=opus" || len(am.GetWaveform()) != 64 {
+		t.Errorf("audio message: %v", am)
+	}
+	if string(e.cli.uploaded[0][:4]) != "OggS" {
+		t.Error("uploaded something that isn't Ogg")
+	}
+	if _, err := e.s.SendVoice(ctx, alice.String(), []byte("junk"), nil); err == nil {
+		t.Error("junk recording accepted")
 	}
 }
