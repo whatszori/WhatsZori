@@ -132,6 +132,24 @@ Settings → Privacy. Check each from phone B, which is the "other person". Turn
       sound and a ring, click again pauses; starting another one stops the first.
 - [ ] B starts typing and then closes WhatsApp: "typing…" disappears within ~12 seconds.
 - [ ] Voice notes fit their bubble.
+
+## 12. Chat info, lists and export
+
+- [ ] Group info shows real photo/video previews; "Media, links and docs" opens tabs that keep
+      loading as you scroll; a link opens in the browser, a document saves.
+- [ ] In a group, click a sender name: their contact info opens; Back returns to the group;
+      "Message" opens a chat with them.
+- [ ] Favorites and lists: right-click a chat → Add to favorites / Add to list…; the chips filter;
+      right-click a list chip to rename or delete it.
+- [ ] Clear chat: messages vanish here, the phone still has them.
+- [ ] Block a contact, check on the phone (Settings → Privacy → Blocked), unblock.
+- [ ] Delete chat (1:1): gone on the phone too.
+- [ ] As a group admin, remove a member (hover their row); they're removed on the phone too.
+- [ ] Leave a group (use a test group).
+- [ ] Membership changes lists adds/leaves seen since linking.
+- [ ] Export a chat in each format; open chat.html in a browser; check the media checkboxes,
+      the size limit and a date range; cancel a big export halfway.
+- [ ] A sticker shows without a bubble; a GIF loops silently in the chat.
 - [ ] A document from B: clicking it saves the file with its original name.
 - [ ] An old photo from history (weeks back) either loads or shows its thumbnail; no broken image.
 - [ ] Turn auto-download off: new photos still load when you open the chat (downloaded on demand).

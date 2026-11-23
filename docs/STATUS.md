@@ -48,6 +48,15 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
 - **Media**: auto-download of photos, voice notes and stickers up to 16 MB, everything else on
   demand. `/wz-media/<pk>` serves the file with Range support, downloads on demand, falls back to
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
+- **Contact and group info**: photo/video previews; a "Media, links and docs" page with tabs and
+  endless scrolling; click a name in a group to open that person; favorites and your own chat
+  lists (chips next to All/Unread/Groups); clear chat (local), block/unblock, delete chat (all
+  devices), leave group, remove members (admins), membership history, export (HTML / JSON /
+  WhatsApp-style TXT with media checkboxes, size limit and dates).
+- **Stickers** without a bubble, **GIFs** that loop silently.
+- **Not possible with the API** (so not in the UI): reporting contacts or groups, a clear chat
+  that syncs to the phone, favorites and lists that sync to the phone, membership changes from
+  before the device was linked.
 - **Media viewer**: photos and videos open full-window with zoom and pan, previous/next, caption,
   copy to the clipboard (the file, and pictures also as a picture), save as, show in folder, and
   go to message; the same actions are in the message menu. Our own video player (seek with

@@ -25,6 +25,7 @@ internal/
   privacy/     the only way out for presence, typing and read receipts (ghost mode)
   antispam/    rate limits in front of every send
   media/       downloads into <config>/media, /wz-media/<pk> handler
+  export/      chat export to a folder: chat.html (app look), chat.json, chat.txt (WhatsApp format) + media/
   clip/        file (and picture) to the system clipboard: CF_HDROP/CF_DIB/PNG on Windows, uri-list on Linux
   avatar/      profile pictures and group photos in <config>/avatars, /wz-avatar/<jid> handler
   store/       opens whatszori.db, embedded migrations (store/migrations/*.sql)
@@ -127,6 +128,8 @@ The schema is `internal/store/migrations/*.sql`, applied in order, each in a tra
 | `receipts` | delivered / read / played per participant |
 | `avatars` | per JID and size (preview / full): WhatsApp's picture id, the cached file, `set` / `none` / `hidden`, when we last asked |
 | `messages_fts` | FTS5 index over `messages.body`, kept in sync by triggers |
+| `chat_lists`, `chat_list_members` | your own chat lists (favorites are `chats.favorite`); local only |
+| `group_events` | membership changes: add, remove, leave, join, promote, demote, create |
 | `backfills` | one-time data fixes done in Go (e.g. re-tagging old video notes) |
 | `extensions`, `plugin_settings`, `plugin_storage` | reserved for the plugin system, unused so far |
 
