@@ -199,6 +199,8 @@ export interface Message {
   deleted?: DeletedInfo;
   // revoke arrived before (or without) the original
   contentUnknown?: boolean;
+  // forwarding score: 0/absent not forwarded, 5+ "forwarded many times"
+  forwarded?: number;
   reactions: Reaction[];
 }
 
@@ -311,6 +313,8 @@ export interface BackendEvents extends WzEvents {
     purged: boolean;
   };
   'msg:reaction': { chatJid: JID; pk: MessagePK; reactions: Reaction[] };
+  // deleted on this computer only
+  'msg:removed': { chatJid: JID; pks: MessagePK[] };
   'chat:update': { chat: Chat };
   // a LID chat that turned out to be the same person as a phone-number chat and was merged into it
   'chat:removed': { jid: JID };

@@ -79,6 +79,11 @@ export const MsgEdited = "msg:edited";
 export const MsgReaction = "msg:reaction";
 
 /**
+ * Name of the custom event "msg:removed".
+ */
+export const MsgRemoved = "msg:removed";
+
+/**
  * Name of the custom event "msg:status".
  */
 export const MsgStatus = "msg:status";

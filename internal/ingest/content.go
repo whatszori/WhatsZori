@@ -15,6 +15,7 @@ type content struct {
 	body         string
 	quotedID     string
 	quotedSender string
+	forwardScore int
 	media        *repo.MediaRow
 }
 
@@ -139,6 +140,9 @@ func extract(msg *waE2E.Message) content {
 		if ci := ctx.GetContextInfo(); ci.GetStanzaID() != "" {
 			c.quotedID = ci.GetStanzaID()
 			c.quotedSender = ci.GetParticipant()
+		}
+		if ci := ctx.GetContextInfo(); ci.GetIsForwarded() {
+			c.forwardScore = max(1, int(ci.GetForwardingScore()))
 		}
 	}
 	return c

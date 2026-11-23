@@ -39,6 +39,32 @@ func ClearChat(ctx context.Context, q DBTX, chat string) ([]string, error) {
 	return files, nil
 }
 
+// DeleteMessages removes some messages of a chat on this computer only and returns their media
+// files. pks from other chats are ignored.
+func DeleteMessages(ctx context.Context, q DBTX, chat string, pks []int64) ([]string, error) {
+	if len(pks) == 0 {
+		return nil, nil
+	}
+	in := placeholders(len(pks))
+	args := append([]any{chat}, anys(pks)...)
+	files, err := scanStrings(q.QueryContext(ctx, `
+		SELECT md.local_path FROM media md JOIN messages m ON m.pk = md.message_pk
+		WHERE m.chat_jid = ? AND md.local_path <> '' AND m.pk IN (`+in+`)`, args...))
+	if err != nil {
+		return nil, err
+	}
+	for _, s := range []string{
+		`DELETE FROM reactions WHERE chat_jid = ?1 AND msg_id IN (SELECT msg_id FROM messages WHERE chat_jid = ?1 AND pk IN (` + in + `))`,
+		`DELETE FROM receipts WHERE chat_jid = ?1 AND msg_id IN (SELECT msg_id FROM messages WHERE chat_jid = ?1 AND pk IN (` + in + `))`,
+		`DELETE FROM messages WHERE chat_jid = ?1 AND pk IN (` + in + `)`,
+	} {
+		if _, err := q.ExecContext(ctx, s, args...); err != nil {
+			return nil, err
+		}
+	}
+	return files, nil
+}
+
 // DeleteChat removes the chat and everything in it.
 func DeleteChat(ctx context.Context, q DBTX, chat string) ([]string, error) {
 	files, err := ClearChat(ctx, q, chat)

@@ -26,6 +26,7 @@ const (
 	MsgEdited    = "msg:edited"
 	MsgDeleted   = "msg:deleted"
 	MsgReaction  = "msg:reaction"
+	MsgRemoved   = "msg:removed"
 	ChatUpdate   = "chat:update"
 	ChatRemoved  = "chat:removed"
 	AvatarChange = "avatar:changed"
@@ -41,7 +42,7 @@ const (
 // All lists every event name, for the sync test.
 var All = []string{
 	SystemThemeChanged, ThemeChanged, SettingsChanged, ToastShow, ToastWithdraw,
-	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction,
+	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction, MsgRemoved,
 	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, NotifyOpen, Presence, ChatTyping, SyncProgress, Toast,
 }
 
@@ -61,6 +62,7 @@ func init() {
 	application.RegisterEvent[domain.MsgEditedEvent](MsgEdited)
 	application.RegisterEvent[domain.MsgDeletedEvent](MsgDeleted)
 	application.RegisterEvent[domain.MsgReactionEvent](MsgReaction)
+	application.RegisterEvent[domain.MsgRemovedEvent](MsgRemoved)
 	application.RegisterEvent[domain.ChatUpdateEvent](ChatUpdate)
 	application.RegisterEvent[domain.ChatRemovedEvent](ChatRemoved)
 	application.RegisterEvent[domain.AvatarChangedEvent](AvatarChange)

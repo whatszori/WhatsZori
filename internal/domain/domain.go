@@ -220,7 +220,9 @@ type Message struct {
 	EditCount      int           `json:"editCount,omitempty"`
 	Deleted        *DeletedInfo  `json:"deleted,omitempty"`
 	ContentUnknown bool          `json:"contentUnknown,omitempty"`
-	Reactions      []Reaction    `json:"reactions"`
+	// WhatsApp's forwarding score: 0 not forwarded, 5+ "forwarded many times"
+	Forwarded int        `json:"forwarded,omitempty"`
+	Reactions []Reaction `json:"reactions"`
 }
 
 type EditVersion struct {
@@ -332,6 +334,12 @@ type MsgReactionEvent struct {
 
 type ChatUpdateEvent struct {
 	Chat Chat `json:"chat"`
+}
+
+// messages deleted on this computer only ("Delete for me")
+type MsgRemovedEvent struct {
+	ChatJID string   `json:"chatJid"`
+	PKs     []string `json:"pks"`
 }
 
 // a LID chat that got folded into the phone-number one

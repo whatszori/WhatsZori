@@ -38,6 +38,7 @@ export type {
     MsgDeletedEvent,
     MsgEditedEvent,
     MsgReactionEvent,
+    MsgRemovedEvent,
     MsgStatusEvent,
     NotificationOpenEvent,
     PresenceEvent,

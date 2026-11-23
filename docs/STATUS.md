@@ -50,6 +50,10 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
 - **New chat** (+ in the sidebar or Ctrl+N): pick from contacts, or type a number with its country
   code; WhatsZori checks it is on WhatsApp and opens the chat.
+- **Forward and multi-select**: Forward from the message menu or for several selected messages, to
+  up to 5 chats or contacts; forwarded messages show "Forwarded" / "Forwarded many times". Select
+  (message menu) turns the composer into a bar with Copy, Forward and Delete (for me, or for
+  everyone when all selected are yours). "Delete for me" is also in the message menu.
 - **Voice notes**: record in the composer (mic button), sent as real WhatsApp voice notes (Ogg/Opus, waveform, duration).
 - **Tray and unread badge**: closing the window keeps WhatsZori running in the tray (optional), unread chats on the taskbar button (Windows), the dock (KDE, Dash to Dock) and the tray icon.
 - **WhatsZori's own notifications on Windows** (default there): themed cards in the corner that never steal focus, reply and mark-as-read inside, restylable by themes (`--wz-ntf-*`) and plugins (`notification.card`, `notification.accessories`). Windows' own toasts are one switch away.

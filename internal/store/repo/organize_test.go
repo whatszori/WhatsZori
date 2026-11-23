@@ -100,3 +100,32 @@ func TestSharedPage(t *testing.T) {
 		t.Error("unknown kind accepted")
 	}
 }
+
+func TestDeleteSomeMessages(t *testing.T) {
+	ctx := context.Background()
+	db := openDB(t)
+	chat, other := "a@s.whatsapp.net", "b@s.whatsapp.net"
+	keep := insert(t, db, chat, "1", 1, "keep")
+	gone := insert(t, db, chat, "2", 2, "gone")
+	foreign := insert(t, db, other, "3", 3, "elsewhere")
+	repo.UpsertMedia(ctx, db, repo.MediaRow{MessagePK: gone, MediaType: "image", LocalPath: "cd/cde.jpg", State: "local"})
+	repo.SetReaction(ctx, db, chat, "2", chat, "x", 2)
+	repo.SetReaction(ctx, db, chat, "1", chat, "y", 2)
+
+	files, err := repo.DeleteMessages(ctx, db, chat, []int64{gone, foreign})
+	if err != nil || len(files) != 1 || files[0] != "cd/cde.jpg" {
+		t.Fatalf("delete: %v %v", files, err)
+	}
+	page, _, _ := repo.Page(ctx, db, chat, 0, 10)
+	if len(page) != 1 || page[0].PK != keep {
+		t.Errorf("left: %+v", page)
+	}
+	if p, _, _ := repo.Page(ctx, db, other, 0, 10); len(p) != 1 {
+		t.Error("a message of another chat was deleted")
+	}
+	var n int
+	db.QueryRowContext(ctx, `SELECT COUNT(*) FROM reactions WHERE chat_jid = ?`, chat).Scan(&n)
+	if n != 1 {
+		t.Errorf("reactions left: %d", n)
+	}
+}

@@ -17,8 +17,23 @@ export function AttachFile(jid: string): $CancellablePromise<domain$0.Message | 
     return $Call.ByID(2659421191, jid);
 }
 
+/**
+ * DeleteLocal is "Delete for me": the messages go from this computer, WhatsApp isn't told.
+ */
+export function DeleteLocal(jid: string, pks: string[] | null): $CancellablePromise<void> {
+    return $Call.ByID(2501472614, jid, pks);
+}
+
 export function Edit(pk: string, text: string): $CancellablePromise<void> {
     return $Call.ByID(2689894520, pk, text);
+}
+
+/**
+ * Forward sends copies of the messages (oldest first) to up to five chats. It stops at the first
+ * error, so the anti-spam limits end a forward that grew too big; sent says how many went out.
+ */
+export function Forward(pks: string[] | null, jids: string[] | null): $CancellablePromise<number> {
+    return $Call.ByID(3279270705, pks, jids);
 }
 
 export function GetEditHistory(pk: string): $CancellablePromise<domain$0.EditVersion[] | null> {

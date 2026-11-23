@@ -422,6 +422,7 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 	row := &repo.MessageRow{
 		ChatJID: chat, MsgID: info.ID, SenderJID: sender, FromMe: info.IsFromMe, PushName: info.PushName, TS: ts,
 		Kind: c.kind, Body: c.body, IsEphemeral: e.IsEphemeral, IsViewOnce: e.IsViewOnce, Raw: raw,
+		ForwardScore: c.forwardScore,
 		// history is old news: no read receipts for it later, whatever the ghost mode
 		ReadSent: !live || info.IsFromMe,
 	}

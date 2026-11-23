@@ -21,6 +21,7 @@ export function MessageList({ chat }: { chat: Chat }) {
   const jid = chat.jid;
   const state = useMessages((s) => s.byChat[jid]);
   const focus = useUI((s) => s.focusMessage);
+  const selection = useUI((s) => (s.selection?.jid === jid ? s.selection.pks : null));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
   const [newCount, setNewCount] = useState(0);
@@ -243,6 +244,8 @@ export function MessageList({ chat }: { chat: Chat }) {
                     groupStart={row.groupStart}
                     groupEnd={row.groupEnd}
                     highlighted={highlight === row.message.pk}
+                    selecting={!!selection}
+                    selected={!!selection?.includes(row.message.pk)}
                     onMenu={onMenu}
                     onReact={onReact}
                     onJump={onJump}

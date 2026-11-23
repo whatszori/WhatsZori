@@ -23,6 +23,7 @@ export const WA_EVENTS = {
   msgEdited: 'msg:edited',
   msgDeleted: 'msg:deleted',
   msgReaction: 'msg:reaction',
+  msgRemoved: 'msg:removed',
   chatUpdate: 'chat:update',
   chatRemoved: 'chat:removed',
   avatarChanged: 'avatar:changed',

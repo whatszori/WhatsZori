@@ -90,6 +90,10 @@ export interface MessageService {
   sendText(jid: JID, text: string, replyToPk?: MessagePK): Promise<Message>;
   edit(pk: MessagePK, text: string): Promise<void>;
   revoke(pk: MessagePK): Promise<void>;
+  // copies to up to 5 chats, oldest first; resolves to how many were sent
+  forward(pks: MessagePK[], jids: JID[]): Promise<number>;
+  // "Delete for me": only on this computer
+  deleteLocal(jid: JID, pks: MessagePK[]): Promise<void>;
   react(pk: MessagePK, emoji: string): Promise<Reaction[]>;
   // jid limits it to one chat
   search(query: string, jid?: JID): Promise<SearchHit[]>;

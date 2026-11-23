@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import {
+  CheckSquare,
   Copy,
   Download,
+  Forward,
   Expand,
   History,
   ImageDown,
@@ -9,10 +11,11 @@ import {
   Pencil,
   Reply,
   Trash2,
+  Eraser,
 } from 'lucide-react';
 import { backend, type Chat, type Message } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
-import { canEdit, useMessages } from '../../stores/messages';
+import { canEdit, canForward, useMessages } from '../../stores/messages';
 import { toastError, useToasts } from '../../stores/toasts';
 import { useUI } from '../../stores/ui';
 import { Button, Dialog, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
@@ -95,6 +98,13 @@ export function MessageMenu({ chat, target, onClose, onShowHistory }: Props) {
         },
       );
     }
+    if (canForward(m))
+      items.push({
+        id: 'forward',
+        label: 'Forward',
+        icon: <Forward />,
+        onSelect: () => useUI.getState().setForwarding([m.pk]),
+      });
     if (m.text)
       items.push({
         id: 'copy',
@@ -124,18 +134,31 @@ export function MessageMenu({ chat, target, onClose, onShowHistory }: Props) {
       });
   }
   if (m) {
-    items.push({ id: 'info', label: 'Info', icon: <Info />, onSelect: () => setInfo(m) });
+    items.push(
+      { id: 'info', label: 'Info', icon: <Info />, onSelect: () => setInfo(m) },
+      {
+        id: 'select',
+        label: 'Select',
+        icon: <CheckSquare />,
+        onSelect: () => useUI.getState().toggleSelected(chat.jid, m.pk),
+      },
+      { kind: 'separator', id: 's-del' },
+      {
+        id: 'delete-local',
+        label: 'Delete for me',
+        icon: <Eraser />,
+        danger: true,
+        onSelect: () => void useMessages.getState().deleteLocal(chat.jid, [m.pk]),
+      },
+    );
     if (m.fromMe && !m.deleted)
-      items.push(
-        { kind: 'separator', id: 's-del' },
-        {
-          id: 'delete',
-          label: 'Delete for everyone',
-          icon: <Trash2 />,
-          danger: true,
-          onSelect: () => setConfirmDelete(m),
-        },
-      );
+      items.push({
+        id: 'delete',
+        label: 'Delete for everyone',
+        icon: <Trash2 />,
+        danger: true,
+        onSelect: () => setConfirmDelete(m),
+      });
   }
 
   const reactionRow =

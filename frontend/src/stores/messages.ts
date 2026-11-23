@@ -38,6 +38,9 @@ interface MessagesState {
   sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<void>;
   edit(jid: JID, pk: MessagePK, text: string): Promise<void>;
   revoke(jid: JID, pk: MessagePK): Promise<void>;
+  deleteLocal(jid: JID, pks: MessagePK[]): Promise<void>;
+  // drop messages that were deleted on this computer
+  remove(jid: JID, pks: MessagePK[]): void;
   react(jid: JID, pk: MessagePK, emoji: string): Promise<void>;
 }
 
@@ -161,6 +164,20 @@ export const useMessages = create<MessagesState>((set, get) => {
       await backend.messages.edit(pk, text).catch((err) => toastError(err, 'Not edited'));
     },
 
+    async deleteLocal(jid, pks) {
+      try {
+        await backend.messages.deleteLocal(jid, pks);
+        get().remove(jid, pks);
+      } catch (err) {
+        toastError(err, 'Not deleted');
+      }
+    },
+
+    remove(jid, pks) {
+      const gone = new Set(pks);
+      updateChat(jid, (c) => ({ ...c, items: c.items.filter((m) => !gone.has(m.pk)) }));
+    },
+
     async revoke(_jid, pk) {
       await backend.messages.revoke(pk).catch((err) => toastError(err, 'Not deleted'));
     },
@@ -184,6 +201,11 @@ export function mergeByPk(a: Message[], b: Message[]): Message[] {
   for (const m of a) map.set(m.pk, m);
   for (const m of b) map.set(m.pk, { ...map.get(m.pk), ...m });
   return [...map.values()].sort((x, y) => x.timestamp - y.timestamp || Number(x.pk) - Number(y.pk));
+}
+
+// what WhatsApp lets you forward: not deleted, and not something we only have a placeholder for
+export function canForward(m: Message): boolean {
+  return !m.deleted && !m.contentUnknown && !(m.kind === 'text' && m.text.startsWith('📊 '));
 }
 
 export function canEdit(m: Message, now = Date.now()): boolean {

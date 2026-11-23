@@ -520,6 +520,55 @@ export class MockBackend implements Backend {
       if (!m || !m.fromMe) throw new Error('can only edit own messages');
       this.applyEdit(m, text);
     },
+    forward: async (pks: MessagePK[], jids: JID[]): Promise<number> => {
+      await this.wait();
+      if (jids.length > 5) throw new Error('You can forward to at most 5 chats at once');
+      const src = pks
+        .map((pk) => this.byPk.get(pk))
+        .filter((m): m is Message => !!m && !m.deleted)
+        .sort((a, b) => a.timestamp - b.timestamp);
+      let n = 0;
+      for (const jid of jids) {
+        if (!this.db.messages.has(jid)) this.db.messages.set(jid, []);
+        for (const s of src) {
+          const m: Message = {
+            ...clone(s),
+            pk: String(this.db.nextPk++),
+            id: `3EB0FWD${this.db.nextPk}`,
+            chatJid: jid,
+            senderJid: this.db.me.jid,
+            senderName: this.db.me.name,
+            fromMe: true,
+            timestamp: Date.now() + n,
+            status: 'pending',
+            reactions: [],
+            replyTo: undefined,
+            editedAt: undefined,
+            editCount: undefined,
+            forwarded: (s.forwarded ?? 0) + 1,
+          };
+          this.insert(m);
+          this.emit('msg:batch', { messages: [clone(m)] });
+          this.progressStatus(m);
+          n++;
+        }
+      }
+      return n;
+    },
+    deleteLocal: async (jid: JID, pks: MessagePK[]): Promise<void> => {
+      await this.wait();
+      const list = this.db.messages.get(jid);
+      if (!list) return;
+      const gone = new Set(pks);
+      this.db.messages.set(
+        jid,
+        list.filter((m) => !gone.has(m.pk)),
+      );
+      for (const pk of pks) this.byPk.delete(pk);
+      refreshChatPreview(this.db, jid, this.db.messages.get(jid)!);
+      this.emit('msg:removed', { chatJid: jid, pks });
+      this.emit('chat:update', { chat: clone(this.db.chats.get(jid)!) });
+    },
     revoke: async (pk: MessagePK): Promise<void> => {
       await this.wait();
       const m = this.byPk.get(pk);

@@ -144,6 +144,7 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			EditedAt:       m.EditedAt,
 			EditCount:      m.EditCount,
 			ContentUnknown: contentUnknown(m),
+			Forwarded:      m.ForwardScore,
 			Reactions:      []domain.Reaction{},
 		}
 		if m.FromMe {

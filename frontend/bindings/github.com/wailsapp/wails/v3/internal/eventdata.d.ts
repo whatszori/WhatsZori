@@ -32,6 +32,7 @@ declare module "@wailsio/runtime" {
             "msg:deleted": domain$0.MsgDeletedEvent;
             "msg:edited": domain$0.MsgEditedEvent;
             "msg:reaction": domain$0.MsgReactionEvent;
+            "msg:removed": domain$0.MsgRemovedEvent;
             "msg:status": domain$0.MsgStatusEvent;
             "notification:open": domain$0.NotificationOpenEvent;
             "presence": domain$0.PresenceEvent;

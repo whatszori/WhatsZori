@@ -30,6 +30,7 @@ type MessageRow struct {
 	IsEphemeral   bool
 	IsViewOnce    bool
 	Raw           []byte
+	ForwardScore  int
 }
 
 // Store kinds. Finer than what the UI shows; domain.UIKind maps them.
@@ -53,13 +54,13 @@ const (
 
 const msgCols = `pk, chat_jid, msg_id, sender_jid, from_me, push_name, ts, kind, body, quoted_id, quoted_sender,
 	status, read_sent, is_deleted, deleted_at, deleted_by, delete_kind, is_placeholder, edit_count, edited_at,
-	is_ephemeral, is_view_once, raw`
+	is_ephemeral, is_view_once, raw, forward_score`
 
 func scanMessage(s interface{ Scan(...any) error }) (MessageRow, error) {
 	var m MessageRow
 	err := s.Scan(&m.PK, &m.ChatJID, &m.MsgID, &m.SenderJID, &m.FromMe, &m.PushName, &m.TS, &m.Kind, &m.Body,
 		&m.QuotedID, &m.QuotedSender, &m.Status, &m.ReadSent, &m.IsDeleted, &m.DeletedAt, &m.DeletedBy,
-		&m.DeleteKind, &m.IsPlaceholder, &m.EditCount, &m.EditedAt, &m.IsEphemeral, &m.IsViewOnce, &m.Raw)
+		&m.DeleteKind, &m.IsPlaceholder, &m.EditCount, &m.EditedAt, &m.IsEphemeral, &m.IsViewOnce, &m.Raw, &m.ForwardScore)
 	return m, err
 }
 
@@ -86,13 +87,13 @@ func InsertMessage(ctx context.Context, q DBTX, m *MessageRow) (int64, bool, err
 	err := q.QueryRowContext(ctx, `
 		INSERT INTO messages (chat_jid, msg_id, sender_jid, from_me, push_name, ts, kind, body, quoted_id,
 			quoted_sender, status, read_sent, is_deleted, deleted_at, deleted_by, delete_kind, is_placeholder,
-			edit_count, edited_at, is_ephemeral, is_view_once, raw)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			edit_count, edited_at, is_ephemeral, is_view_once, raw, forward_score)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (chat_jid, msg_id) DO NOTHING
 		RETURNING pk`,
 		m.ChatJID, m.MsgID, m.SenderJID, b2i(m.FromMe), m.PushName, m.TS, m.Kind, m.Body, m.QuotedID,
 		m.QuotedSender, m.Status, b2i(m.ReadSent), b2i(m.IsDeleted), m.DeletedAt, m.DeletedBy, m.DeleteKind,
-		b2i(m.IsPlaceholder), m.EditCount, m.EditedAt, b2i(m.IsEphemeral), b2i(m.IsViewOnce), m.Raw,
+		b2i(m.IsPlaceholder), m.EditCount, m.EditedAt, b2i(m.IsEphemeral), b2i(m.IsViewOnce), m.Raw, m.ForwardScore,
 	).Scan(&pk)
 	if err == nil {
 		m.PK = pk
@@ -111,10 +112,10 @@ func InsertMessage(ctx context.Context, q DBTX, m *MessageRow) (int64, bool, err
 func FillPlaceholder(ctx context.Context, q DBTX, pk int64, m *MessageRow) (bool, error) {
 	res, err := q.ExecContext(ctx, `
 		UPDATE messages SET sender_jid = ?, from_me = ?, push_name = ?, ts = ?, kind = ?, body = ?, quoted_id = ?,
-			quoted_sender = ?, is_ephemeral = ?, is_view_once = ?, raw = ?
+			quoted_sender = ?, is_ephemeral = ?, is_view_once = ?, raw = ?, forward_score = ?
 		WHERE pk = ? AND is_placeholder = 1 AND raw IS NULL`,
 		m.SenderJID, b2i(m.FromMe), m.PushName, m.TS, m.Kind, m.Body, m.QuotedID, m.QuotedSender,
-		b2i(m.IsEphemeral), b2i(m.IsViewOnce), m.Raw, pk)
+		b2i(m.IsEphemeral), b2i(m.IsViewOnce), m.Raw, m.ForwardScore, pk)
 	if err != nil {
 		return false, err
 	}

@@ -1,5 +1,5 @@
 import { memo, type MouseEvent } from 'react';
-import { MoreHorizontal, Trash2, Ban } from 'lucide-react';
+import { Ban, Check, Forward, MoreHorizontal, Trash2 } from 'lucide-react';
 import type { JID, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
@@ -24,6 +24,9 @@ interface BubbleProps extends BubbleHandlers {
   groupEnd: boolean;
   groupStart: boolean;
   highlighted: boolean;
+  // multi-select is on in this chat; clicking the message toggles it
+  selecting?: boolean;
+  selected?: boolean;
 }
 
 function Text({ text, chat }: { text: string; chat: JID }) {
@@ -78,6 +81,8 @@ export const Bubble = memo(function Bubble({
   groupStart,
   groupEnd,
   highlighted,
+  selecting = false,
+  selected = false,
   onMenu,
   onReact,
   onJump,
@@ -118,11 +123,21 @@ export const Bubble = memo(function Bubble({
         `wz-message--${dir}`,
         groupEnd && 'wz-message--group-end',
         highlighted && 'wz-message--highlight',
+        selecting && 'wz-message--selecting',
+        selected && 'wz-message--selected',
       ]
         .filter(Boolean)
         .join(' ')}
       data-pk={m.pk}
+      onClick={selecting ? () => useUI.getState().toggleSelected(m.chatJid, m.pk) : undefined}
+      role={selecting ? 'checkbox' : undefined}
+      aria-checked={selecting ? selected : undefined}
     >
+      {selecting && (
+        <span className="wz-message__select" aria-hidden="true">
+          <span className="wz-check">{selected && <Check size={14} strokeWidth={3} />}</span>
+        </span>
+      )}
       <div className="wz-message__row">
         <div className={cls} onContextMenu={openMenu}>
           {showSender && !m.fromMe && (
@@ -146,6 +161,12 @@ export const Bubble = memo(function Bubble({
             </p>
           ) : (
             <div className="wz-bubble__content">
+              {!!m.forwarded && (
+                <span className="wz-bubble__forwarded">
+                  <Forward size={12} aria-hidden="true" />
+                  {m.forwarded >= 5 ? 'Forwarded many times' : 'Forwarded'}
+                </span>
+              )}
               {m.replyTo && (
                 <button
                   type="button"

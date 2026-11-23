@@ -41,6 +41,7 @@ export function bindBackendEvents(be: Backend): () => void {
     be.on('msg:reaction', ({ chatJid, pk, reactions }) =>
       useMessages.getState().setReactions(chatJid, pk, reactions),
     ),
+    be.on('msg:removed', ({ chatJid, pks }) => useMessages.getState().remove(chatJid, pks)),
     be.on('chat:update', ({ chat }) => useChats.getState().upsert(chat)),
     be.on('chat:cleared', ({ jid }) => {
       useMessages.getState().reset(jid);

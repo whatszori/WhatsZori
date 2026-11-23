@@ -265,6 +265,11 @@ export interface Message {
     "editCount"?: number;
     "deleted"?: DeletedInfo | null;
     "contentUnknown"?: boolean;
+
+    /**
+     * WhatsApp's forwarding score: 0 not forwarded, 5+ "forwarded many times"
+     */
+    "forwarded"?: number;
     "reactions": Reaction[] | null;
 }
 
@@ -336,6 +341,14 @@ export interface MsgReactionEvent {
     "chatJid": string;
     "pk": string;
     "reactions": Reaction[] | null;
+}
+
+/**
+ * messages deleted on this computer only ("Delete for me")
+ */
+export interface MsgRemovedEvent {
+    "chatJid": string;
+    "pks": string[] | null;
 }
 
 export interface MsgStatusEvent {

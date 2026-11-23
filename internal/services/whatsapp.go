@@ -516,3 +516,67 @@ func (s *Contacts) Lookup(phone string) (domain.Contact, error) {
 	}
 	return domain.Contact{JID: jid, Name: s.c.View(ctx).Name(rows[jid], jid), Phone: repo.PhoneOf(jid)}, nil
 }
+
+// Forward sends copies of the messages (oldest first) to up to five chats. It stops at the first
+// error, so the anti-spam limits end a forward that grew too big; sent says how many went out.
+func (s *Messages) Forward(pks, jids []string) (sent int, err error) {
+	if len(jids) == 0 || len(pks) == 0 {
+		return 0, nil
+	}
+	if len(jids) > wa.MaxForwardChats {
+		return 0, fmt.Errorf("you can forward to at most %d chats at once", wa.MaxForwardChats)
+	}
+	ids, err := parsePKs(pks)
+	if err != nil {
+		return 0, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	rows, err := repo.MessagesByPKs(ctx, s.c.DB, ids)
+	if err != nil {
+		return 0, err
+	}
+	for _, jid := range jids {
+		for _, r := range rows {
+			if _, err := s.c.Sender.Forward(ctx, r.PK, jid); err != nil {
+				return sent, err
+			}
+			sent++
+		}
+	}
+	return sent, nil
+}
+
+// DeleteLocal is "Delete for me": the messages go from this computer, WhatsApp isn't told.
+func (s *Messages) DeleteLocal(jid string, pks []string) error {
+	ids, err := parsePKs(pks)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := call()
+	defer cancel()
+	files, err := repo.DeleteMessages(ctx, s.c.DB, jid, ids)
+	if err != nil {
+		return err
+	}
+	s.c.RemoveFiles(ctx, files)
+	s.c.Emit.Emit(events.MsgRemoved, domain.MsgRemovedEvent{ChatJID: jid, PKs: pks})
+	if row, err := repo.GetChat(ctx, s.c.DB, jid); err == nil {
+		if dto, err := s.c.View(ctx).Chat(ctx, s.c.DB, row); err == nil {
+			s.c.Emit.Emit(events.ChatUpdate, domain.ChatUpdateEvent{Chat: dto})
+		}
+	}
+	return nil
+}
+
+func parsePKs(pks []string) ([]int64, error) {
+	out := make([]int64, 0, len(pks))
+	for _, p := range pks {
+		id, err := parsePK(p)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, nil
+}

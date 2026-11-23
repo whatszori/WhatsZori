@@ -58,6 +58,13 @@ interface UIState {
   searchHighlight: { jid: JID; query: string } | null;
   chatSearchOpen: boolean;
   newChatOpen: boolean;
+  // multi-select in one chat; the composer turns into the selection bar
+  selection: { jid: JID; pks: MessagePK[] } | null;
+  // messages waiting for the chat picker
+  forwarding: MessagePK[] | null;
+  toggleSelected(jid: JID, pk: MessagePK): void;
+  clearSelection(): void;
+  setForwarding(pks: MessagePK[] | null): void;
   setNewChatOpen(open: boolean): void;
   setSearchHighlight(v: { jid: JID; query: string } | null): void;
   setChatSearchOpen(open: boolean): void;
@@ -103,6 +110,16 @@ export const useUI = create<UIState>((set, get) => {
     searchHighlight: null,
     chatSearchOpen: false,
     newChatOpen: false,
+    selection: null,
+    forwarding: null,
+    toggleSelected: (jid, pk) =>
+      set((s) => {
+        const cur = s.selection?.jid === jid ? s.selection.pks : [];
+        const pks = cur.includes(pk) ? cur.filter((p) => p !== pk) : [...cur, pk];
+        return { selection: pks.length ? { jid, pks } : null };
+      }),
+    clearSelection: () => set({ selection: null }),
+    setForwarding: (forwarding) => set({ forwarding }),
     setNewChatOpen: (newChatOpen) =>
       set(newChatOpen ? { newChatOpen, view: 'chats', railPanel: 'chats' } : { newChatOpen }),
     setSearchHighlight: (searchHighlight) => set({ searchHighlight }),
@@ -111,6 +128,7 @@ export const useUI = create<UIState>((set, get) => {
       set((s) => ({
         activeChat: jid,
         chatSearchOpen: s.activeChat === jid ? s.chatSearchOpen : false,
+        selection: s.activeChat === jid ? s.selection : null,
         view: 'chats',
         chatInfoOpen: s.activeChat === jid ? s.chatInfoOpen : false,
         infoJid: s.activeChat === jid ? s.infoJid : null,

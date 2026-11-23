@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import type { JID } from '../../api';
 import { useChats } from '../../stores/chats';
 import { ChatSearch } from '../search/ChatSearch';
+import { ForwardDialog } from '../selection/ForwardDialog';
+import { SelectionBar } from '../selection/SelectionBar';
 import { useUI } from '../../stores/ui';
 import { ChatInfoPanel } from '../chat-info/ChatInfoPanel';
 import { Composer } from '../composer/Composer';
@@ -15,6 +17,7 @@ export function Conversation({ jid }: { jid: JID }) {
   const unread = chat?.unread ?? 0;
   const infoOpen = useUI((s) => s.chatInfoOpen);
   const searchOpen = useUI((s) => s.chatSearchOpen);
+  const selecting = useUI((s) => s.selection?.jid === jid);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -51,9 +54,10 @@ export function Conversation({ jid }: { jid: JID }) {
           />
         )}
         <MessageList chat={chat} />
-        <Composer chat={chat} />
+        {selecting ? <SelectionBar chat={chat} /> : <Composer chat={chat} />}
       </section>
       {infoOpen && <ChatInfoPanel chat={chat} />}
+      <ForwardDialog />
     </div>
   );
 }
