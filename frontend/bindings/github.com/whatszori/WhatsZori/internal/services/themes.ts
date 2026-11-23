@@ -17,3 +17,18 @@ import * as themes$0 from "../themes/models.js";
 export function List(): $CancellablePromise<themes$0.Info[] | null> {
     return $Call.ByID(2114310178);
 }
+
+/**
+ * Packages lists theme folders (manifest.json + CSS modules), like the built-in themes.
+ */
+export function Packages(): $CancellablePromise<themes$0.Package[] | null> {
+    return $Call.ByID(2262055391);
+}
+
+/**
+ * PickWallpaper asks for an image and copies it into <config>/themes/_wallpapers. It returns the
+ * path to use under /wz-themes/, or "" when the user cancelled.
+ */
+export function PickWallpaper(): $CancellablePromise<string> {
+    return $Call.ByID(1746301439);
+}

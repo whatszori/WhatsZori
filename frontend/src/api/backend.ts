@@ -1,4 +1,5 @@
 import type {
+  UserThemePackage,
   PluginInfo,
   StatusGroup,
   ChangeKind,
@@ -203,6 +204,11 @@ export interface UserThemeService {
   list(): Promise<UserTheme[]>;
   // URL to load the file from; the hash busts the webview cache after an edit
   href(file: string, hash: string): string;
+  // theme folders with a manifest.json
+  packages(): Promise<UserThemePackage[]>;
+  // asks for an image, copies it into the themes folder; null when cancelled
+  pickWallpaper(): Promise<string | null>;
+  wallpaperUrl(rel: string): string;
 }
 
 export type Unsubscribe = () => void;

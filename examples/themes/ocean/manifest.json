@@ -1,0 +1,30 @@
+{
+  "id": "ocean",
+  "name": "Ocean",
+  "version": "1.0.0",
+  "author": "WhatsZori",
+  "description": "Deep blue accent with a wave pattern behind messages. An example theme folder.",
+  "layout": "panels",
+  "modules": [
+    {
+      "id": "palette",
+      "name": "Palette",
+      "description": "Blue accent and cool greys.",
+      "file": "palette.css",
+      "required": true
+    },
+    {
+      "id": "waves",
+      "name": "Waves",
+      "description": "A soft wave pattern behind messages.",
+      "file": "parts/waves.css"
+    },
+    {
+      "id": "round",
+      "name": "Rounder bubbles",
+      "description": "Extra round message bubbles.",
+      "file": "parts/round.css",
+      "default": false
+    }
+  ]
+}

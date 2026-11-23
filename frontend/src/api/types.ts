@@ -1,4 +1,5 @@
 import type { WzEvents } from './events';
+import type { ThemeManifest } from '../themes/types';
 
 export type JID = string;
 // local primary key from our own store; WA message ids aren't unique across chats
@@ -285,6 +286,15 @@ export interface PluginInfo {
   error?: string;
 }
 
+// a theme folder from <config>/themes, the same shape as the built-in themes
+export interface UserThemePackage {
+  manifest: ThemeManifest;
+  // module file -> css, relative url()s already pointing into the folder
+  css: Record<string, string>;
+  // why it can't be used
+  error?: string;
+}
+
 export interface StatusItem {
   message: Message;
   // opened in WhatsZori
@@ -312,6 +322,10 @@ export interface AppSettings {
     // panels = sidebar + content; rail = icon rail on the left, settings inside the sidebar
     layout?: 'panels' | 'rail';
     fontScale: number;
+    // the user's own chat wallpaper, a path under the themes folder; '' or absent = none
+    wallpaper?: string;
+    // 0..0.8, a dark veil over it
+    wallpaperDim?: number;
   };
   tray: {
     // closing the window keeps WhatsZori running in the tray (desktop app)

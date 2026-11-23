@@ -1,0 +1,10 @@
+/* Ocean: an example theme folder. Copy it into <config>/themes and turn it on in Settings → Themes. */
+:root {
+  --wz-accent: #0b6bcb;
+  --wz-bubble-out: #d7e9fb;
+}
+
+[data-theme='dark'] {
+  --wz-accent: #4aa3ff;
+  --wz-bubble-out: #0f3a63;
+}

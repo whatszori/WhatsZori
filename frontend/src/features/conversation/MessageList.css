@@ -87,3 +87,15 @@
   top: -8px;
   right: -4px;
 }
+
+/* the user's own wallpaper (Settings → Appearance) wins over a theme's background */
+html[data-wz-wallpaper] .wz-message-list {
+  background-image:
+    linear-gradient(
+      rgb(0 0 0 / var(--wz-user-wallpaper-dim, 0.2)),
+      rgb(0 0 0 / var(--wz-user-wallpaper-dim, 0.2))
+    ),
+    var(--wz-user-wallpaper);
+  background-position: center;
+  background-size: cover;
+}

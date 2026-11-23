@@ -1,9 +1,8 @@
-import { Brush, FileCode, FolderOpen } from 'lucide-react';
+import { AlertTriangle, Brush, FileCode, FolderOpen } from 'lucide-react';
 import { backend, type UserTheme } from '../../../api';
 import { useSettings } from '../../../stores/settings';
-import { useUserThemes } from '../../../themes/user-themes';
+import { allThemePackages, packageProblem, useUserThemes } from '../../../themes/user-themes';
 import { isModuleEnabled, moduleKey } from '../../../themes/loader';
-import { BUILTIN_THEMES } from '../../../themes/registry';
 import type { ThemePackage } from '../../../themes/types';
 import { Button, Toggle } from '../../../ui';
 import { Group, Page } from './common';
@@ -91,7 +90,7 @@ function UserThemes() {
   const themes = useUserThemes((s) => s.themes);
   const desktop = backend.kind === 'wails';
   return (
-    <Group title="From your themes folder">
+    <Group title="CSS files from your themes folder">
       {themes.length > 0 ? (
         <div className="wz-ext-list">
           {themes.map((t) => (
@@ -109,8 +108,34 @@ function UserThemes() {
   );
 }
 
+function BrokenPackages() {
+  const packages = useUserThemes((s) => s.packages);
+  const broken = packages.filter((p) => packageProblem(p));
+  if (broken.length === 0) return null;
+  return (
+    <Group title="Theme folders that can't load">
+      <div className="wz-ext-list">
+        {broken.map((p) => (
+          <div key={p.manifest.id} className="wz-ext-item">
+            <span className="wz-ext-item__icon" aria-hidden="true">
+              <AlertTriangle size={18} strokeWidth={1.75} />
+            </span>
+            <div className="wz-toggle">
+              <div className="wz-toggle__text">
+                <span className="wz-toggle__label">{p.manifest.name || p.manifest.id}</span>
+                <p className="wz-toggle__description">{packageProblem(p)}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Group>
+  );
+}
+
 export function ThemesSection() {
   const desktop = backend.kind === 'wails';
+  const packages = useUserThemes((s) => s.packages);
   return (
     <Page
       title="Themes"
@@ -118,11 +143,12 @@ export function ThemesSection() {
     >
       <Group title="Installed">
         <div className="wz-ext-list">
-          {BUILTIN_THEMES.map((t) => (
+          {allThemePackages(packages).map((t) => (
             <ThemeEntry key={t.manifest.id} pkg={t} />
           ))}
         </div>
       </Group>
+      <BrokenPackages />
       <UserThemes />
       <div className="wz-settings-actions">
         <Button

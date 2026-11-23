@@ -1,0 +1,9 @@
+/* the image sits next to this file; WhatsZori rewrites the url to point into the folder */
+.wz-message-list {
+  background-image: url(waves.svg);
+  background-size: 240px 60px;
+}
+
+[data-theme='dark'] .wz-message-list {
+  background-image: url(waves-dark.svg);
+}

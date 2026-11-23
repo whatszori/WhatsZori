@@ -451,3 +451,18 @@
 .wz-ghost-chats li span {
   flex: 1;
 }
+
+.wz-wallpaper-pick {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+}
+
+.wz-wallpaper-pick__thumb {
+  width: 56px;
+  height: 36px;
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-sm);
+  background-position: center;
+  background-size: cover;
+}

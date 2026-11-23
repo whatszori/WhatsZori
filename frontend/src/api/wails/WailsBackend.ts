@@ -26,6 +26,7 @@ import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
+  UserThemePackage,
   PluginInfo,
   StatusGroup,
   ChangeItem,
@@ -276,6 +277,21 @@ export class WailsBackend implements Backend {
   userThemes = {
     list: async (): Promise<UserTheme[]> => (await Themes.List()) ?? [],
     href: (file: string, hash: string) => this.mock.userThemes.href(file, hash),
+    packages: async (): Promise<UserThemePackage[]> =>
+      ((await Themes.Packages()) ?? []).map((p) => ({
+        error: p.error,
+        css: (p.css ?? {}) as Record<string, string>,
+        manifest: {
+          ...p.manifest,
+          layout: (p.manifest.layout || undefined) as 'panels' | 'rail' | undefined,
+          modules: (p.manifest.modules ?? []).map((m) => ({
+            ...m,
+            default: m.default ?? undefined,
+          })),
+        },
+      })),
+    pickWallpaper: async (): Promise<string | null> => (await Themes.PickWallpaper()) || null,
+    wallpaperUrl: (rel: string) => this.mock.userThemes.wallpaperUrl(rel),
   };
 
   window = {

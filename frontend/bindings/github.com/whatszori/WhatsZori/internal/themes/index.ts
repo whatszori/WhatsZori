@@ -3,5 +3,8 @@
 
 export type {
     Changed,
-    Info
+    Info,
+    Manifest,
+    ModuleInfo,
+    Package
 } from "./models.js";

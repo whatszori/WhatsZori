@@ -6,6 +6,8 @@ import type { SystemPalette as GoPalette } from '../../../bindings/github.com/wh
 import type {
   Changed as GoThemeChanged,
   Info as GoThemeInfo,
+  Manifest as GoThemeManifest,
+  Package as GoThemePackage,
 } from '../../../bindings/github.com/whatszori/WhatsZori/internal/themes/models';
 import type { InAppToast, SystemPalette, ThemeFileChanged, WaEventName } from '../events';
 import { WA_EVENTS, WZ_EVENTS } from '../events';
@@ -44,6 +46,8 @@ export type Checks = [
   Assert<SameKeys<T.PollInfo, Go.PollInfo>>,
   Assert<SameKeys<T.StatusItem, Go.StatusItem>>,
   Assert<SameKeys<T.PluginInfo, Go.PluginInfo>>,
+  Assert<SameKeys<T.UserThemePackage, GoThemePackage>>,
+  Assert<SameKeys<T.UserThemePackage['manifest'], GoThemeManifest>>,
   Assert<SameKeys<T.StatusGroup, Go.StatusGroup>>,
   Assert<SameKeys<T.ChangeItem, Go.ChangeItem>>,
   Assert<SameKeys<T.ChangePage, Go.ChangePage>>,

@@ -86,3 +86,35 @@ func TestWatchDebounces(t *testing.T) {
 	case <-time.After(300 * time.Millisecond):
 	}
 }
+
+func TestWatchFollowsPackageFolders(t *testing.T) {
+	dir := t.TempDir()
+	os.MkdirAll(filepath.Join(dir, "old"), 0o755)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	changes := make(chan Changed, 10)
+	if err := Watch(ctx, dir, 50*time.Millisecond, func(c Changed) { changes <- c }); err != nil {
+		t.Fatal(err)
+	}
+	wait := func(want string) {
+		t.Helper()
+		deadline := time.After(3 * time.Second)
+		for {
+			select {
+			case c := <-changes:
+				if c.File == want {
+					return
+				}
+			case <-deadline:
+				t.Fatalf("no change for %s", want)
+			}
+		}
+	}
+	os.WriteFile(filepath.Join(dir, "old", "palette.css"), []byte(":root{}"), 0o644)
+	wait("old/palette.css")
+	// a package folder created while running
+	os.MkdirAll(filepath.Join(dir, "new"), 0o755)
+	time.Sleep(150 * time.Millisecond)
+	os.WriteFile(filepath.Join(dir, "new", "manifest.json"), []byte("{}"), 0o644)
+	wait("new/manifest.json")
+}

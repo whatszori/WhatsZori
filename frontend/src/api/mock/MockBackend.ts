@@ -1,5 +1,6 @@
 import type { Backend } from '../backend';
 import type {
+  UserThemePackage,
   PluginInfo,
   StatusGroup,
   ChangeItem,
@@ -855,6 +856,11 @@ export class MockBackend implements Backend {
     list: async (): Promise<UserTheme[]> => [],
     href: (file: string, hash: string) =>
       `/wz-themes/${encodeURIComponent(file)}${hash ? `?h=${hash}` : ''}`,
+    packages: async (): Promise<UserThemePackage[]> => [],
+    pickWallpaper: async (): Promise<string | null> => {
+      throw new Error('Your own wallpaper works in the desktop app');
+    },
+    wallpaperUrl: (rel: string) => '/wz-themes/' + rel.split('/').map(encodeURIComponent).join('/'),
   };
 
   insert(m: Message): void {

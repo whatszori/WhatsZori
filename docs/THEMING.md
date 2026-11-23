@@ -45,8 +45,20 @@ folder is and how loading works is in [WAILS.md](WAILS.md#themes-from-disk).
 
 ## Theme packages
 
-A theme package is a folder. Bundled ones live in `frontend/src/themes/<id>/`. Packages don't load
-from disk yet; for now, user themes on disk are single CSS files (see above).
+A theme package is a folder with a `manifest.json` and CSS modules. Bundled ones live in
+`frontend/src/themes/<id>/`; your own go into `<config>/themes/<id>/` and show up in Settings →
+Themes next to the bundled ones, with the same module switches. They reload when you save a file
+in the folder. Start from [`examples/themes/ocean/`](../examples/themes/ocean/).
+
+For packages on disk:
+
+- `id` must be the folder name (letters, digits, `.`, `-`, `_`) and can't be a bundled
+  theme's id. A package with a problem is listed under "Theme folders that can't load" with the
+  reason.
+- Module files are `.css` files inside the folder (subfolders are fine), at most 1 MB each.
+- Relative `url()`s are rewritten to point into the folder, so a theme can bring its own images
+  and fonts: `url(waves.svg)` in `ocean/parts/bg.css` loads `ocean/parts/waves.svg`.
+- Folders starting with `_` or `.` are not themes (`_wallpapers` holds chat wallpapers).
 
 ```
 themes/adwaita/
@@ -84,6 +96,14 @@ themes/adwaita/
 - Whatever you set on `:root`, also set under `[data-theme='dark']`. Both selectors have the same
   specificity, so a light-only value would leak into dark mode.
 - If the user picked an accent, it's set inline on `<html>` and beats the theme's `--wz-accent`.
+
+## Chat wallpaper
+
+Settings → Appearance → Chat wallpaper copies an image into `<config>/themes/_wallpapers/` and
+shows it behind the messages, with a dim slider. It sits above any theme's own message
+background: `html[data-wz-wallpaper] .wz-message-list` uses `--wz-user-wallpaper` (the image) and
+`--wz-user-wallpaper-dim` (0 to 0.8). A theme that wants to style around it can check for
+`[data-wz-wallpaper]` on `<html>`.
 
 ## Accent and derived colors
 

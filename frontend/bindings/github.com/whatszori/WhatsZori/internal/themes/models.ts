@@ -18,3 +18,44 @@ export interface Info {
     "file": string;
     "hash": string;
 }
+
+export interface Manifest {
+    "id": string;
+    "name": string;
+    "version": string;
+    "author"?: string;
+    "description"?: string;
+
+    /**
+     * panels | rail: the layout it was made for
+     */
+    "layout"?: string;
+    "modules": ModuleInfo[] | null;
+}
+
+export interface ModuleInfo {
+    "id": string;
+    "name": string;
+    "description"?: string;
+    "file": string;
+    "required"?: boolean;
+
+    /**
+     * starting state for optional modules; on when left out
+     */
+    "default"?: boolean | null;
+}
+
+export interface Package {
+    "manifest": Manifest;
+
+    /**
+     * module file -> CSS, with relative url()s pointing into the package folder
+     */
+    "css": { [_ in string]?: string } | null;
+
+    /**
+     * why it can't be used; empty when fine
+     */
+    "error"?: string;
+}

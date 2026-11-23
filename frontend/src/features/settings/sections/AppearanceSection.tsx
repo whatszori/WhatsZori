@@ -6,6 +6,7 @@ import { Segmented, Toggle } from '../../../ui';
 import { Bubble } from '../../conversation/Bubble';
 import '../../conversation/Bubble.css';
 import { Group, Page, Row } from './common';
+import { WallpaperRows } from './Wallpaper';
 
 type Appearance = AppSettings['appearance'];
 
@@ -175,6 +176,7 @@ export function AppearanceSection() {
             <output>{Math.round(a.fontScale * 100)}%</output>
           </div>
         </Row>
+        <WallpaperRows />
         <div className="wz-preview" aria-hidden="true">
           {PREVIEW.map((m) => (
             <Bubble

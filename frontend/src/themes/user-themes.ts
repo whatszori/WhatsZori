@@ -1,8 +1,12 @@
 import { create } from 'zustand';
-import { backend, type ThemeFileChanged, type UserTheme } from '../api';
+import { backend, type ThemeFileChanged, type UserTheme, type UserThemePackage } from '../api';
+import { BUILTIN_THEMES } from './registry';
+import type { ThemePackage } from './types';
 
 interface UserThemesState {
   themes: UserTheme[];
+  // theme folders; broken ones keep their error for the settings page
+  packages: UserThemePackage[];
   loaded: boolean;
   load(): Promise<void>;
   fileChanged(c: ThemeFileChanged): void;
@@ -10,10 +14,15 @@ interface UserThemesState {
 
 export const useUserThemes = create<UserThemesState>((set, get) => ({
   themes: [],
+  packages: [],
   loaded: false,
   async load() {
     try {
-      set({ themes: await backend.userThemes.list(), loaded: true });
+      const [themes, packages] = await Promise.all([
+        backend.userThemes.list(),
+        backend.userThemes.packages().catch(() => [] as UserThemePackage[]),
+      ]);
+      set({ themes, packages, loaded: true });
     } catch (err) {
       console.warn('[wz] could not list user themes', err);
       set({ loaded: true });
@@ -28,6 +37,24 @@ export const useUserThemes = create<UserThemesState>((set, get) => ({
     void get().load();
   },
 }));
+
+// Built-in themes plus the usable theme folders. A folder can't take a built-in theme's id.
+export function allThemePackages(packages: UserThemePackage[]): ThemePackage[] {
+  const builtin = new Set(BUILTIN_THEMES.map((t) => t.manifest.id));
+  return [
+    ...BUILTIN_THEMES,
+    ...packages
+      .filter((p) => !p.error && !builtin.has(p.manifest.id))
+      .map((p) => ({ manifest: p.manifest, css: p.css })),
+  ];
+}
+
+export function packageProblem(p: UserThemePackage): string | undefined {
+  if (p.error) return p.error;
+  if (BUILTIN_THEMES.some((t) => t.manifest.id === p.manifest.id))
+    return `the id "${p.manifest.id}" belongs to a built-in theme`;
+  return undefined;
+}
 
 const ATTR = 'data-wz-user-theme';
 

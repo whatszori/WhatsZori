@@ -124,7 +124,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewSystem(Version, cfg.Paths, a.boot, shell{a})),
 			application.NewService(services.NewSettings(store, events.Wails{})),
 			application.NewService(a.sysTheme),
-			application.NewService(services.NewThemes(cfg.Paths.Themes, events.Wails{})),
+			application.NewService(services.NewThemes(cfg.Paths.Themes, events.Wails{}, filePicker{a})),
 			application.NewService(services.NewWindow(a)),
 			application.NewService(services.NewAuth(wa)),
 			application.NewService(services.NewChats(wa)),

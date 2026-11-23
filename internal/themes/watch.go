@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,6 +21,13 @@ func Watch(ctx context.Context, dir string, debounce time.Duration, onChange fun
 	if err := w.Add(dir); err != nil {
 		w.Close()
 		return err
+	}
+	if entries, err := os.ReadDir(dir); err == nil {
+		for _, e := range entries {
+			if e.IsDir() && IsPackageDir(e.Name()) {
+				_ = w.Add(filepath.Join(dir, e.Name()))
+			}
+		}
 	}
 
 	go func() {
@@ -41,7 +49,7 @@ func Watch(ctx context.Context, dir string, debounce time.Duration, onChange fun
 			if ctx.Err() != nil {
 				return
 			}
-			content, err := os.ReadFile(filepath.Join(dir, name))
+			content, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(name)))
 			hash := ""
 			if err == nil {
 				hash = Hash(content)
@@ -57,8 +65,24 @@ func Watch(ctx context.Context, dir string, debounce time.Duration, onChange fun
 				if !ok {
 					return
 				}
-				name := filepath.Base(ev.Name)
-				if !IsThemeFile(name) {
+				rel, err := filepath.Rel(dir, ev.Name)
+				if err != nil {
+					continue
+				}
+				name := filepath.ToSlash(rel)
+				base := filepath.Base(ev.Name)
+				// a new package folder: follow it too
+				if ev.Has(fsnotify.Create) && !strings.Contains(name, "/") && IsPackageDir(base) {
+					if st, err := os.Stat(ev.Name); err == nil && st.IsDir() {
+						_ = w.Add(ev.Name)
+						continue
+					}
+				}
+				inPackage := strings.Count(name, "/") == 1 && IsPackageDir(strings.Split(name, "/")[0])
+				if !IsThemeFile(base) && !(inPackage && base == "manifest.json") {
+					continue
+				}
+				if strings.Contains(name, "/") && !inPackage {
 					continue
 				}
 				mu.Lock()

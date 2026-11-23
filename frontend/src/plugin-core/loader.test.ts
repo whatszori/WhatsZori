@@ -14,9 +14,33 @@ const BROKEN = `export default { start() { throw new Error('kaput'); } };`;
 
 const store = new Map<string, string>();
 const plugins: PluginInfo[] = [
-  { id: 'good', name: 'Good', version: '1', description: '', author: '', main: 'index.js', enabled: true },
-  { id: 'bad', name: 'Bad', version: '1', description: '', author: '', main: 'index.js', enabled: true },
-  { id: 'off', name: 'Off', version: '1', description: '', author: '', main: 'index.js', enabled: false },
+  {
+    id: 'good',
+    name: 'Good',
+    version: '1',
+    description: '',
+    author: '',
+    main: 'index.js',
+    enabled: true,
+  },
+  {
+    id: 'bad',
+    name: 'Bad',
+    version: '1',
+    description: '',
+    author: '',
+    main: 'index.js',
+    enabled: true,
+  },
+  {
+    id: 'off',
+    name: 'Off',
+    version: '1',
+    description: '',
+    author: '',
+    main: 'index.js',
+    enabled: false,
+  },
 ];
 let safe = false;
 
