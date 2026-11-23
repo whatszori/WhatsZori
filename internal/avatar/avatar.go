@@ -281,6 +281,16 @@ func (s *Store) remove(rel string) {
 	}
 }
 
+// Cached is the absolute path of jid's small picture if it's already on disk, without asking
+// WhatsApp. For notifications, which must not wait for the network.
+func (s *Store) Cached(jid string) string {
+	r, found, err := s.get(context.Background(), jid, Preview)
+	if err != nil || !found || r.state != stateSet || !s.exists(r.localPath) {
+		return ""
+	}
+	return filepath.Join(s.dir, filepath.FromSlash(r.localPath))
+}
+
 // Handler serves /wz-avatar/<jid> (preview size) and /wz-avatar/<jid>?full=1. 404 means "show
 // initials": no picture, hidden, or offline with nothing cached.
 func (s *Store) Handler(prefix string) http.Handler {

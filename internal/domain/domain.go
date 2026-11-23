@@ -344,6 +344,13 @@ type AvatarChangedEvent struct {
 	JID string `json:"jid"`
 }
 
+// a notification was clicked: open this chat (and focus the composer for "Reply" without a field)
+type NotificationOpenEvent struct {
+	ChatJID string `json:"chatJid"`
+	PK      string `json:"pk"`
+	Reply   bool   `json:"reply"`
+}
+
 type PresenceEvent struct {
 	JID      string `json:"jid"`
 	Online   bool   `json:"online"`

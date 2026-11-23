@@ -787,3 +787,46 @@ func TestGif(t *testing.T) {
 		t.Errorf("gif: kind=%s dto=%+v", m.Kind, dto.Media)
 	}
 }
+
+type fakeNotifier struct {
+	got      []string
+	offStart int
+	offDone  int
+}
+
+func (f *fakeNotifier) Incoming(m domain.Message, chat domain.Chat) {
+	f.got = append(f.got, chat.Name+":"+m.Text)
+}
+func (f *fakeNotifier) OfflineStart() { f.offStart++ }
+func (f *fakeNotifier) OfflineDone()  { f.offDone++ }
+
+func TestNotifierGetsOnlyNewIncoming(t *testing.T) {
+	e := newEnv(t)
+	n := &fakeNotifier{}
+	e.in.notify = n
+	repo.SetContactName(context.Background(), e.db, alice.String(), "Alice", "Alice", 0)
+
+	e.handle(t, text(alice, alice, "N1", "hello"))
+	e.handle(t, text(alice, alice, "N1", "hello")) // redelivery
+	e.handle(t, text(alice, me, "N2", "mine"))
+	e.handle(t, revokeEvt(alice, alice, "N1", false, ""))
+	e.handle(t, &events.HistorySync{Data: &waHistorySync.HistorySync{
+		SyncType: waHistorySync.HistorySync_RECENT.Enum(),
+		Conversations: []*waHistorySync.Conversation{{ID: proto.String(alice.String()), Messages: []*waHistorySync.HistorySyncMsg{{
+			Message: &waWeb.WebMessageInfo{
+				Key:              &waCommon.MessageKey{ID: proto.String("OLD"), RemoteJID: proto.String(alice.String())},
+				Message:          &waE2E.Message{Conversation: proto.String("old")},
+				MessageTimestamp: proto.Uint64(1_700_000_000),
+			},
+		}}}},
+	}})
+	if len(n.got) != 1 || n.got[0] != "Alice:hello" {
+		t.Fatalf("notified %v, want just the one new incoming message", n.got)
+	}
+	e.handle(t, &events.OfflineSyncPreview{Total: 10, Messages: 4})
+	e.handle(t, &events.OfflineSyncCompleted{Count: 10})
+	e.handle(t, &events.OfflineSyncPreview{Total: 3, Receipts: 3})
+	if n.offStart != 1 || n.offDone != 1 {
+		t.Errorf("offline start=%d done=%d", n.offStart, n.offDone)
+	}
+}

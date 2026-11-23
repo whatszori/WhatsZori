@@ -34,6 +34,14 @@ type Media interface {
 	Remove(rel string)
 }
 
+// Notifier gets new live incoming messages (for desktop notifications) and hears about the
+// offline backlog, so a reconnect doesn't turn into a hundred toasts.
+type Notifier interface {
+	Incoming(m domain.Message, chat domain.Chat)
+	OfflineStart()
+	OfflineDone()
+}
+
 // Avatars is the profile picture cache; a Picture event makes it refetch.
 type Avatars interface {
 	Invalidate(ctx context.Context, jid string)
@@ -49,6 +57,7 @@ type Options struct {
 	Client  func() wa.Client
 	Media   Media
 	Avatars Avatars
+	Notify  Notifier
 	Log     *slog.Logger
 	Now     func() time.Time
 }
@@ -61,6 +70,7 @@ type Ingester struct {
 	client  func() wa.Client
 	media   Media
 	avatars Avatars
+	notify  Notifier
 	log     *slog.Logger
 	now     func() time.Time
 
@@ -78,7 +88,7 @@ func New(o Options) *Ingester {
 	if o.Policy == nil {
 		o.Policy = func() domain.HistoryPolicy { return domain.History{}.Policy() }
 	}
-	return &Ingester{db: o.DB, jids: o.JIDs, emit: o.Emit, policy: o.Policy, client: o.Client, media: o.Media, avatars: o.Avatars,
+	return &Ingester{db: o.DB, jids: o.JIDs, emit: o.Emit, policy: o.Policy, client: o.Client, media: o.Media, avatars: o.Avatars, notify: o.Notify,
 		log: o.Log, now: o.Now, groupsFetched: map[string]bool{}}
 }
 
@@ -89,8 +99,10 @@ type effects struct {
 	removed   []string
 	events    []namedEvent
 	downloads []int64
-	files     []string
-	groups    []types.JID
+	// new live incoming messages, for notifications
+	notify []int64
+	files  []string
+	groups []types.JID
 }
 
 type namedEvent struct {
@@ -207,6 +219,14 @@ func (in *Ingester) Handle(evt any) error {
 			in.avatars.Invalidate(ctx, jid)
 		}
 		in.emit.Emit(evnames.AvatarChange, domain.AvatarChangedEvent{JID: jid})
+	case *events.OfflineSyncPreview:
+		if in.notify != nil && e.Messages > 0 {
+			in.notify.OfflineStart()
+		}
+	case *events.OfflineSyncCompleted:
+		if in.notify != nil {
+			in.notify.OfflineDone()
+		}
 	case *events.UndecryptableMessage:
 		// whatsmeow already asked the sender to retry; a readable copy arrives as a normal message
 		in.log.Info("undecryptable message", "id", e.Info.ID, "unavailable", e.IsUnavailable)
@@ -233,10 +253,21 @@ func (in *Ingester) flush(ctx context.Context, fx *effects) {
 		rows, err := repo.MessagesByPKs(ctx, in.db, fx.msgs)
 		if err == nil {
 			// a chunk at a time so one huge history batch doesn't build one giant event
+			notify := map[string]bool{}
+			for _, pk := range fx.notify {
+				notify[strconv.FormatInt(pk, 10)] = true
+			}
 			for i := 0; i < len(rows); i += 200 {
 				part := rows[i:min(i+200, len(rows))]
 				if dtos, err := v.Messages(ctx, in.db, part); err == nil {
 					in.emit.Emit(evnames.MsgBatch, domain.MsgBatchEvent{Messages: dtos})
+					if in.notify != nil {
+						for _, m := range dtos {
+							if notify[m.PK] {
+								in.notifyOne(ctx, v, m)
+							}
+						}
+					}
 				} else {
 					in.log.Error("build messages", "error", err)
 				}
@@ -453,6 +484,7 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		if err := repo.IncUnread(ctx, tx, chat); err != nil {
 			return err
 		}
+		fx.notify = append(fx.notify, pk)
 	}
 	fx.msgs = append(fx.msgs, pk)
 	fx.chats[chat] = true
@@ -955,4 +987,16 @@ func (in *Ingester) SyncContacts(ctx context.Context, contacts map[types.JID]typ
 		}
 		return nil
 	})
+}
+
+func (in *Ingester) notifyOne(ctx context.Context, v repo.View, m domain.Message) {
+	c, err := repo.GetChat(ctx, in.db, m.ChatJID)
+	if err != nil {
+		return
+	}
+	chat, err := v.Chat(ctx, in.db, c)
+	if err != nil {
+		return
+	}
+	in.notify.Incoming(m, chat)
 }

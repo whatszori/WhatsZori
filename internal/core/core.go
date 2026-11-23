@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	waStore "go.mau.fi/whatsmeow/store"
@@ -21,6 +22,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/events"
 	"github.com/whatszori/WhatsZori/internal/ingest"
 	"github.com/whatszori/WhatsZori/internal/media"
+	"github.com/whatszori/WhatsZori/internal/notify"
 	"github.com/whatszori/WhatsZori/internal/privacy"
 	"github.com/whatszori/WhatsZori/internal/redact"
 	"github.com/whatszori/WhatsZori/internal/settings"
@@ -53,6 +55,12 @@ type Core struct {
 	cancel   context.CancelFunc
 
 	openFolder func(string) error
+
+	Notify     *notify.Center
+	mu         sync.Mutex
+	desktop    notify.Desktop
+	focused    func() bool
+	showWindow func()
 }
 
 // OpenFolder shows a folder in the file manager; set by the app.
@@ -123,7 +131,8 @@ func New(ctx context.Context, o Options) (*Core, error) {
 		}
 		return cli
 	}, o.Log)
-	c.In = ingest.New(ingest.Options{DB: db, JIDs: c.JIDs, Emit: c.Emit, Policy: c.Policy, Client: client, Media: c.Media, Avatars: c.Avatars, Log: o.Log})
+	c.Notify = c.newNotifyCenter()
+	c.In = ingest.New(ingest.Options{DB: db, JIDs: c.JIDs, Emit: c.Emit, Policy: c.Policy, Client: client, Media: c.Media, Avatars: c.Avatars, Notify: c.Notify, Log: o.Log})
 
 	mgr = wa.NewManager(wa.Options{
 		Factory:   sess.Factory(),
@@ -165,6 +174,7 @@ func (c *Core) Stop() {
 		c.cancel()
 	}
 	c.Mgr.Stop()
+	c.currentDesktop().Close()
 	c.Emit.Close()
 	c.Session.Close()
 	c.DB.Close()

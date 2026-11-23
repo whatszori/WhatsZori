@@ -103,30 +103,12 @@ func (s *Chats) emitChat(ctx context.Context, jid string) {
 func (s *Chats) MarkRead(jid string) error {
 	ctx, cancel := call()
 	defer cancel()
-	row, err := repo.GetChat(ctx, s.c.DB, jid)
-	if err != nil {
-		return err
-	}
-	if row.Unread > 0 {
-		if err := repo.SetUnread(ctx, s.c.DB, jid, 0); err != nil {
-			return err
-		}
-		s.emitChat(ctx, jid)
-	}
-	j, err := types.ParseJID(jid)
-	if err != nil {
-		return err
-	}
-	if cli, err := s.c.Mgr.Ready(); err == nil {
-		if err := s.c.Gate.ChatOpened(ctx, j); err != nil {
-			return fmt.Errorf("read receipts: %w", err)
-		}
-		if !row.IsGroup {
-			// presence only flows for contacts we subscribed to
-			_ = cli.SubscribePresence(ctx, j)
-		}
-	}
-	return nil
+	return s.c.MarkChatRead(ctx, jid)
+}
+
+// SetActive is the chat open in the window ("" for none), so notifications skip it.
+func (s *Chats) SetActive(jid string) {
+	s.c.Notify.SetActive(jid)
 }
 
 // SetTyping is the composer telling us the user is (or stopped) typing.

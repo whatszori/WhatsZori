@@ -8,9 +8,11 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	wailsevents "github.com/wailsapp/wails/v3/pkg/events"
@@ -20,6 +22,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/config"
 	"github.com/whatszori/WhatsZori/internal/core"
 	"github.com/whatszori/WhatsZori/internal/events"
+	"github.com/whatszori/WhatsZori/internal/notify"
 	"github.com/whatszori/WhatsZori/internal/services"
 	"github.com/whatszori/WhatsZori/internal/settings"
 	"github.com/whatszori/WhatsZori/internal/systheme"
@@ -45,6 +48,10 @@ type App struct {
 
 	wails  *application.App
 	window *application.WebviewWindow
+
+	core     *core.Core
+	notifier notify.Desktop
+	focused  atomic.Bool
 
 	mu     sync.Mutex
 	state  windowState
@@ -85,15 +92,28 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 		return nil, err
 	}
 	wa.SetFolderOpener(func(dir string) error { return a.wails.Env.OpenFileManager(dir, false) })
+	a.core = wa
+	// Windows (and macOS) go through Wails' toast service; Linux talks the freedesktop spec
+	// itself, which GNOME, KDE and the rest share. See internal/notify.
+	var toastService []application.Service
+	if runtime.GOOS == "linux" {
+		a.notifier = notify.NewFreedesktop("WhatsZori", title, "WhatsZori")
+	} else {
+		w := notify.NewWails()
+		a.notifier = w
+		toastService = append(toastService, application.NewService(w.NS))
+	}
 	if cfg.Flags.NoConnect {
 		slog.Warn("WhatsApp connection disabled", "env", config.EnvNoConnect)
 	}
 
 	// a second launch exits inside application.New (single instance), so nothing below runs for it
 	a.wails = application.New(application.Options{
-		Name:        title,
+		// Windows keys toast registration on this name; a second profile gets its own, so its
+		// toasts don't re-point the main install's click handler at another exe
+		Name:        appName(cfg),
 		Description: "Desktop WhatsApp client",
-		Services: []application.Service{
+		Services: append(toastService,
 			application.NewService(services.NewSystem(Version, cfg.Paths, a.boot, shell{a})),
 			application.NewService(services.NewSettings(store)),
 			application.NewService(a.sysTheme),
@@ -107,7 +127,8 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewContacts(wa)),
 			application.NewService(services.NewMedia(wa, desktop{a})),
 			application.NewService(services.NewExport(wa, desktop{a})),
-		},
+			application.NewService(services.NewNotifications(wa)),
+		),
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
 			Middleware: assets.Middleware(assets.Options{
@@ -216,8 +237,17 @@ func (a *App) createWindow() {
 	a.window.OnWindowEvent(wailsevents.Common.WindowDidResize, func(*application.WindowEvent) { a.trackNormal() })
 	a.window.OnWindowEvent(wailsevents.Common.WindowClosing, func(*application.WindowEvent) { a.saveWindowState() })
 
+	a.window.OnWindowEvent(wailsevents.Common.WindowFocus, func(*application.WindowEvent) {
+		a.focused.Store(true)
+		// stop the taskbar flash a notification started
+		a.window.Flash(false)
+	})
+	a.window.OnWindowEvent(wailsevents.Common.WindowLostFocus, func(*application.WindowEvent) { a.focused.Store(false) })
+
 	a.wails.Event.OnApplicationEvent(wailsevents.Common.ApplicationStarted, func(*application.ApplicationEvent) {
 		application.InvokeAsync(a.placeWindow)
+		// D-Bus setup can take a moment; not on the UI thread
+		go a.core.SetDesktop(context.Background(), flashing{a.notifier, a}, a.focused.Load, a.focus)
 	})
 }
 
@@ -346,4 +376,27 @@ func instanceID(cfg config.Config) string {
 	}
 	sum := sha256.Sum256([]byte(strings.ToLower(filepath.Clean(cfg.Paths.Root))))
 	return appID + "." + hex.EncodeToString(sum[:6])
+}
+
+func appName(cfg config.Config) string {
+	if os.Getenv(config.EnvDir) == "" {
+		return title
+	}
+	sum := sha256.Sum256([]byte(strings.ToLower(filepath.Clean(cfg.Paths.Root))))
+	return title + "-" + hex.EncodeToString(sum[:4])
+}
+
+// flashing also flashes the taskbar button when a notification arrives while the window is in
+// the background, like other messengers do.
+type flashing struct {
+	notify.Desktop
+	a *App
+}
+
+func (f flashing) Show(t notify.Toast) error {
+	err := f.Desktop.Show(t)
+	if !f.a.focused.Load() {
+		application.InvokeAsync(func() { f.a.window.Flash(true) })
+	}
+	return err
 }
