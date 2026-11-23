@@ -133,6 +133,21 @@ Settings → Privacy. Check each from phone B, which is the "other person". Turn
 - [ ] B starts typing and then closes WhatsApp: "typing…" disappears within ~12 seconds.
 - [ ] Voice notes fit their bubble.
 
+## 13. Notifications
+
+- [ ] Settings → Notifications → Send test: a notification appears.
+- [ ] Minimise WhatsZori; B writes: a notification with B's picture, name and text; the taskbar
+      button flashes. Click it: WhatsZori opens on that chat, at the message.
+- [ ] B sends three messages quickly: one notification, "B (3 new)".
+- [ ] Reply from the notification (Windows, KDE): B gets it. On GNOME, Reply opens the chat with the
+      cursor in the composer.
+- [ ] Mark as read from the notification with read receipts on "never": B's ticks stay grey.
+- [ ] With the chat open and the window focused: no notification. Another chat: notification.
+- [ ] Muted chat: nothing.
+- [ ] "Show sender and text" off: only "New message", no name or picture.
+- [ ] Close WhatsZori for a while, get several messages, start it: one summary, not one per message.
+- [ ] On Linux: GNOME and KDE each show the WhatsZori icon and group the notifications under it.
+
 ## 12. Chat info, lists and export
 
 - [ ] Group info shows real photo/video previews; "Media, links and docs" opens tabs that keep

@@ -26,6 +26,7 @@ internal/
   antispam/    rate limits in front of every send
   media/       downloads into <config>/media, /wz-media/<pk> handler
   export/      chat export to a folder: chat.html (app look), chat.json, chat.txt (WhatsApp format) + media/
+  notify/      desktop notifications: the rules (Center), Windows via Wails, Linux via freedesktop D-Bus
   clip/        file (and picture) to the system clipboard: CF_HDROP/CF_DIB/PNG on Windows, uri-list on Linux
   avatar/      profile pictures and group photos in <config>/avatars, /wz-avatar/<jid> handler
   store/       opens whatszori.db, embedded migrations (store/migrations/*.sql)
