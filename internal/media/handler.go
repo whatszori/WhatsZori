@@ -17,7 +17,7 @@ import (
 )
 
 // Handler serves /wz-media/<pk>. A file that isn't local yet is downloaded on the spot; while that
-// fails (offline, expired) the thumbnail stands in. ?thumb=1 asks for the thumbnail directly.
+// fails (offline, expired) the thumbnail stands in. ?thumb=1 asks for the thumbnail only.
 func (s *Store) Handler(prefix string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
@@ -35,7 +35,12 @@ func (s *Store) Handler(prefix string) http.Handler {
 			return
 		}
 		safeHeaders(w)
-		if r.URL.Query().Get("thumb") == "1" && len(row.Thumbnail) > 0 {
+		if r.URL.Query().Get("thumb") == "1" {
+			// no thumbnail means 404, not the full file: for a video that would be the whole mp4
+			if len(row.Thumbnail) == 0 {
+				http.NotFound(w, r)
+				return
+			}
 			serveThumb(w, r, row, true)
 			return
 		}

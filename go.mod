@@ -7,6 +7,7 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/wailsapp/wails/v3 v3.1.0
 	go.mau.fi/whatsmeow v0.0.0-20261116172437-19d61352436f
+	golang.org/x/image v0.48.0
 	golang.org/x/sys v0.50.0
 	google.golang.org/protobuf v1.36.12
 	modernc.org/sqlite v1.63.0

@@ -181,6 +181,12 @@ func TestExpiredFallsBackToThumbnail(t *testing.T) {
 		t.Errorf("thumb=1: %d %v", w.Code, w.Header())
 	}
 
+	video := e.addMedia(t, "K", repo.MediaRow{MediaType: "video", Mime: "video/mp4", DirectPath: "/v/z", MediaKey: []byte{1}})
+	calls := e.dl.calls.Load()
+	if w := e.get("/wz-media/"+strconv.FormatInt(video, 10)+"?thumb=1", nil); w.Code != http.StatusNotFound || e.dl.calls.Load() != calls {
+		t.Errorf("thumb=1 without a thumbnail: %d, downloads %d -> %d", w.Code, calls, e.dl.calls.Load())
+	}
+
 	noThumb := e.addMedia(t, "J", repo.MediaRow{MediaType: "image", Mime: "image/jpeg", DirectPath: "/v/y", MediaKey: []byte{1}})
 	if w := e.get("/wz-media/"+strconv.FormatInt(noThumb, 10), nil); w.Code != http.StatusGone {
 		t.Errorf("expired without thumbnail: %d, want 410", w.Code)
