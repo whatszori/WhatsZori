@@ -557,6 +557,18 @@ function addShowcase(db: MockDB, now: number, pk: () => string): void {
     }),
   );
   db.messages.get(design)!.push(...d);
+  db.messages.get(anna)!.push(
+    mk(anna, annaP, 3, {
+      kind: 'image',
+      viewOnce: true,
+      media: { width: 1080, height: 1350, size: 640_000, mime: 'image/jpeg' },
+    }),
+    mk(anna, annaP, 2, {
+      kind: 'video',
+      viewOnce: true,
+      media: { size: 2_400_000, mime: 'video/mp4', unavailable: true },
+    }),
+  );
 
   // generated history ends before the showcase, so these counts match the tail
   db.chats.get(anna)!.unread = 2;

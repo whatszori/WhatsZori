@@ -182,6 +182,8 @@ type MediaInfo struct {
 	Round bool `json:"round,omitempty"`
 	// plays muted on a loop, like any GIF
 	Gif bool `json:"gif,omitempty"`
+	// nothing to download: WhatsApp gave the keys to the phone only (view once, mostly)
+	Unavailable bool `json:"unavailable,omitempty"`
 }
 
 type ReplyRef struct {
@@ -222,8 +224,10 @@ type Message struct {
 	Deleted        *DeletedInfo  `json:"deleted,omitempty"`
 	ContentUnknown bool          `json:"contentUnknown,omitempty"`
 	// WhatsApp's forwarding score: 0 not forwarded, 5+ "forwarded many times"
-	Forwarded int        `json:"forwarded,omitempty"`
-	Poll      *PollInfo  `json:"poll,omitempty"`
+	Forwarded int       `json:"forwarded,omitempty"`
+	Poll      *PollInfo `json:"poll,omitempty"`
+	// a "view once" photo, video or voice note; WhatsZori keeps it anyway
+	ViewOnce  bool       `json:"viewOnce,omitempty"`
 	Reactions []Reaction `json:"reactions"`
 }
 

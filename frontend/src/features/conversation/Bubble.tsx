@@ -8,6 +8,7 @@ import type { PopoverAnchor } from '../../ui';
 import { Marked } from '../search/MessageHits';
 import { MediaBlock } from './Media';
 import { Poll } from './Poll';
+import { ViewOnce } from './ViewOnce';
 import './Poll.css';
 import { useUI } from '../../stores/ui';
 import { StatusTicks } from './StatusTicks';
@@ -92,7 +93,8 @@ export const Bubble = memo(function Bubble({
 }: BubbleProps) {
   const dir = m.fromMe ? 'out' : 'in';
   const hasMedia = !!m.media && !m.contentUnknown;
-  const visualOnly = hasMedia && (m.kind === 'image' || m.kind === 'video') && !m.text;
+  const onceCard = hasMedia && !!m.viewOnce && (m.kind === 'image' || m.kind === 'video');
+  const visualOnly = hasMedia && !onceCard && (m.kind === 'image' || m.kind === 'video') && !m.text;
   // video notes are a bare circle: no bubble around them
   const round = hasMedia && !!m.media?.round;
 
@@ -182,8 +184,12 @@ export const Bubble = memo(function Bubble({
                   <span className="wz-quote__text">{m.replyTo.text || 'Message'}</span>
                 </button>
               )}
-              {hasMedia && (
-                <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
+              {onceCard ? (
+                <ViewOnce m={m} />
+              ) : (
+                hasMedia && (
+                  <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
+                )
               )}
               {m.poll && !m.deleted ? (
                 <>

@@ -238,6 +238,11 @@ export interface MediaInfo {
      * plays muted on a loop, like any GIF
      */
     "gif"?: boolean;
+
+    /**
+     * nothing to download: WhatsApp gave the keys to the phone only (view once, mostly)
+     */
+    "unavailable"?: boolean;
 }
 
 export interface MediaRef {
@@ -271,6 +276,11 @@ export interface Message {
      */
     "forwarded"?: number;
     "poll"?: PollInfo | null;
+
+    /**
+     * a "view once" photo, video or voice note; WhatsZori keeps it anyway
+     */
+    "viewOnce"?: boolean;
     "reactions": Reaction[] | null;
 }
 

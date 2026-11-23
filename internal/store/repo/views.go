@@ -157,6 +157,7 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			EditCount:      m.EditCount,
 			ContentUnknown: contentUnknown(m),
 			Forwarded:      m.ForwardScore,
+			ViewOnce:       m.IsViewOnce,
 			Reactions:      []domain.Reaction{},
 		}
 		if m.FromMe {
@@ -229,6 +230,7 @@ func mediaInfo(med MediaRow, m MessageRow) *domain.MediaInfo {
 		Round:    m.Kind == KindRound,
 		Gif:      m.Kind == KindGif,
 	}
+	info.Unavailable = med.State != MediaLocal && med.DirectPath == ""
 	for _, b := range med.Waveform {
 		info.Waveform = append(info.Waveform, float64(b)/100)
 	}

@@ -424,7 +424,7 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 	}
 	row := &repo.MessageRow{
 		ChatJID: chat, MsgID: info.ID, SenderJID: sender, FromMe: info.IsFromMe, PushName: info.PushName, TS: ts,
-		Kind: c.kind, Body: c.body, IsEphemeral: e.IsEphemeral, IsViewOnce: e.IsViewOnce, Raw: raw,
+		Kind: c.kind, Body: c.body, IsEphemeral: e.IsEphemeral, IsViewOnce: e.IsViewOnce || isViewOnce(msg), Raw: raw,
 		ForwardScore: c.forwardScore,
 		// history is old news: no read receipts for it later, whatever the ghost mode
 		ReadSent: !live || info.IsFromMe,
@@ -477,7 +477,8 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		if err := repo.UpsertMedia(ctx, tx, *c.media); err != nil {
 			return err
 		}
-		if live && in.policy().AutoDownload && autoDownloadable(c.kind, c.media.Size) {
+		// view-once media are fetched right away whatever the setting: the server drops them soon
+		if live && c.media.DirectPath != "" && (row.IsViewOnce || in.policy().AutoDownload && autoDownloadable(c.kind, c.media.Size)) {
 			fx.downloads = append(fx.downloads, pk)
 		}
 	}
@@ -498,6 +499,11 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 // AutoDownloadLimit keeps auto-download to things that are cheap and likely to get deleted:
 // photos and voice notes up to this size. Everything else downloads when opened.
 const AutoDownloadLimit = 16 << 20
+
+// isViewOnce catches view-once media that come without the ViewOnceMessage wrapper.
+func isViewOnce(msg *waE2E.Message) bool {
+	return msg.GetImageMessage().GetViewOnce() || msg.GetVideoMessage().GetViewOnce() || msg.GetAudioMessage().GetViewOnce()
+}
 
 func autoDownloadable(kind string, size int64) bool {
 	switch kind {

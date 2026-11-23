@@ -175,6 +175,8 @@ export interface MediaInfo {
   round?: boolean;
   // a GIF: plays muted on a loop
   gif?: boolean;
+  // nothing to download: WhatsApp only gave the phone the keys (view once, mostly)
+  unavailable?: boolean;
 }
 
 export interface ReplyRef {
@@ -218,6 +220,8 @@ export interface Message {
   // forwarding score: 0/absent not forwarded, 5+ "forwarded many times"
   forwarded?: number;
   poll?: PollInfo;
+  // "view once" media; WhatsZori keeps it anyway
+  viewOnce?: boolean;
   reactions: Reaction[];
 }
 

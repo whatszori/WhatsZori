@@ -56,6 +56,7 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
   everyone when all selected are yours). "Delete for me" is also in the message menu.
 - **Polls**: question, options with live counts and bars, who voted for what (View votes), and
   voting yourself (single or multiple choice, tap again to take it back).
+- **View once**: view-once photos and videos show as a card, open in the viewer as often as you like and can be saved; opening them sends nothing to the sender. When WhatsApp gave the keys only to the phone, the card says so.
 - **Voice notes**: record in the composer (mic button), sent as real WhatsApp voice notes (Ogg/Opus, waveform, duration).
 - **Tray and unread badge**: closing the window keeps WhatsZori running in the tray (optional), unread chats on the taskbar button (Windows), the dock (KDE, Dash to Dock) and the tray icon.
 - **WhatsZori's own notifications on Windows** (default there): themed cards in the corner that never steal focus, reply and mark-as-read inside, restylable by themes (`--wz-ntf-*`) and plugins (`notification.card`, `notification.accessories`). Windows' own toasts are one switch away.
