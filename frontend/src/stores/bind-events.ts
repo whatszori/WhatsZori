@@ -1,4 +1,5 @@
 import type { Backend } from '../api';
+import { useAvatars } from './avatars';
 import { useChats } from './chats';
 import { useConnection } from './connection';
 import { useMessages } from './messages';
@@ -34,6 +35,7 @@ export function bindBackendEvents(be: Backend): () => void {
       useMessages.getState().setReactions(chatJid, pk, reactions),
     ),
     be.on('chat:update', ({ chat }) => useChats.getState().upsert(chat)),
+    be.on('avatar:changed', ({ jid }) => useAvatars.getState().bump(jid)),
     be.on('chat:removed', ({ jid }) => {
       useChats.getState().remove(jid);
       if (useUI.getState().activeChat === jid) useUI.getState().openChat(null);

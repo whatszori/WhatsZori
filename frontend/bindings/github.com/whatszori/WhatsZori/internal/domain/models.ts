@@ -23,6 +23,13 @@ export interface AuthStatus {
     "me": Me | null;
 }
 
+/**
+ * a profile picture or group photo changed; the UI reloads it
+ */
+export interface AvatarChangedEvent {
+    "jid": string;
+}
+
 export interface Chat {
     "jid": string;
     "name": string;

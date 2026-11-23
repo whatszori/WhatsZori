@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight, Search } from 'lucide-react';
+import { useConnection } from '../../stores/connection';
 import { useProfile } from '../../stores/profile';
 import { useUI, type SettingsSection } from '../../stores/ui';
 import { Avatar, IconButton, Input, useLayer } from '../../ui';
@@ -15,6 +16,7 @@ export function SettingsPanel() {
   const [page, setPage] = useState<SettingsSection | null>(direct ? initial : null);
   const [query, setQuery] = useState('');
   const profile = useProfile((s) => s.profile);
+  const myJid = useConnection((s) => s.auth.me?.jid);
   const closeSettings = useUI((s) => s.closeSettings);
 
   useLayer(true, () => (page ? setPage(null) : closeSettings()));
@@ -68,7 +70,7 @@ export function SettingsPanel() {
             className="wz-settings-panel__profile"
             onClick={() => setPage('profile')}
           >
-            <Avatar name={profile.name || profile.phone} size={56} />
+            <Avatar name={profile.name || profile.phone} jid={myJid} size={56} />
             <span className="wz-settings-panel__profile-text">
               <span className="wz-settings-panel__profile-name">{profile.name}</span>
               <span className="wz-settings-panel__profile-sub">{profile.about}</span>

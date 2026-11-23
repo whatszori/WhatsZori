@@ -25,6 +25,7 @@ internal/
   privacy/     the only way out for presence, typing and read receipts (ghost mode)
   antispam/    rate limits in front of every send
   media/       downloads into <config>/media, /wz-media/<pk> handler
+  avatar/      profile pictures and group photos in <config>/avatars, /wz-avatar/<jid> handler
   store/       opens whatszori.db, embedded migrations (store/migrations/*.sql)
     repo/        queries; every function takes a DBTX (*sql.DB or *sql.Tx); views.go builds DTOs
   domain/      DTOs the frontend sees (mirror of frontend/src/api/types.ts)
@@ -94,6 +95,7 @@ directions); payload types are Go structs in `internal/domain` and TS types in
 | `msg:reaction` | the message's full reaction list |
 | `chat:update` | a chat snapshot (name, flags, unread, last message) |
 | `chat:removed` | a LID chat was merged into the phone-number chat |
+| `avatar:changed` | a profile picture or group photo changed; the UI reloads it |
 | `presence` | online / last seen for a contact |
 | `chat:typing` | someone is typing in a chat |
 | `sync:progress` | history sync percentage |
@@ -122,6 +124,7 @@ The schema is `internal/store/migrations/*.sql`, applied in order, each in a tra
 | `media` | everything needed to download later (`media_key`, `direct_path`, hashes), thumbnail, `local_path`, state (`remote`, `local`, `expired`, `failed`) |
 | `reactions` | one per (message, sender); keyed by WA ids so early reactions aren't lost |
 | `receipts` | delivered / read / played per participant |
+| `avatars` | per JID and size (preview / full): WhatsApp's picture id, the cached file, `set` / `none` / `hidden`, when we last asked |
 | `messages_fts` | FTS5 index over `messages.body`, kept in sync by triggers |
 | `extensions`, `plugin_settings`, `plugin_storage` | reserved for the plugin system, unused so far |
 
@@ -139,8 +142,14 @@ settings.json     app settings, ghost mode, window state
 session.db*       whatsmeow: keys and device (plus -wal / -shm)
 whatszori.db*     our chats, messages, edits, reactions, receipts, media index (plus -wal / -shm)
 media/ab/abcd….jpg  downloaded and sent attachments, named by the SHA-256 of their content
+avatars/abcd….jpg   profile pictures and group photos, named by content hash
 themes/, plugins/ see WAILS.md
 ```
+
+`/wz-avatar/<jid>` serves a profile picture or group photo (`?full=1` for the big one). WhatsApp is
+asked at most once a day per JID and size (sending the known picture id, so an unchanged picture
+isn't downloaded again), at most three at a time, and again right away when a `Picture` event says
+it changed. "No picture" and "hidden from you" are cached too. 404 means "show initials".
 
 `/wz-media/<pk>` serves a message's attachment: the local file with Range support (video, voice),
 a download on demand if it isn't local yet, and the stored thumbnail while the full file can't be
@@ -149,7 +158,7 @@ had (`?thumb=1` asks for the thumbnail directly).
 ## Wiping local data
 
 - **From the app**: Settings → About → Delete local data. It logs out, then empties every table in
-  `whatszori.db` and deletes `media/`. Plain "Log out" keeps everything.
+  `whatszori.db` and deletes `media/` and `avatars/`. Plain "Log out" keeps everything.
 - **By hand** (app closed):
   - Only messages and media: delete `whatszori.db*` and `media/`. You stay logged in; history sync
     won't run again for an existing session, so only new messages show up.

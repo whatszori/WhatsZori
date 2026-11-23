@@ -82,7 +82,7 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
         aria-expanded={infoOpen}
         onClick={() => useUI.getState().setChatInfoOpen(!infoOpen)}
       >
-        <Avatar name={chat.name} size={36} group={chat.isGroup} />
+        <Avatar name={chat.name} jid={chat.jid} size={36} group={chat.isGroup} />
         <span className="wz-conv-header__text">
           <span className="wz-conv-header__name">{chat.name}</span>
           <span

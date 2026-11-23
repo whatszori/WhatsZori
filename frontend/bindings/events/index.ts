@@ -24,6 +24,11 @@ export const AuthQr = "auth:qr";
 export const AuthState = "auth:state";
 
 /**
+ * Name of the custom event "avatar:changed".
+ */
+export const AvatarChanged = "avatar:changed";
+
+/**
  * Name of the custom event "chat:removed".
  */
 export const ChatRemoved = "chat:removed";

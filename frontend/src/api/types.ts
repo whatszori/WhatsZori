@@ -249,6 +249,8 @@ export interface BackendEvents extends WzEvents {
   'chat:update': { chat: Chat };
   // a LID chat that turned out to be the same person as a phone-number chat and was merged into it
   'chat:removed': { jid: JID };
+  // a profile picture or group photo changed; reload it
+  'avatar:changed': { jid: JID };
   presence: { jid: JID; online: boolean; lastSeen: number | null };
   'chat:typing': { chatJid: JID; senderJid: JID; senderName: string; typing: boolean };
   'sync:progress': SyncProgress;

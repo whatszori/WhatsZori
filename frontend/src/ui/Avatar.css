@@ -24,3 +24,26 @@
   background: var(--wz-success);
   box-shadow: 0 0 0 2px var(--wz-bg-primary);
 }
+
+/* the picture sits over the initials and only shows once it has loaded, so a missing or slow
+   picture never flashes an empty circle */
+.wz-avatar__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-avatar--photo .wz-avatar__img {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-avatar__img {
+    transition: none;
+  }
+}

@@ -140,7 +140,7 @@ function Members({ chat, members }: { chat: Chat; members: GroupMember[] }) {
           const direct = !m.isMe ? chats[m.jid] : undefined;
           const body = (
             <>
-              <Avatar name={m.isMe ? profileName || 'You' : m.name} size={40} />
+              <Avatar name={m.isMe ? profileName || 'You' : m.name} jid={m.jid} size={40} />
               <span className="wz-info__member-text">
                 <span className="wz-info__member-name">{m.isMe ? 'You' : m.name}</span>
                 {!m.isMe && <span className="wz-info__member-phone">{m.phone}</span>}
@@ -199,7 +199,7 @@ export function ChatInfoPanel({ chat }: { chat: Chat }) {
 
       <div className="wz-info__scroll">
         <div className="wz-info__hero">
-          <Avatar name={chat.name} size={112} group={chat.isGroup} />
+          <Avatar name={chat.name} jid={chat.jid} size={112} group={chat.isGroup} />
           <h3 className="wz-info__name wz-selectable">{chat.name}</h3>
           <p className="wz-info__sub wz-selectable">
             {chat.isGroup

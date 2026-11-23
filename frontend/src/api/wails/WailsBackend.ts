@@ -133,6 +133,8 @@ export class WailsBackend implements Backend {
   media = {
     url: (pk: MessagePK, thumb = false) =>
       `/wz-media/${encodeURIComponent(pk)}${thumb ? '?thumb=1' : ''}`,
+    avatarUrl: (jid: JID, full = false) =>
+      `/wz-avatar/${encodeURIComponent(jid)}${full ? '?full=1' : ''}`,
     canAttach: true,
   };
 

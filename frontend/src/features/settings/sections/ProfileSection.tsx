@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Check, Pencil, Phone, User, Info } from 'lucide-react';
+import { useConnection } from '../../../stores/connection';
 import { useProfile } from '../../../stores/profile';
 import { Avatar, IconButton, Input, useLayer } from '../../../ui';
 import { Page } from './common';
@@ -83,13 +84,14 @@ function EditableField({
 
 export function ProfileSection() {
   const profile = useProfile((s) => s.profile);
+  const myJid = useConnection((s) => s.auth.me?.jid);
   const { setName, setAbout } = useProfile.getState();
 
   return (
     <Page title="Profile">
       <div className="wz-profile">
         <div className="wz-profile__avatar">
-          <Avatar name={profile.name || profile.phone} size={128} />
+          <Avatar name={profile.name || profile.phone} jid={myJid} size={128} />
         </div>
         <EditableField
           icon={<User size={18} />}

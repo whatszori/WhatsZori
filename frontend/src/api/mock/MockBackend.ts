@@ -260,6 +260,7 @@ export class MockBackend implements Backend {
   // mock media are placeholders, there's nothing to load or attach
   media = {
     url: (): string => '',
+    avatarUrl: (): string => '',
     canAttach: false,
   };
 

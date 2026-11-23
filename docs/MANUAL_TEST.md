@@ -37,6 +37,10 @@ message text or full phone numbers. Keep an eye on that throughout.
       and pinned / archived / muted state matching the phone.
 - [ ] Open a busy chat and scroll up: older messages load without jumping.
 - [ ] Groups show their name, and the info panel lists members with admins marked.
+- [ ] Avatars: contacts and groups with a picture show it in the chat list, header and info panel
+      (sharp in the big info-panel one); contacts without one, or who hide it from you, show
+      initials. Your own picture shows on the rail and in Settings → Profile.
+- [ ] B changes their profile picture: WhatsZori shows the new one within a few seconds.
 - [ ] One person doesn't appear twice (once as a number, once as a name). If they do, note which
       chat; that's the LID / phone-number merge.
 

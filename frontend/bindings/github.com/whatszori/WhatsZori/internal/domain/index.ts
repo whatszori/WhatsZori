@@ -12,6 +12,7 @@ export {
 export type {
     AuthErrorEvent,
     AuthStatus,
+    AvatarChangedEvent,
     Chat,
     ChatInfo,
     ChatRemovedEvent,

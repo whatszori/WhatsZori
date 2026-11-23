@@ -73,7 +73,13 @@ export const ChatItem = memo(function ChatItem({
       onClick={() => onOpen(chat.jid)}
       onContextMenu={openMenu}
     >
-      <Avatar name={chat.name} size={avatarSize} group={chat.isGroup} online={chat.online} />
+      <Avatar
+        name={chat.name}
+        jid={chat.jid}
+        size={avatarSize}
+        group={chat.isGroup}
+        online={chat.online}
+      />
       <span className="wz-chat-item__body">
         <span className="wz-chat-item__top">
           <span className="wz-chat-item__name">{chat.name}</span>

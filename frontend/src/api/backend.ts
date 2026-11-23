@@ -68,6 +68,8 @@ export interface ContactService {
 export interface MediaService {
   // where to load a message's attachment from; empty when there's nothing to load (mock)
   url(pk: MessagePK, thumb?: boolean): string;
+  // profile picture or group photo; empty when there's none to load (mock). full = big version
+  avatarUrl(jid: JID, full?: boolean): string;
   // attachments can be sent (desktop app only)
   canAttach: boolean;
 }

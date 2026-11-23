@@ -141,3 +141,6 @@ One line each, with the reason.
 - Toasts are a small store plus one component: bottom centre, at most three, deduplicated, gone after 5–7 s. There was no toast UI before.
 - Typing notifications: `composing` at most every 8 s while keys are pressed, `paused` after 5 s idle, on send, and on leaving the chat.
 - `auth.getConnState()` was added because `conn:state` events emitted before the UI subscribed are lost; the UI asks once on start.
+- Avatars: the ~96 px preview from WhatsApp for small avatars, the full picture from 72 px up (info panel, profile). The picture id is sent back on refresh, so an unchanged picture costs one small request and no download. At most three requests run at once, and "no picture" / "hidden" answers are cached for a day too, so scrolling the chat list doesn't hammer WhatsApp.
+- Avatar pictures are only fetched from `https://*.whatsapp.net`, served as `image/jpeg` with `nosniff`, and cached by the webview for an hour; `avatar:changed` adds `?v=n` to force a reload. The frontend remembers 404s per URL, because the virtualized chat list remounts avatars constantly.
+- The picture fades in over the initials only after it has loaded, so a slow or missing picture never shows an empty circle.

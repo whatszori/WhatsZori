@@ -48,6 +48,9 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
 - **Media**: auto-download of photos, voice notes and stickers up to 16 MB, everything else on
   demand. `/wz-media/<pk>` serves the file with Range support, downloads on demand, falls back to
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
+- **Avatars**: profile pictures and group photos in the chat list, chat header, info panel, member
+  list and your own profile, with the initials as fallback (no picture, hidden, offline). Cached on
+  disk, refreshed daily or when WhatsApp says a picture changed.
 - **Search** with FTS5 (prefix matching, any script) behind `messages.search`. There's still no
   search-results screen; the sidebar search filters chats by name, as before.
 - **Frontend**: real QR, toasts (new: there was no toast UI), sync progress in the connection
@@ -187,7 +190,7 @@ Everything in the brief is in; nothing was cut.
 1. **Live test** with [MANUAL_TEST.md](MANUAL_TEST.md), then fix what it finds. The LID
    addressing of reactions and admin deletes in groups is the most likely rough spot.
 2. Voice note sending (record in the webview, encode to Opus/OGG, upload as PTT).
-3. New chat by number or from contacts (`contacts.list()` is ready), and the profile pictures.
+3. New chat by number or from contacts (`contacts.list()` is ready).
 4. A message search results screen (`messages.search` with FTS5 is ready).
 5. Show poll results, pinned messages and disappearing-message timers.
 6. Plugin loader reading `<config>/plugins`, gated by safe mode, using the plugin tables.

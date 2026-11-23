@@ -21,6 +21,7 @@ declare module "@wailsio/runtime" {
             "auth:error": domain$0.AuthErrorEvent;
             "auth:qr": domain$0.QRPayload;
             "auth:state": domain$0.AuthStatus;
+            "avatar:changed": domain$0.AvatarChangedEvent;
             "chat:removed": domain$0.ChatRemovedEvent;
             "chat:typing": domain$0.TypingEvent;
             "chat:update": domain$0.ChatUpdateEvent;
