@@ -35,6 +35,7 @@ interface MessagesState {
   // resolve to false when the backend refused (offline, rate limit); the error is already a toast
   send(jid: JID, text: string, replyToPk?: MessagePK): Promise<boolean>;
   attach(jid: JID): Promise<void>;
+  sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<void>;
   edit(jid: JID, pk: MessagePK, text: string): Promise<void>;
   revoke(jid: JID, pk: MessagePK): Promise<void>;
   react(jid: JID, pk: MessagePK, emoji: string): Promise<void>;
@@ -133,6 +134,15 @@ export const useMessages = create<MessagesState>((set, get) => {
       } catch (err) {
         toastError(err, 'Not sent');
         return false;
+      }
+    },
+
+    async sendVoice(jid, recording, waveform) {
+      try {
+        const m = await backend.messages.sendVoice(jid, recording, waveform);
+        updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
+      } catch (err) {
+        toastError(err, 'Voice message not sent');
       }
     },
 

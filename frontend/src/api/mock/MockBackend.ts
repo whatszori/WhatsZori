@@ -553,6 +553,31 @@ export class MockBackend implements Backend {
       return clone(hits.slice(0, 50));
     },
     attachFile: async (): Promise<Message | null> => null,
+    // the browser preview keeps the voice note as a placeholder bubble; nothing is uploaded
+    sendVoice: async (jid: JID, recording: Blob, waveform: number[]): Promise<Message> => {
+      await this.wait();
+      const m: Message = {
+        pk: String(this.db.nextPk++),
+        id: `3EB0VOICE${this.db.nextPk}`,
+        chatJid: jid,
+        senderJid: this.db.me.jid,
+        senderName: this.db.me.name,
+        fromMe: true,
+        timestamp: Date.now(),
+        kind: 'voice',
+        text: '',
+        status: 'pending',
+        reactions: [],
+        media: {
+          duration: Math.max(1, Math.round(recording.size / 4000)),
+          waveform: waveform.map((v) => v / 100),
+          size: recording.size,
+        },
+      };
+      this.insert(m);
+      this.progressStatus(m);
+      return clone(m);
+    },
     listShared: async (
       jid: JID,
       kind: SharedKind,

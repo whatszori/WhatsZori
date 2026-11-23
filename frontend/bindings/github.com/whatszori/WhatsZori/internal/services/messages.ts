@@ -54,3 +54,11 @@ export function Search(query: string): $CancellablePromise<domain$0.SearchHit[] 
 export function SendText(jid: string, text: string, replyToPk: string): $CancellablePromise<domain$0.Message> {
     return $Call.ByID(2446577561, jid, text, replyToPk);
 }
+
+/**
+ * SendVoice sends a voice note: data is the WebM/Opus recording, base64-encoded; waveform has
+ * 0..100 per bar (WhatsApp uses 64).
+ */
+export function SendVoice(jid: string, data: string, waveform: number[] | null): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(535195876, jid, data, waveform);
+}

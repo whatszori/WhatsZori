@@ -94,6 +94,8 @@ export interface MessageService {
   search(query: string): Promise<SearchHit[]>;
   // opens the system file picker and sends the choice; null when cancelled
   attachFile(jid: JID): Promise<Message | null>;
+  // a voice note recorded in the page (WebM/Opus); waveform is 0..100 per bar
+  sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<Message>;
   // a chat's photos and videos, documents, or messages with links, newest first
   listShared(
     jid: JID,

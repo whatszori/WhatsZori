@@ -6,12 +6,14 @@ import {
   useState,
   type KeyboardEvent,
 } from 'react';
-import { Check, Paperclip, Pencil, Reply, SendHorizontal, Smile, X } from 'lucide-react';
+import { Check, Mic, Paperclip, Pencil, Reply, SendHorizontal, Smile, X } from 'lucide-react';
 import { backend, type Chat, type JID } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { canEdit, useMessages } from '../../stores/messages';
 import { composerFor, useUI } from '../../stores/ui';
 import { IconButton, Popover, type PopoverAnchor } from '../../ui';
+import { toastError } from '../../stores/toasts';
+import { VoiceRecorder, canRecord } from './VoiceRecorder';
 import './Composer.css';
 
 const MAX_LINES = 8;
@@ -88,6 +90,9 @@ export function Composer({ chat }: { chat: Chat }) {
   const editMsg = state.editing ? items?.find((m) => m.pk === state.editing) : undefined;
   const text = state.draft;
   const canSend = text.trim().length > 0;
+  const [recording, setRecording] = useState(false);
+  // the mic takes the send button's place while there's nothing to send
+  const showMic = !canSend && !state.editing && canRecord();
 
   // focus when a chat opens
   useEffect(() => {
@@ -179,54 +184,83 @@ export function Composer({ chat }: { chat: Chat }) {
   return (
     <div className="wz-composer">
       {bar}
-      <div className="wz-composer__row">
-        <IconButton
-          label={
-            backend.media.canAttach
-              ? 'Attach a photo or file'
-              : 'Attachments work in the desktop app'
-          }
-          className="wz-composer__attach"
-          icon={<Paperclip size={18} />}
-          tooltipPlacement="top"
-          disabled={!backend.media.canAttach}
-          onClick={() => void useMessages.getState().attach(jid)}
-        />
-        <textarea
-          ref={ref}
-          className="wz-composer__input"
-          rows={1}
-          placeholder={chat.isGroup ? `Message ${chat.name}` : 'Write a message'}
-          aria-label="Message"
-          value={text}
-          onChange={(e) => {
-            ui.setDraft(jid, e.target.value);
-            if (e.target.value && !state.editing) typing.typed();
-            else typing.stop();
-          }}
-          onKeyDown={onKeyDown}
-          spellCheck
-        />
-        <PluginSlot name="composer.actions" props={{ chatJid: jid, insertText: insert }} />
-        <IconButton
-          label="Emoji"
-          className="wz-composer__emoji"
-          icon={<Smile size={18} />}
-          tooltipPlacement="top"
-          aria-haspopup="dialog"
-          aria-expanded={!!emoji}
-          onClick={(e) => setEmoji(e.currentTarget.getBoundingClientRect())}
-        />
-        <IconButton
-          label={editMsg ? 'Save edit' : 'Send'}
-          hint="Enter"
-          tooltipPlacement="top"
-          className={`wz-composer__send${canSend ? ' wz-composer__send--ready' : ''}`}
-          icon={editMsg ? <Check size={18} /> : <SendHorizontal size={18} />}
-          disabled={!canSend}
-          onClick={submit}
-        />
-      </div>
+      {recording ? (
+        <div className="wz-composer__row">
+          <VoiceRecorder
+            onCancel={() => setRecording(false)}
+            onError={(message) => {
+              setRecording(false);
+              toastError(message);
+            }}
+            onSend={(r) => {
+              setRecording(false);
+              void useMessages.getState().sendVoice(jid, r.blob, r.waveform);
+            }}
+          />
+        </div>
+      ) : (
+        <div className="wz-composer__row">
+          <IconButton
+            label={
+              backend.media.canAttach
+                ? 'Attach a photo or file'
+                : 'Attachments work in the desktop app'
+            }
+            className="wz-composer__attach"
+            icon={<Paperclip size={18} />}
+            tooltipPlacement="top"
+            disabled={!backend.media.canAttach}
+            onClick={() => void useMessages.getState().attach(jid)}
+          />
+          <textarea
+            ref={ref}
+            className="wz-composer__input"
+            rows={1}
+            placeholder={chat.isGroup ? `Message ${chat.name}` : 'Write a message'}
+            aria-label="Message"
+            value={text}
+            onChange={(e) => {
+              ui.setDraft(jid, e.target.value);
+              if (e.target.value && !state.editing) typing.typed();
+              else typing.stop();
+            }}
+            onKeyDown={onKeyDown}
+            spellCheck
+          />
+          <PluginSlot name="composer.actions" props={{ chatJid: jid, insertText: insert }} />
+          <IconButton
+            label="Emoji"
+            className="wz-composer__emoji"
+            icon={<Smile size={18} />}
+            tooltipPlacement="top"
+            aria-haspopup="dialog"
+            aria-expanded={!!emoji}
+            onClick={(e) => setEmoji(e.currentTarget.getBoundingClientRect())}
+          />
+          {showMic ? (
+            <IconButton
+              label="Record a voice message"
+              tooltipPlacement="top"
+              className="wz-composer__send"
+              icon={<Mic size={18} />}
+              onClick={() => {
+                typing.stop();
+                setRecording(true);
+              }}
+            />
+          ) : (
+            <IconButton
+              label={editMsg ? 'Save edit' : 'Send'}
+              hint="Enter"
+              tooltipPlacement="top"
+              className={`wz-composer__send${canSend ? ' wz-composer__send--ready' : ''}`}
+              icon={editMsg ? <Check size={18} /> : <SendHorizontal size={18} />}
+              disabled={!canSend}
+              onClick={submit}
+            />
+          )}
+        </div>
+      )}
       <Popover
         open={!!emoji}
         anchor={emoji}

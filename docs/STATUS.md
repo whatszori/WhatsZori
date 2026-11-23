@@ -48,6 +48,7 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
 - **Media**: auto-download of photos, voice notes and stickers up to 16 MB, everything else on
   demand. `/wz-media/<pk>` serves the file with Range support, downloads on demand, falls back to
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
+- **Voice notes**: record in the composer (mic button), sent as real WhatsApp voice notes (Ogg/Opus, waveform, duration).
 - **Tray and unread badge**: closing the window keeps WhatsZori running in the tray (optional), unread chats on the taskbar button (Windows), the dock (KDE, Dash to Dock) and the tray icon.
 - **WhatsZori's own notifications on Windows** (default there): themed cards in the corner that never steal focus, reply and mark-as-read inside, restylable by themes (`--wz-ntf-*`) and plugins (`notification.card`, `notification.accessories`). Windows' own toasts are one switch away.
 - **Desktop notifications** on Windows and on Linux (GNOME, KDE Plasma and any freedesktop
@@ -193,7 +194,7 @@ Everything in the brief is in; nothing was cut.
 
 - **Not tested live**: the whole WhatsApp side. Run [MANUAL_TEST.md](MANUAL_TEST.md) before
   trusting it with your main account.
-- Cut from this round: voice note sending. Also not there: calls, blocking, group admin actions,
+- Not there yet: calls, blocking, group admin actions,
   starting a chat by number, statuses and channels, poll results.
 - The `extensions`, `plugin_settings` and `plugin_storage` tables exist but nothing uses them yet.
 - `contacts.list()` exists on both backends but no screen uses it yet (it's meant for a new-chat

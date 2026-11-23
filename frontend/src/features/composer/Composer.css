@@ -123,3 +123,65 @@
   font-size: var(--wz-font-size-xs);
   text-align: center;
 }
+
+/* voice note recording, in place of the input */
+.wz-recorder {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--wz-space-2);
+  min-width: 0;
+  min-height: 40px;
+}
+
+.wz-recorder__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-left: var(--wz-space-1);
+  border-radius: 50%;
+  background: var(--wz-danger);
+  animation: wz-recorder-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes wz-recorder-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.wz-recorder__time {
+  flex: none;
+  min-width: 40px;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.wz-recorder__bars {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.wz-recorder__bar {
+  flex: 1;
+  min-width: 2px;
+  max-width: 4px;
+  border-radius: 1px;
+  background: var(--wz-accent);
+  transition: height 80ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-recorder__dot {
+    animation: none;
+  }
+  .wz-recorder__bar {
+    transition: none;
+  }
+}

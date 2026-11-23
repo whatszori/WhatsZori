@@ -152,6 +152,16 @@ export class WailsBackend implements Backend {
       const page = await Messages.ListShared(jid, kind, beforePk ?? '', limit);
       return { messages: (page.messages ?? []).map(message), hasMore: page.hasMore };
     },
+    sendVoice: async (jid: JID, recording: Blob, waveform: number[]): Promise<Message> => {
+      // bindings carry JSON, so the bytes go as base64
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(',')[1] ?? '');
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(recording);
+      });
+      return message(await Messages.SendVoice(jid, b64, waveform));
+    },
     attachFile: async (jid: JID): Promise<Message | null> => {
       const m = await Messages.AttachFile(jid);
       return m ? message(m) : null;
