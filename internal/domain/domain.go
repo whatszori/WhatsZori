@@ -351,6 +351,24 @@ type NotificationOpenEvent struct {
 	Reply   bool   `json:"reply"`
 }
 
+// InAppToast is one WhatsZori-drawn notification, for the toast window.
+type InAppToast struct {
+	ID      string `json:"id"`
+	ChatJID string `json:"chatJid"`
+	PK      string `json:"pk"`
+	Title   string `json:"title"`
+	Body    string `json:"body"`
+	// /wz-avatar/... for the chat, empty for summaries and with previews off
+	Avatar  string `json:"avatar"`
+	IsGroup bool   `json:"isGroup"`
+	Actions bool   `json:"actions"`
+	At      int64  `json:"at"`
+}
+
+type SettingsChangedEvent struct {
+	Key string `json:"key"`
+}
+
 type PresenceEvent struct {
 	JID      string `json:"jid"`
 	Online   bool   `json:"online"`

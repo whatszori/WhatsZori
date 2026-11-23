@@ -20,6 +20,8 @@ type notifySettings struct {
 	Enabled *bool `json:"enabled"`
 	Preview *bool `json:"preview"`
 	Sound   *bool `json:"sound"`
+	// auto, system or whatszori
+	Style string `json:"style"`
 }
 
 func (c *Core) notifySettings() notify.Settings {
@@ -30,6 +32,22 @@ func (c *Core) notifySettings() notify.Settings {
 	on := func(b *bool) bool { return b == nil || *b }
 	n := s.Notifications
 	return notify.Settings{Enabled: on(n.Enabled), Preview: on(n.Preview), Sound: on(n.Sound)}
+}
+
+// CustomToasts reports whether notifications should be WhatsZori's own window rather than the
+// system's. "auto" means ours on Windows (its toasts can't be styled), the system's elsewhere.
+func (c *Core) CustomToasts(isWindows bool) bool {
+	var s struct {
+		Notifications notifySettings `json:"notifications"`
+	}
+	c.settings.Decode(KeyApp, &s)
+	switch s.Notifications.Style {
+	case "system":
+		return false
+	case "whatszori":
+		return true
+	}
+	return isWindows
 }
 
 // SetDesktop plugs in the platform's notifications and starts them. focused reports whether the

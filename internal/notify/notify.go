@@ -32,6 +32,8 @@ type Toast struct {
 	Silent bool
 	// reply field and "Mark as read"
 	Actions bool
+	// the chat is a group (WhatsZori's own toasts show a group icon)
+	Group bool
 }
 
 type Options struct {
@@ -269,7 +271,7 @@ func (c *Center) summary(body, chat string) Toast {
 
 func (c *Center) messageToast(b *batch) Toast {
 	s := c.o.Settings()
-	t := Toast{ID: c.nextID(), Chat: b.chat.JID, PK: b.last.PK, Silent: !s.Sound, Actions: true}
+	t := Toast{ID: c.nextID(), Chat: b.chat.JID, PK: b.last.PK, Silent: !s.Sound, Actions: true, Group: b.chat.IsGroup}
 	if !s.Preview {
 		// nothing about who or what: someone looking at the screen learns only that something came
 		t.Title = "WhatsZori"

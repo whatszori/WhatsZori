@@ -12,6 +12,10 @@ import (
 const (
 	SystemThemeChanged = "wz:systheme:changed"
 	ThemeChanged       = "wz:theme:changed"
+	// settings were saved (the toast window follows the main window's theme with this)
+	SettingsChanged = "wz:settings:changed"
+	ToastShow       = "wz:toast:show"
+	ToastWithdraw   = "wz:toast:withdraw"
 
 	AuthQR       = "auth:qr"
 	AuthState    = "auth:state"
@@ -36,7 +40,7 @@ const (
 
 // All lists every event name, for the sync test.
 var All = []string{
-	SystemThemeChanged, ThemeChanged,
+	SystemThemeChanged, ThemeChanged, SettingsChanged, ToastShow, ToastWithdraw,
 	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction,
 	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, NotifyOpen, Presence, ChatTyping, SyncProgress, Toast,
 }
@@ -45,6 +49,9 @@ func init() {
 	// registered events are type-checked on emit, and the binding generator sees them
 	application.RegisterEvent[systheme.SystemPalette](SystemThemeChanged)
 	application.RegisterEvent[themes.Changed](ThemeChanged)
+	application.RegisterEvent[domain.SettingsChangedEvent](SettingsChanged)
+	application.RegisterEvent[domain.InAppToast](ToastShow)
+	application.RegisterEvent[domain.ChatRemovedEvent](ToastWithdraw)
 	application.RegisterEvent[domain.QRPayload](AuthQR)
 	application.RegisterEvent[domain.AuthStatus](AuthState)
 	application.RegisterEvent[domain.AuthErrorEvent](AuthError)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/whatszori/WhatsZori/internal/domain"
+	"github.com/whatszori/WhatsZori/internal/events"
 	"github.com/whatszori/WhatsZori/internal/settings"
 )
 
@@ -19,9 +21,12 @@ var goOwnedKeys = map[string]bool{KeyWindow: true, "privacy": true}
 
 type Settings struct {
 	store *settings.Store
+	emit  events.Emitter
 }
 
-func NewSettings(store *settings.Store) *Settings { return &Settings{store: store} }
+func NewSettings(store *settings.Store, emit events.Emitter) *Settings {
+	return &Settings{store: store, emit: emit}
+}
 
 // Get returns the stored value, or null when the key was never set.
 func (s *Settings) Get(key string) (any, error) {
@@ -44,7 +49,11 @@ func (s *Settings) Set(key string, value any) error {
 	if goOwnedKeys[key] {
 		return fmt.Errorf("settings key %q is managed by the app", key)
 	}
-	return s.store.Set(key, value)
+	if err := s.store.Set(key, value); err != nil {
+		return err
+	}
+	s.emit.Emit(events.SettingsChanged, domain.SettingsChangedEvent{Key: key})
+	return nil
 }
 
 func (s *Settings) GetAll() (map[string]any, error) {

@@ -51,6 +51,7 @@ type App struct {
 
 	core     *core.Core
 	notifier notify.Desktop
+	toasts   *toastWindow
 	focused  atomic.Bool
 
 	mu     sync.Mutex
@@ -93,6 +94,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 	}
 	wa.SetFolderOpener(func(dir string) error { return a.wails.Env.OpenFileManager(dir, false) })
 	a.core = wa
+	a.toasts = newToastWindow(a)
 	// Windows (and macOS) go through Wails' toast service; Linux talks the freedesktop spec
 	// itself, which GNOME, KDE and the rest share. See internal/notify.
 	var toastService []application.Service
@@ -115,7 +117,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 		Description: "Desktop WhatsApp client",
 		Services: append(toastService,
 			application.NewService(services.NewSystem(Version, cfg.Paths, a.boot, shell{a})),
-			application.NewService(services.NewSettings(store)),
+			application.NewService(services.NewSettings(store, events.Wails{})),
 			application.NewService(a.sysTheme),
 			application.NewService(services.NewThemes(cfg.Paths.Themes, events.Wails{})),
 			application.NewService(services.NewWindow(a)),
@@ -128,6 +130,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewMedia(wa, desktop{a})),
 			application.NewService(services.NewExport(wa, desktop{a})),
 			application.NewService(services.NewNotifications(wa)),
+			application.NewService(&Toasts{t: a.toasts}),
 		),
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
@@ -235,7 +238,12 @@ func (a *App) createWindow() {
 
 	a.window.OnWindowEvent(wailsevents.Common.WindowDidMove, func(*application.WindowEvent) { a.trackNormal() })
 	a.window.OnWindowEvent(wailsevents.Common.WindowDidResize, func(*application.WindowEvent) { a.trackNormal() })
-	a.window.OnWindowEvent(wailsevents.Common.WindowClosing, func(*application.WindowEvent) { a.saveWindowState() })
+	a.window.OnWindowEvent(wailsevents.Common.WindowClosing, func(*application.WindowEvent) {
+		a.saveWindowState()
+		// the hidden toast window would otherwise keep the process alive with no window to see
+		application.InvokeAsync(a.wails.Quit)
+	})
+	a.toasts.create()
 
 	a.window.OnWindowEvent(wailsevents.Common.WindowFocus, func(*application.WindowEvent) {
 		a.focused.Store(true)
@@ -245,9 +253,21 @@ func (a *App) createWindow() {
 	a.window.OnWindowEvent(wailsevents.Common.WindowLostFocus, func(*application.WindowEvent) { a.focused.Store(false) })
 
 	a.wails.Event.OnApplicationEvent(wailsevents.Common.ApplicationStarted, func(*application.ApplicationEvent) {
-		application.InvokeAsync(a.placeWindow)
+		application.InvokeAsync(func() {
+			// before the main window shows, so the one moment the toast window grabs focus is
+			// while nothing else has it yet
+			if a.toasts.win != nil {
+				primeToastWindow(a.toasts.win)
+			}
+			a.placeWindow()
+		})
 		// D-Bus setup can take a moment; not on the UI thread
-		go a.core.SetDesktop(context.Background(), flashing{a.notifier, a}, a.focused.Load, a.focus)
+		desk := notify.Switch{
+			System:    a.notifier,
+			Custom:    a.toasts,
+			UseCustom: func() bool { return a.core.CustomToasts(runtime.GOOS == "windows") },
+		}
+		go a.core.SetDesktop(context.Background(), flashing{desk, a}, a.focused.Load, a.focus)
 	})
 }
 
