@@ -358,6 +358,7 @@ export class MockBackend implements Backend {
       });
       return out;
     },
+    setActive: async (): Promise<void> => undefined,
     lists: async (): Promise<ChatList[]> => clone(this.lists_),
     createList: async (name: string): Promise<ChatList> => {
       await this.wait();
@@ -399,6 +400,13 @@ export class MockBackend implements Backend {
       return [...this.db.chats.values()]
         .filter((c) => !c.isGroup)
         .map((c) => ({ jid: c.jid, name: c.name, phone: '+' + c.jid.split('@')[0] }));
+    },
+  };
+
+  notifications = {
+    available: async (): Promise<boolean> => false,
+    test: async (): Promise<void> => {
+      throw new Error('Desktop notifications work in the desktop app');
     },
   };
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import {
+  Bell,
   Brush,
   CircleUser,
   History,
@@ -14,6 +15,7 @@ import { AboutSection } from './AboutSection';
 import { AppearanceSection } from './AppearanceSection';
 import { MarketplaceSection, PluginsSection } from './ExtensionsSections';
 import { HistorySection } from './HistorySection';
+import { NotificationsSection } from './NotificationsSection';
 import { PrivacySection } from './PrivacySection';
 import { ProfileSection } from './ProfileSection';
 import { ThemesSection } from './ThemesSection';
@@ -37,6 +39,12 @@ export const SECTIONS: SectionInfo[] = [
     label: 'Appearance',
     hint: 'Theme, accent, layout, text size',
     icon: <Palette size={18} />,
+  },
+  {
+    id: 'notifications',
+    label: 'Notifications',
+    hint: 'Desktop notifications, preview, sound',
+    icon: <Bell size={18} />,
   },
   {
     id: 'privacy',
@@ -70,6 +78,8 @@ export function SectionBody({ section }: { section: SettingsSection }) {
   switch (section) {
     case 'profile':
       return <ProfileSection />;
+    case 'notifications':
+      return <NotificationsSection />;
     case 'privacy':
       return <PrivacySection />;
     case 'history':

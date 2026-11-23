@@ -38,6 +38,7 @@ export type {
     MsgEditedEvent,
     MsgReactionEvent,
     MsgStatusEvent,
+    NotificationOpenEvent,
     PresenceEvent,
     Profile,
     QRPayload,

@@ -236,6 +236,12 @@ export interface AppSettings {
     layout?: 'panels' | 'rail';
     fontScale: number;
   };
+  notifications: {
+    enabled: boolean;
+    // who wrote and what; off = just "New message"
+    preview: boolean;
+    sound: boolean;
+  };
   history: {
     keepDeleted: boolean;
     keepEditHistory: boolean;
@@ -307,6 +313,8 @@ export interface BackendEvents extends WzEvents {
   // every message of the chat was removed locally
   'chat:cleared': { jid: JID };
   'export:progress': ExportProgress;
+  // a desktop notification was clicked; reply = "Reply" on a desktop without a reply field
+  'notification:open': { chatJid: JID; pk: MessagePK; reply: boolean };
   presence: { jid: JID; online: boolean; lastSeen: number | null };
   'chat:typing': { chatJid: JID; senderJid: JID; senderName: string; typing: boolean };
   'sync:progress': SyncProgress;

@@ -48,6 +48,19 @@ export function bindBackendEvents(be: Backend): () => void {
       if (useUI.getState().activeChat === jid) void useMessages.getState().loadInitial(jid);
     }),
     be.on('export:progress', (p) => useExports.getState().update(p)),
+    be.on('notification:open', ({ chatJid, pk, reply }) => {
+      useUI.getState().closeSettings();
+      void useChats
+        .getState()
+        .openWith(chatJid)
+        .then(() => {
+          if (pk && !reply) useUI.getState().jumpTo(chatJid, pk);
+          if (reply)
+            requestAnimationFrame(() =>
+              document.querySelector<HTMLTextAreaElement>('.wz-composer__input')?.focus(),
+            );
+        });
+    }),
     be.on('avatar:changed', ({ jid }) => useAvatars.getState().bump(jid)),
     be.on('chat:removed', ({ jid }) => {
       useChats.getState().remove(jid);
@@ -60,5 +73,15 @@ export function bindBackendEvents(be: Backend): () => void {
       useChats.getState().setTyping(chatJid, senderJid, senderName, typing),
     ),
   ];
+  // the open chat doesn't get desktop notifications
+  let active = useUI.getState().activeChat;
+  void be.chats.setActive(active).catch(() => {});
+  offs.push(
+    useUI.subscribe((s) => {
+      if (s.activeChat === active) return;
+      active = s.activeChat;
+      void be.chats.setActive(active).catch(() => {});
+    }),
+  );
   return () => offs.forEach((off) => off());
 }

@@ -325,6 +325,15 @@ export interface MsgStatusEvent {
     "status": MessageStatus;
 }
 
+/**
+ * a notification was clicked: open this chat (and focus the composer for "Reply" without a field)
+ */
+export interface NotificationOpenEvent {
+    "chatJid": string;
+    "pk": string;
+    "reply": boolean;
+}
+
 export interface PresenceEvent {
     "jid": string;
     "online": boolean;

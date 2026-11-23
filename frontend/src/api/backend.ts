@@ -61,6 +61,14 @@ export interface ChatService {
   renameList(id: number, name: string): Promise<void>;
   deleteList(id: number): Promise<void>;
   setInList(id: number, jid: JID, inList: boolean): Promise<void>;
+  // the chat open in the window (null for none), so it doesn't get desktop notifications
+  setActive(jid: JID | null): Promise<void>;
+}
+
+export interface NotificationService {
+  // false when the OS has nowhere to show them (Linux without a notification daemon, a browser)
+  available(): Promise<boolean>;
+  test(): Promise<void>;
 }
 
 export interface ExportService {
@@ -167,6 +175,7 @@ export interface Backend {
   contacts: ContactService;
   media: MediaService;
   export: ExportService;
+  notifications: NotificationService;
   settings: SettingsService;
   on<E extends BackendEventName>(
     event: E,

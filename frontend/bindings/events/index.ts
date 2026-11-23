@@ -84,6 +84,11 @@ export const MsgReaction = "msg:reaction";
 export const MsgStatus = "msg:status";
 
 /**
+ * Name of the custom event "notification:open".
+ */
+export const NotificationOpen = "notification:open";
+
+/**
  * Name of the custom event "presence".
  */
 export const Presence = "presence";

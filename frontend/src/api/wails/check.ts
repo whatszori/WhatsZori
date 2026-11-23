@@ -70,6 +70,7 @@ export type Checks = [
   Assert<SameKeys<Payload<'avatar:changed'>, Go.AvatarChangedEvent>>,
   Assert<SameKeys<Payload<'chat:cleared'>, Go.ChatRemovedEvent>>,
   Assert<SameKeys<Payload<'export:progress'>, Go.ExportProgressEvent>>,
+  Assert<SameKeys<Payload<'notification:open'>, Go.NotificationOpenEvent>>,
   Assert<SameKeys<Payload<'presence'>, Go.PresenceEvent>>,
   Assert<SameKeys<Payload<'chat:typing'>, Go.TypingEvent>>,
   Assert<SameKeys<Payload<'sync:progress'>, Go.SyncProgressEvent>>,

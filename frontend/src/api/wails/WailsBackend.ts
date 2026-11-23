@@ -7,6 +7,7 @@ import {
   Export,
   Media,
   Messages,
+  Notifications,
   Privacy,
   Profile,
   Settings,
@@ -108,6 +109,12 @@ export class WailsBackend implements Backend {
     renameList: (id: number, name: string) => Chats.RenameList(id, name),
     deleteList: (id: number) => Chats.DeleteList(id),
     setInList: (id: number, jid: JID, inList: boolean) => Chats.SetInList(id, jid, inList),
+    setActive: (jid: JID | null) => Chats.SetActive(jid ?? ''),
+  };
+
+  notifications = {
+    available: () => Notifications.Available(),
+    test: () => Notifications.Test(),
   };
 
   export = {

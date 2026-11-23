@@ -9,6 +9,7 @@ export type RailPanel = 'chats' | 'calls' | 'status';
 export type SettingsSection =
   | 'profile'
   | 'appearance'
+  | 'notifications'
   | 'privacy'
   | 'history'
   | 'plugins'

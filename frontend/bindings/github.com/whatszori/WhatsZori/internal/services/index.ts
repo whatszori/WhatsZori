@@ -7,6 +7,7 @@ import * as Contacts from "./contacts.js";
 import * as Export from "./export.js";
 import * as Media from "./media.js";
 import * as Messages from "./messages.js";
+import * as Notifications from "./notifications.js";
 import * as Privacy from "./privacy.js";
 import * as Profile from "./profile.js";
 import * as Settings from "./settings.js";
@@ -21,6 +22,7 @@ export {
     Export,
     Media,
     Messages,
+    Notifications,
     Privacy,
     Profile,
     Settings,

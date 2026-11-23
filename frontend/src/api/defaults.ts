@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     layout: 'panels',
     fontScale: 1,
   },
+  notifications: { enabled: true, preview: true, sound: true },
   history: { keepDeleted: true, keepEditHistory: true, autoDownloadMedia: true },
   plugins: { 'message-timestamps': true, 'translate-button': false, 'quick-reply-templates': true },
   themes: {},

@@ -80,6 +80,13 @@ export function RenameList(id: number, name: string): $CancellablePromise<void> 
     return $Call.ByID(3976060443, id, name);
 }
 
+/**
+ * SetActive is the chat open in the window ("" for none), so notifications skip it.
+ */
+export function SetActive(jid: string): $CancellablePromise<void> {
+    return $Call.ByID(1476077133, jid);
+}
+
 export function SetArchived(jid: string, archived: boolean): $CancellablePromise<void> {
     return $Call.ByID(3249146445, jid, archived);
 }
