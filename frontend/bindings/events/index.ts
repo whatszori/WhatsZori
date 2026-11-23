@@ -104,6 +104,11 @@ export const SyncProgress = "sync:progress";
 export const Toast = "toast";
 
 /**
+ * Name of the custom event "wz:settings:changed".
+ */
+export const WzSettingsChanged = "wz:settings:changed";
+
+/**
  * Name of the custom event "wz:systheme:changed".
  */
 export const WzSysthemeChanged = "wz:systheme:changed";
@@ -112,4 +117,14 @@ export const WzSysthemeChanged = "wz:systheme:changed";
  * Name of the custom event "wz:theme:changed".
  */
 export const WzThemeChanged = "wz:theme:changed";
+
+/**
+ * Name of the custom event "wz:toast:show".
+ */
+export const WzToastShow = "wz:toast:show";
+
+/**
+ * Name of the custom event "wz:toast:withdraw".
+ */
+export const WzToastWithdraw = "wz:toast:withdraw";
 

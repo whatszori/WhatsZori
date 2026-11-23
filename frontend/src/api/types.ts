@@ -241,6 +241,8 @@ export interface AppSettings {
     // who wrote and what; off = just "New message"
     preview: boolean;
     sound: boolean;
+    // auto = WhatsZori's own on Windows, the system's elsewhere
+    style: 'auto' | 'system' | 'whatszori';
   };
   history: {
     keepDeleted: boolean;

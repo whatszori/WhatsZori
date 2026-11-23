@@ -3,7 +3,7 @@ import { BellRing, Info } from 'lucide-react';
 import { backend, type AppSettings } from '../../../api';
 import { useSettings } from '../../../stores/settings';
 import { toastError } from '../../../stores/toasts';
-import { Button, Toggle } from '../../../ui';
+import { Button, Segmented, Toggle } from '../../../ui';
 import { Group, Page } from './common';
 
 type Notifications = AppSettings['notifications'];
@@ -14,6 +14,16 @@ export function NotificationsSection() {
   const set = (patch: Partial<Notifications>) =>
     update((s) => ({ ...s, notifications: { ...s.notifications, ...patch } }));
   const [available, setAvailable] = useState<boolean | null>(null);
+  const [platform, setPlatform] = useState('');
+  useEffect(() => {
+    void backend.system
+      .platform()
+      .then(setPlatform)
+      .catch(() => {});
+  }, []);
+  // WhatsZori's own popups exist on Windows only (Wayland doesn't let a window pick its place)
+  const canStyle = platform === 'windows';
+  const style = n.style === 'auto' ? (canStyle ? 'whatszori' : 'system') : n.style;
 
   useEffect(() => {
     let alive = true;
@@ -48,6 +58,27 @@ export function NotificationsSection() {
           disabled={!n.enabled}
           onChange={(sound) => set({ sound })}
         />
+        {canStyle && (
+          <div className="wz-setting-row">
+            <div>
+              <div className="wz-setting-row__label">Look</div>
+              <p className="wz-setting-row__desc">
+                WhatsZori’s own notifications follow your theme and plugins. Windows’ notifications
+                go to the Action Center.
+              </p>
+            </div>
+            <Segmented
+              label="Notification look"
+              size="sm"
+              value={style}
+              options={[
+                { value: 'whatszori', label: 'WhatsZori' },
+                { value: 'system', label: 'Windows' },
+              ]}
+              onChange={(v) => set({ style: v })}
+            />
+          </div>
+        )}
       </Group>
       <Group>
         <div className="wz-setting-row">

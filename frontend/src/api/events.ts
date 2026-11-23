@@ -5,6 +5,9 @@
 export const WZ_EVENTS = {
   systemThemeChanged: 'wz:systheme:changed',
   themeChanged: 'wz:theme:changed',
+  settingsChanged: 'wz:settings:changed',
+  toastShow: 'wz:toast:show',
+  toastWithdraw: 'wz:toast:withdraw',
 } as const;
 
 export type WzEventName = (typeof WZ_EVENTS)[keyof typeof WZ_EVENTS];
@@ -54,7 +57,26 @@ export interface ThemeFileChanged {
   hash: string;
 }
 
+// one notification drawn by WhatsZori itself (the toast window, desktop app on Windows)
+export interface InAppToast {
+  id: string;
+  // empty for summaries ("12 new messages in 3 chats")
+  chatJid: string;
+  pk: string;
+  title: string;
+  body: string;
+  // /wz-avatar/... or empty (no picture, or previews off)
+  avatar: string;
+  isGroup: boolean;
+  // reply and "Mark as read"
+  actions: boolean;
+  at: number;
+}
+
 export interface WzEvents {
   'wz:systheme:changed': SystemPalette;
   'wz:theme:changed': ThemeFileChanged;
+  'wz:settings:changed': { key: string };
+  'wz:toast:show': InAppToast;
+  'wz:toast:withdraw': { jid: string };
 }

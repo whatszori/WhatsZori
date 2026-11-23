@@ -4,13 +4,12 @@ import { bindBackendEvents } from '../stores/bind-events';
 import { useChats } from '../stores/chats';
 import { useConnection } from '../stores/connection';
 import { useProfile } from '../stores/profile';
-import { effectiveAccent, systemScheme, useSettings } from '../stores/settings';
+import { useSettings } from '../stores/settings';
 import { clampSidebar, useUI } from '../stores/ui';
-import { applyAppearance, nativeTheme } from '../theme/theme-manager';
+import { nativeTheme } from '../theme/theme-manager';
 import { registerDemoPlugins } from '../plugin-core/demo';
-import { applyThemes } from '../themes/loader';
-import { BUILTIN_THEMES } from '../themes/registry';
-import { applyUserTheme, keepUserThemeLast, useUserThemes } from '../themes/user-themes';
+import { useUserThemes } from '../themes/user-themes';
+import { useAppearance } from './useAppearance';
 
 // long enough that a plugin or theme that breaks the UI on load has had its chance to
 const BOOT_OK_AFTER = 4000;
@@ -48,26 +47,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
-    const { accent, accentFg } = effectiveAccent(settings, system);
-    applyAppearance({
-      theme: settings.appearance.theme,
-      accent,
-      accentFg,
-      systemScheme: systemScheme(system),
-      density: settings.appearance.density,
-      layout: settings.appearance.layout ?? 'panels',
-      fontScale: settings.appearance.fontScale,
-    });
-    applyThemes(BUILTIN_THEMES, settings);
-    keepUserThemeLast();
-  }, [settings, system]);
-
-  useEffect(() => {
-    const file = settings.userTheme;
-    const theme = file ? userThemes.find((t) => t.file === file) : undefined;
-    applyUserTheme(theme ? theme.file : null, theme?.hash ?? '');
-  }, [settings.userTheme, userThemes]);
+  useAppearance();
 
   // tell the native window once the page has its real colors, so the title bar and the
   // background behind the webview match (and the next start opens in the right colors)

@@ -194,6 +194,25 @@ export interface GroupMember {
     "isAdmin": boolean;
 }
 
+/**
+ * InAppToast is one WhatsZori-drawn notification, for the toast window.
+ */
+export interface InAppToast {
+    "id": string;
+    "chatJid": string;
+    "pk": string;
+    "title": string;
+    "body": string;
+
+    /**
+     * /wz-avatar/... for the chat, empty for summaries and with previews off
+     */
+    "avatar": string;
+    "isGroup": boolean;
+    "actions": boolean;
+    "at": number;
+}
+
 export interface Me {
     "jid": string;
     "name": string;
@@ -384,6 +403,10 @@ export interface SearchHit {
     "chatJid": string;
     "chatName": string;
     "message": Message;
+}
+
+export interface SettingsChangedEvent {
+    "key": string;
 }
 
 export interface SyncProgressEvent {

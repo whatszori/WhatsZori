@@ -27,6 +27,7 @@ export type {
     GhostSettings,
     GroupEvent,
     GroupMember,
+    InAppToast,
     Me,
     MediaInfo,
     MediaRef,
@@ -45,6 +46,7 @@ export type {
     Reaction,
     ReplyRef,
     SearchHit,
+    SettingsChangedEvent,
     SyncProgressEvent,
     ToastEvent,
     TypingEvent

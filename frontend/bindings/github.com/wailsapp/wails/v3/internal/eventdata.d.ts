@@ -37,8 +37,11 @@ declare module "@wailsio/runtime" {
             "presence": domain$0.PresenceEvent;
             "sync:progress": domain$0.SyncProgressEvent;
             "toast": domain$0.ToastEvent;
+            "wz:settings:changed": domain$0.SettingsChangedEvent;
             "wz:systheme:changed": systheme$0.SystemPalette;
             "wz:theme:changed": themes$0.Changed;
+            "wz:toast:show": domain$0.InAppToast;
+            "wz:toast:withdraw": domain$0.ChatRemovedEvent;
         }
     }
 }

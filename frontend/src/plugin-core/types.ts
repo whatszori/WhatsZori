@@ -21,6 +21,27 @@ export interface PluginMessage {
   deleted?: { byName: string; at: number };
 }
 
+// a desktop notification in WhatsZori's own toast window
+export interface PluginNotification {
+  id: string;
+  // empty for summaries
+  chatJid: string;
+  title: string;
+  body: string;
+  avatarUrl: string;
+  isGroup: boolean;
+  at: number;
+  // reply and "Mark as read" make sense (a message, not a summary)
+  hasActions: boolean;
+}
+
+export interface NotificationControls {
+  open(): void;
+  markRead(): void;
+  reply(text: string): void;
+  dismiss(): void;
+}
+
 export interface SlotProps {
   'sidebar.header': Record<string, never>;
   'sidebar.footer': Record<string, never>;
@@ -29,6 +50,11 @@ export interface SlotProps {
   'message.contextMenu': { message: PluginMessage; close: () => void };
   'composer.actions': { chatJid: string; insertText: (text: string) => void };
   'settings.sections': Record<string, never>;
+  // replaces the whole notification card; the first plugin that registers wins, and if it
+  // crashes the stock card is shown instead
+  'notification.card': { notification: PluginNotification; controls: NotificationControls };
+  // extra bits inside the stock card, under the text
+  'notification.accessories': { notification: PluginNotification };
 }
 
 export type SlotName = keyof SlotProps;

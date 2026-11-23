@@ -7,7 +7,7 @@ import type {
   Changed as GoThemeChanged,
   Info as GoThemeInfo,
 } from '../../../bindings/github.com/whatszori/WhatsZori/internal/themes/models';
-import type { SystemPalette, ThemeFileChanged, WaEventName } from '../events';
+import type { InAppToast, SystemPalette, ThemeFileChanged, WaEventName } from '../events';
 import { WA_EVENTS, WZ_EVENTS } from '../events';
 import type * as T from '../types';
 
@@ -47,6 +47,7 @@ export type Checks = [
   Assert<SameKeys<T.AuthStatus, Go.AuthStatus>>,
   Assert<SameKeys<T.QRPayload, Go.QRPayload>>,
   Assert<SameKeys<T.Contact, Go.Contact>>,
+  Assert<SameKeys<InAppToast, Go.InAppToast>>,
   Assert<SameKeys<T.ChatList, Go.ChatList>>,
   Assert<SameKeys<T.GroupEvent, Go.GroupEvent>>,
   Assert<SameKeys<T.ExportOptions, Go.ExportOptions>>,
