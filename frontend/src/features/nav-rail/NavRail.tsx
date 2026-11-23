@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Archive, CircleDashed, MessageSquareText, Phone, Settings } from 'lucide-react';
+import { Archive, CircleDashed, History, MessageSquareText, Phone, Settings } from 'lucide-react';
 import { useChats } from '../../stores/chats';
 import { useConnection } from '../../stores/connection';
 import { useProfile } from '../../stores/profile';
@@ -7,13 +7,14 @@ import { useUI, type RailPanel } from '../../stores/ui';
 import { Avatar, Tooltip } from '../../ui';
 import './NavRail.css';
 
-type RailItem = 'chats' | 'archived' | 'calls' | 'status' | 'settings';
+type RailItem = 'chats' | 'archived' | 'calls' | 'status' | 'changes' | 'settings';
 
 function useActiveItem(): RailItem {
   const view = useUI((s) => s.view);
   const panel = useUI((s) => s.railPanel);
   const archived = useChats((s) => s.showArchived);
   if (view === 'settings') return 'settings';
+  if (view === 'changes') return 'changes';
   if (panel !== 'chats') return panel;
   return archived ? 'archived' : 'chats';
 }
@@ -24,6 +25,11 @@ function go(item: RailItem): void {
   if (item === 'settings') {
     if (ui.view === 'settings') ui.closeSettings();
     else ui.openSettings('appearance');
+    return;
+  }
+  if (item === 'changes') {
+    if (ui.view === 'changes') ui.closeChanges();
+    else ui.openChanges();
     return;
   }
   const panel: RailPanel = item === 'calls' || item === 'status' ? item : 'chats';
@@ -99,6 +105,12 @@ export function NavRail() {
           label="Archived"
           icon={<Archive size={20} />}
           active={active === 'archived'}
+        />
+        <RailButton
+          item="changes"
+          label="Deleted & edited"
+          icon={<History size={20} />}
+          active={active === 'changes'}
         />
       </div>
       <div className="wz-rail__group">

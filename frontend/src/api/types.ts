@@ -225,6 +225,22 @@ export interface Message {
   reactions: Reaction[];
 }
 
+export type ChangeKind = '' | 'deleted' | 'edited';
+
+// one entry of the "Deleted & edited" feed
+export interface ChangeItem {
+  chatJid: JID;
+  chatName: string;
+  message: Message;
+  change: 'deleted' | 'edited';
+  at: number;
+}
+
+export interface ChangePage {
+  items: ChangeItem[];
+  hasMore: boolean;
+}
+
 export interface EditVersion {
   text: string;
   at: number;

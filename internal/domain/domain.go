@@ -247,6 +247,21 @@ type PollInfo struct {
 	TotalVoters int `json:"totalVoters"`
 }
 
+// one entry of the "Deleted & edited" feed
+type ChangeItem struct {
+	ChatJID  string  `json:"chatJid"`
+	ChatName string  `json:"chatName"`
+	Message  Message `json:"message"`
+	// deleted | edited
+	Change string `json:"change"`
+	At     int64  `json:"at"`
+}
+
+type ChangePage struct {
+	Items   []ChangeItem `json:"items"`
+	HasMore bool         `json:"hasMore"`
+}
+
 type EditVersion struct {
 	Text string `json:"text"`
 	At   int64  `json:"at"`

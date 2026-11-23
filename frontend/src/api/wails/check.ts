@@ -42,6 +42,8 @@ export type Checks = [
   Assert<SameKeys<T.MessagePage, Go.MessagePage>>,
   Assert<SameKeys<T.SearchHit, Go.SearchHit>>,
   Assert<SameKeys<T.PollInfo, Go.PollInfo>>,
+  Assert<SameKeys<T.ChangeItem, Go.ChangeItem>>,
+  Assert<SameKeys<T.ChangePage, Go.ChangePage>>,
   Assert<SameKeys<T.PollOption, Go.PollOption>>,
   Assert<SameKeys<T.GhostSettings, Go.GhostSettings>>,
   Assert<SameKeys<T.Profile, Go.Profile>>,

@@ -3,6 +3,7 @@ import { ChatListPane } from '../features/chat-list/ChatListPane';
 import { Conversation } from '../features/conversation/Conversation';
 import { NoChatSelected } from '../features/conversation/EmptyStates';
 import { SettingsView } from '../features/settings/SettingsView';
+import { ChangesView } from '../features/changes/ChangesView';
 import { SettingsPanel } from '../features/settings/SettingsPanel';
 import { NavRail } from '../features/nav-rail/NavRail';
 import { PlaceholderPanel } from '../features/nav-rail/PlaceholderPanel';
@@ -142,7 +143,7 @@ export function MainLayout() {
             {sidebar}
           </aside>
           <Resizer />
-          <main className="wz-main">{conversation}</main>
+          <main className="wz-main">{view === 'changes' ? <ChangesView /> : conversation}</main>
         </div>
         {isDemo && <DevPanel />}
       </div>
@@ -158,7 +159,15 @@ export function MainLayout() {
           <ChatListPane />
         </aside>
         <Resizer />
-        <main className="wz-main">{view === 'settings' ? <SettingsView /> : conversation}</main>
+        <main className="wz-main">
+          {view === 'settings' ? (
+            <SettingsView />
+          ) : view === 'changes' ? (
+            <ChangesView />
+          ) : (
+            conversation
+          )}
+        </main>
       </div>
       {isDemo && <DevPanel />}
     </div>

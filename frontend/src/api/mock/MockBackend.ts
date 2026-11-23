@@ -1,5 +1,8 @@
 import type { Backend } from '../backend';
 import type {
+  ChangeItem,
+  ChangeKind,
+  ChangePage,
   AppSettings,
   AuthStatus,
   BackendEventName,
@@ -482,6 +485,39 @@ export class MockBackend implements Backend {
       }
       const start = Math.max(0, end - limit);
       return { messages: clone(list.slice(start, end)), hasMore: start > 0 };
+    },
+    changes: async (
+      kind: ChangeKind,
+      before: { at: number; pk: MessagePK } | null,
+      limit: number,
+    ): Promise<ChangePage> => {
+      await this.wait();
+      const all: ChangeItem[] = [];
+      for (const [jid, list] of this.db.messages) {
+        const chat = this.db.chats.get(jid);
+        for (const m of list) {
+          const deleted = !!m.deleted && !m.contentUnknown;
+          const edited = !!m.editedAt && !m.deleted;
+          if ((deleted && kind !== 'edited') || (edited && kind !== 'deleted'))
+            all.push({
+              chatJid: jid,
+              chatName: chat?.name ?? jid,
+              message: clone(m),
+              change: deleted ? 'deleted' : 'edited',
+              at: deleted ? m.deleted!.at : m.editedAt!,
+            });
+        }
+      }
+      all.sort((a, b) => b.at - a.at || Number(b.message.pk) - Number(a.message.pk));
+      const start = before
+        ? all.findIndex(
+            (it) =>
+              it.at < before.at ||
+              (it.at === before.at && Number(it.message.pk) < Number(before.pk)),
+          )
+        : 0;
+      const rest = start < 0 ? [] : all.slice(start);
+      return { items: rest.slice(0, limit), hasMore: rest.length > limit };
     },
     getEditHistory: async (pk: MessagePK): Promise<EditVersion[]> => {
       await this.wait();

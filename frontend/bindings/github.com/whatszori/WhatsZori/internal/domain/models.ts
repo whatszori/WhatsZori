@@ -30,6 +30,26 @@ export interface AvatarChangedEvent {
     "jid": string;
 }
 
+/**
+ * one entry of the "Deleted & edited" feed
+ */
+export interface ChangeItem {
+    "chatJid": string;
+    "chatName": string;
+    "message": Message;
+
+    /**
+     * deleted | edited
+     */
+    "change": string;
+    "at": number;
+}
+
+export interface ChangePage {
+    "items": ChangeItem[] | null;
+    "hasMore": boolean;
+}
+
 export interface Chat {
     "jid": string;
     "name": string;

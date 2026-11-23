@@ -24,6 +24,9 @@ import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
+  ChangeItem,
+  ChangeKind,
+  ChangePage,
   AppSettings,
   AuthStatus,
   BackendEventName,
@@ -141,6 +144,21 @@ export class WailsBackend implements Backend {
     revoke: (pk: MessagePK) => Messages.Revoke(pk),
     forward: (pks: MessagePK[], jids: JID[]): Promise<number> => Messages.Forward(pks, jids),
     vote: (pk: MessagePK, options: string[]) => Messages.Vote(pk, options),
+    changes: async (
+      kind: ChangeKind,
+      before: { at: number; pk: MessagePK } | null,
+      limit: number,
+    ): Promise<ChangePage> => {
+      const page = await Messages.Changes(kind, before?.at ?? 0, before?.pk ?? '', limit);
+      return {
+        hasMore: page.hasMore,
+        items: (page.items ?? []).map((it) => ({
+          ...it,
+          change: it.change as ChangeItem['change'],
+          message: message(it.message),
+        })),
+      };
+    },
     deleteLocal: (jid: JID, pks: MessagePK[]) => Messages.DeleteLocal(jid, pks),
     react: async (pk: MessagePK, emoji: string): Promise<Reaction[]> =>
       (await Messages.React(pk, emoji)) ?? [],

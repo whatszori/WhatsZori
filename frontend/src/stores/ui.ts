@@ -3,7 +3,7 @@ import type { JID, Message, MessagePK } from '../api';
 import { DEFAULT_SETTINGS } from '../api/defaults';
 import { useSettings } from './settings';
 
-export type View = 'chats' | 'settings';
+export type View = 'chats' | 'settings' | 'changes';
 // what the rail layout's sidebar shows besides chats and settings
 export type RailPanel = 'chats' | 'calls' | 'status';
 export type SettingsSection =
@@ -74,6 +74,9 @@ interface UIState {
   setChatInfoOpen(open: boolean): void;
   openInfo(jid: JID | null): void;
   closeSettings(): void;
+  // the "Deleted & edited" screen in the main area
+  openChanges(): void;
+  closeChanges(): void;
   setSettingsSection(section: SettingsSection): void;
   setSidebarWidth(w: number): void;
   jumpTo(jid: JID, pk: MessagePK): void;
@@ -143,6 +146,8 @@ export const useUI = create<UIState>((set, get) => {
     setChatInfoOpen: (chatInfoOpen) => set({ chatInfoOpen, infoJid: null }),
     openInfo: (infoJid) => set({ chatInfoOpen: true, infoJid }),
     closeSettings: () => set({ view: 'chats' }),
+    openChanges: () => set({ view: 'changes' }),
+    closeChanges: () => set({ view: 'chats' }),
     setSettingsSection: (settingsSection) => set({ settingsSection }),
     setSidebarWidth(w) {
       const width = clampSidebar(w);

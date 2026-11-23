@@ -13,6 +13,8 @@ export type {
     AuthErrorEvent,
     AuthStatus,
     AvatarChangedEvent,
+    ChangeItem,
+    ChangePage,
     Chat,
     ChatInfo,
     ChatList,

@@ -591,3 +591,18 @@ func (s *Messages) Vote(pk string, options []string) error {
 	defer cancel()
 	return s.c.Sender.Vote(ctx, id, options)
 }
+
+// Changes is the "Deleted & edited" feed. kind: "deleted", "edited" or "" for both; pass the last
+// item's at and pk to get the next page.
+func (s *Messages) Changes(kind string, beforeAt int64, beforePk string, limit int) (domain.ChangePage, error) {
+	var pk int64
+	if beforePk != "" {
+		var err error
+		if pk, err = parsePK(beforePk); err != nil {
+			return domain.ChangePage{}, err
+		}
+	}
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.View(ctx).Changes(ctx, s.c.DB, kind, beforeAt, pk, limit)
+}

@@ -18,6 +18,14 @@ export function AttachFile(jid: string): $CancellablePromise<domain$0.Message | 
 }
 
 /**
+ * Changes is the "Deleted & edited" feed. kind: "deleted", "edited" or "" for both; pass the last
+ * item's at and pk to get the next page.
+ */
+export function Changes(kind: string, beforeAt: number, beforePk: string, limit: number): $CancellablePromise<domain$0.ChangePage> {
+    return $Call.ByID(550740157, kind, beforeAt, beforePk, limit);
+}
+
+/**
  * DeleteLocal is "Delete for me": the messages go from this computer, WhatsApp isn't told.
  */
 export function DeleteLocal(jid: string, pks: string[] | null): $CancellablePromise<void> {

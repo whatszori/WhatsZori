@@ -3,6 +3,7 @@ import {
   Archive,
   ArrowLeft,
   CheckCheck,
+  History,
   LogOut,
   MoreVertical,
   Plus,
@@ -48,6 +49,12 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
       onSelect: () => setShowArchived(true),
     },
     { id: 'read', label: 'Mark all as read', icon: <CheckCheck />, onSelect: markAllRead },
+    {
+      id: 'changes',
+      label: 'Deleted & edited',
+      icon: <History />,
+      onSelect: () => useUI.getState().openChanges(),
+    },
     {
       id: 'settings',
       label: 'Settings',
@@ -115,6 +122,16 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
             </>
           ) : (
             <>
+              <IconButton
+                label="Deleted & edited"
+                icon={<History size={18} />}
+                active={view === 'changes'}
+                onClick={() => {
+                  const ui = useUI.getState();
+                  if (ui.view === 'changes') ui.closeChanges();
+                  else ui.openChanges();
+                }}
+              />
               <IconButton
                 label="New chat"
                 hint="Ctrl N"

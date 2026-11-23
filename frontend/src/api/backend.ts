@@ -1,4 +1,6 @@
 import type {
+  ChangeKind,
+  ChangePage,
   AppSettings,
   AuthStatus,
   ConfigFolder,
@@ -87,6 +89,12 @@ export interface ProfileService {
 export interface MessageService {
   getMessages(jid: JID, beforePk: MessagePK | null, limit: number): Promise<MessagePage>;
   getEditHistory(pk: MessagePK): Promise<EditVersion[]>;
+  // the "Deleted & edited" feed, latest first; before = the last item of the previous page
+  changes(
+    kind: ChangeKind,
+    before: { at: number; pk: MessagePK } | null,
+    limit: number,
+  ): Promise<ChangePage>;
   sendText(jid: JID, text: string, replyToPk?: MessagePK): Promise<Message>;
   edit(pk: MessagePK, text: string): Promise<void>;
   revoke(pk: MessagePK): Promise<void>;
