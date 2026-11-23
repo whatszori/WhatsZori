@@ -1,0 +1,276 @@
+/* Always dark, whatever the theme: photos read best on near-black, like every photo viewer. */
+.wz-viewer {
+  --wz-viewer-fg: #f2f2f4;
+  --wz-viewer-muted: rgb(242 242 244 / 0.62);
+  --wz-viewer-hover: rgb(255 255 255 / 0.1);
+  --wz-viewer-active: rgb(255 255 255 / 0.16);
+
+  position: fixed;
+  inset: 0;
+  z-index: 850;
+  display: flex;
+  flex-direction: column;
+  /* opaque: chat text showing through behind a photo looks like a rendering bug */
+  background: #0e0e10;
+  color: var(--wz-viewer-fg);
+  outline: none;
+  animation: wz-viewer-in var(--wz-duration) var(--wz-ease);
+}
+
+@keyframes wz-viewer-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.wz-viewer__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wz-space-4);
+  height: 60px;
+  flex: none;
+  padding: 0 var(--wz-space-3) 0 var(--wz-space-5);
+}
+
+.wz-viewer__who {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-3);
+  min-width: 0;
+}
+
+.wz-viewer__who-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wz-viewer__name {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wz-viewer__time {
+  color: var(--wz-viewer-muted);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-viewer__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.wz-viewer__btn,
+.wz-viewer__zoom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  border: 0;
+  border-radius: var(--wz-radius-md);
+  background: transparent;
+  color: var(--wz-viewer-fg);
+  cursor: pointer;
+}
+
+.wz-viewer__btn {
+  width: 38px;
+}
+
+.wz-viewer__zoom {
+  min-width: 52px;
+  padding: 0 6px;
+  font-size: var(--wz-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--wz-viewer-muted);
+}
+
+.wz-viewer__btn:hover:not(:disabled),
+.wz-viewer__zoom:hover {
+  background: var(--wz-viewer-hover);
+  color: var(--wz-viewer-fg);
+}
+
+.wz-viewer__btn:active:not(:disabled) {
+  background: var(--wz-viewer-active);
+}
+
+.wz-viewer__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.wz-viewer__btn:focus-visible,
+.wz-viewer__zoom:focus-visible,
+.wz-viewer__nav:focus-visible {
+  outline: 2px solid var(--wz-viewer-fg);
+  outline-offset: -2px;
+}
+
+.wz-viewer__sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 var(--wz-space-2);
+  background: rgb(255 255 255 / 0.14);
+}
+
+.wz-viewer__stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wz-viewer__media {
+  position: relative;
+  flex: none;
+  transform-origin: center;
+  transition: transform 140ms var(--wz-ease);
+  user-select: none;
+  touch-action: none;
+}
+
+.wz-viewer__stage--zoomed .wz-viewer__media {
+  cursor: grab;
+}
+
+.wz-viewer__stage--zoomed .wz-viewer__media:active {
+  cursor: grabbing;
+  transition: none;
+}
+
+.wz-viewer__thumb,
+.wz-viewer__el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* the blurry-looking preview is the real thumbnail scaled up, not a CSS blur */
+.wz-viewer__thumb {
+  image-rendering: auto;
+}
+
+img.wz-viewer__el {
+  opacity: 0;
+  transition: opacity var(--wz-duration) var(--wz-ease);
+}
+
+img.wz-viewer__el--in {
+  opacity: 1;
+}
+
+video.wz-viewer__el {
+  background: #000;
+}
+
+.wz-viewer__probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wz-viewer__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  display: inline-flex;
+  padding: 10px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.45);
+  color: var(--wz-viewer-fg);
+  pointer-events: none;
+}
+
+.wz-viewer__note {
+  position: absolute;
+  bottom: var(--wz-space-4);
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: var(--wz-radius-md);
+  background: rgb(0 0 0 / 0.6);
+  color: var(--wz-viewer-fg);
+  font-size: var(--wz-font-size-sm);
+  white-space: nowrap;
+}
+
+.wz-viewer__nav {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.08);
+  color: var(--wz-viewer-fg);
+  cursor: pointer;
+  transition: background var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-viewer__nav:hover {
+  background: rgb(255 255 255 / 0.18);
+}
+
+.wz-viewer__nav--prev {
+  left: var(--wz-space-4);
+}
+
+.wz-viewer__nav--next {
+  right: var(--wz-space-4);
+}
+
+.wz-viewer__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-2);
+  flex: none;
+  min-height: 44px;
+  padding: var(--wz-space-2) var(--wz-space-6) var(--wz-space-4);
+}
+
+.wz-viewer__caption {
+  max-width: min(720px, 100%);
+  max-height: 6.5em;
+  margin: 0;
+  overflow-y: auto;
+  line-height: 1.45;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.wz-viewer__count {
+  color: var(--wz-viewer-muted);
+  font-size: var(--wz-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-viewer,
+  .wz-viewer__media,
+  img.wz-viewer__el {
+    animation: none;
+    transition: none;
+  }
+}

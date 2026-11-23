@@ -4,6 +4,7 @@
 import * as Auth from "./auth.js";
 import * as Chats from "./chats.js";
 import * as Contacts from "./contacts.js";
+import * as Media from "./media.js";
 import * as Messages from "./messages.js";
 import * as Privacy from "./privacy.js";
 import * as Profile from "./profile.js";
@@ -16,6 +17,7 @@ export {
     Auth,
     Chats,
     Contacts,
+    Media,
     Messages,
     Privacy,
     Profile,

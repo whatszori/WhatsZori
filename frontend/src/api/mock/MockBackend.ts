@@ -261,6 +261,13 @@ export class MockBackend implements Backend {
   media = {
     url: (): string => '',
     avatarUrl: (): string => '',
+    saveAs: async (): Promise<string | null> => {
+      throw new Error('Saving files works in the desktop app');
+    },
+    copy: async (): Promise<void> => {
+      throw new Error('Copying files works in the desktop app');
+    },
+    reveal: async (): Promise<void> => undefined,
     canAttach: false,
   };
 

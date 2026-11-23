@@ -48,6 +48,12 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
 - **Media**: auto-download of photos, voice notes and stickers up to 16 MB, everything else on
   demand. `/wz-media/<pk>` serves the file with Range support, downloads on demand, falls back to
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
+- **Media viewer**: photos and videos open full-window with zoom and pan, previous/next, caption,
+  copy to the clipboard (the file, and pictures also as a picture), save as, show in folder, and
+  go to message; the same actions are in the message menu. Our own video player (seek with
+  preview time, volume, speed, fullscreen, keyboard shortcuts).
+- **Video notes** play inline in a circle: silent loop while visible, sound and a progress ring on
+  click.
 - **Avatars**: profile pictures and group photos in the chat list, chat header, info panel, member
   list and your own profile, with the initials as fallback (no picture, hidden, offline). Cached on
   disk, refreshed daily or when WhatsApp says a picture changed.

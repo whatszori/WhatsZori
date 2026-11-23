@@ -4,6 +4,7 @@ import {
   Auth,
   Chats,
   Contacts,
+  Media,
   Messages,
   Privacy,
   Profile,
@@ -136,6 +137,9 @@ export class WailsBackend implements Backend {
     avatarUrl: (jid: JID, full = false) =>
       `/wz-avatar/${encodeURIComponent(jid)}${full ? '?full=1' : ''}`,
     canAttach: true,
+    saveAs: async (pk: MessagePK): Promise<string | null> => (await Media.SaveAs(pk)) || null,
+    copy: (pk: MessagePK) => Media.Copy(pk),
+    reveal: (pk: MessagePK) => Media.Reveal(pk),
   };
 
   settings = {

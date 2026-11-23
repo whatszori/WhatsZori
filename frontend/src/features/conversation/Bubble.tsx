@@ -82,6 +82,8 @@ export const Bubble = memo(function Bubble({
   const dir = m.fromMe ? 'out' : 'in';
   const hasMedia = !!m.media && !m.contentUnknown;
   const visualOnly = hasMedia && (m.kind === 'image' || m.kind === 'video') && !m.text;
+  // video notes are a bare circle: no bubble around them
+  const round = hasMedia && !!m.media?.round;
 
   const openMenu = (e: MouseEvent<HTMLElement>) => {
     // let people right-click links and selected text normally
@@ -99,6 +101,7 @@ export const Bubble = memo(function Bubble({
     m.contentUnknown && 'wz-bubble--unknown',
     hasMedia && `wz-bubble--has-${m.kind}`,
     visualOnly && 'wz-bubble--visual',
+    round && 'wz-bubble--round',
   ]
     .filter(Boolean)
     .join(' ');
@@ -142,7 +145,9 @@ export const Bubble = memo(function Bubble({
                   <span className="wz-quote__text">{m.replyTo.text || 'Message'}</span>
                 </button>
               )}
-              {hasMedia && <MediaBlock pk={m.pk} kind={m.kind} media={m.media!} />}
+              {hasMedia && (
+                <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
+              )}
               {m.text && (
                 <p className="wz-bubble__text wz-selectable" dir="auto">
                   <Text text={m.text} />

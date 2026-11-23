@@ -101,7 +101,7 @@ touching your real settings. WebView2 keeps its own data (localStorage, cache) i
 | | |
 | --- | --- |
 | `--safe-mode` | Start in safe mode on purpose. |
-| `WHATSZORI_CONFIG_DIR` | Override the config folder. |
+| `WHATSZORI_CONFIG_DIR` | Override the config folder. Single instance is per folder, so a second profile can run next to the normal one. |
 | `WHATSZORI_NO_CONNECT` | Set to `1` to keep the WhatsApp client offline (no QR, no reconnect). For smoke tests and UI work without talking to WhatsApp. |
 | `WHATSZORI_WEBVIEW_DEBUG_PORT` | Opens the WebView2 DevTools protocol on that port, so Playwright can drive the real app with `chromium.connectOverCDP('http://127.0.0.1:<port>')`. Windows only. |
 

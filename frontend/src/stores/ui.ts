@@ -47,6 +47,8 @@ interface UIState {
   focusMessage: { jid: JID; pk: MessagePK; nonce: number } | null;
   composer: Record<JID, ComposerState>;
   infoMessage: { jid: JID; pk: MessagePK } | null;
+  // full-window media viewer
+  viewer: { jid: JID; pk: MessagePK } | null;
   searchFocusNonce: number;
   openChat(jid: JID | null): void;
   setRailPanel(panel: RailPanel): void;
@@ -57,6 +59,8 @@ interface UIState {
   setSidebarWidth(w: number): void;
   jumpTo(jid: JID, pk: MessagePK): void;
   setInfoMessage(v: { jid: JID; pk: MessagePK } | null): void;
+  openViewer(jid: JID, pk: MessagePK): void;
+  closeViewer(): void;
   focusSearch(): void;
   setDraft(jid: JID, draft: string): void;
   startReply(jid: JID, pk: MessagePK): void;
@@ -81,6 +85,7 @@ export const useUI = create<UIState>((set, get) => {
     focusMessage: null,
     composer: {},
     infoMessage: null,
+    viewer: null,
     searchFocusNonce: 0,
     openChat: (jid) =>
       set((s) => ({
@@ -108,6 +113,8 @@ export const useUI = create<UIState>((set, get) => {
     jumpTo: (jid, pk) =>
       set((s) => ({ focusMessage: { jid, pk, nonce: (s.focusMessage?.nonce ?? 0) + 1 } })),
     setInfoMessage: (infoMessage) => set({ infoMessage }),
+    openViewer: (jid, pk) => set({ viewer: { jid, pk } }),
+    closeViewer: () => set({ viewer: null }),
     focusSearch: () => set((s) => ({ view: 'chats', searchFocusNonce: s.searchFocusNonce + 1 })),
     setDraft: (jid, draft) => patchComposer(jid, { draft }),
     startReply: (jid, pk) => {

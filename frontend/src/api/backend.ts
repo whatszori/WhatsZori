@@ -70,8 +70,14 @@ export interface MediaService {
   url(pk: MessagePK, thumb?: boolean): string;
   // profile picture or group photo; empty when there's none to load (mock). full = big version
   avatarUrl(jid: JID, full?: boolean): string;
-  // attachments can be sent (desktop app only)
+  // attachments can be sent, saved and copied (desktop app only)
   canAttach: boolean;
+  // native save dialog; resolves to the chosen path, or null when cancelled
+  saveAs(pk: MessagePK): Promise<string | null>;
+  // the file onto the system clipboard (pictures also as a picture)
+  copy(pk: MessagePK): Promise<void>;
+  // file manager with the file selected
+  reveal(pk: MessagePK): Promise<void>;
 }
 
 export interface PrivacyService {

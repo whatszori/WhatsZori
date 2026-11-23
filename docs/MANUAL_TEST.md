@@ -120,7 +120,18 @@ Settings → Privacy. Check each from phone B, which is the "other person". Turn
 
 - [ ] With "Download media automatically" on, a photo or voice note from B is saved right away:
       check `media\` in the config folder.
-- [ ] A video from B: thumbnail first, plays on click, seeking works (Range requests).
+- [ ] A video from B: the poster shows in the chat; clicking opens the viewer and it plays in our
+      player (no native controls). Seek by clicking and dragging, hover shows the time, volume,
+      speed, fullscreen, Space/K, J/L, M, F work.
+- [ ] Click a photo: the viewer opens. Wheel zooms around the cursor, drag pans, double-click
+      toggles, ←/→ go through the chat's photos and videos, Esc closes.
+- [ ] Copy (Ctrl+C in the viewer, or right-click → Copy image): paste into Paint (a picture) and
+      into Explorer (a file). Copy a video and paste it into Explorer or Telegram.
+- [ ] Save as… (Ctrl+S): the save dialog suggests a sensible name; the file opens.
+- [ ] B sends a video note (кружок): a circle without a bubble that loops silently; click plays with
+      sound and a ring, click again pauses; starting another one stops the first.
+- [ ] B starts typing and then closes WhatsApp: "typing…" disappears within ~12 seconds.
+- [ ] Voice notes fit their bubble.
 - [ ] A document from B: clicking it saves the file with its original name.
 - [ ] An old photo from history (weeks back) either loads or shows its thumbnail; no broken image.
 - [ ] Turn auto-download off: new photos still load when you open the chat (downloaded on demand).

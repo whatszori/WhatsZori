@@ -106,6 +106,8 @@ export interface MediaInfo {
   // 0..1 amplitudes, voice only
   waveform?: number[];
   caption?: string;
+  // video note ("кружок"): a circle that plays inline
+  round?: boolean;
 }
 
 export interface ReplyRef {

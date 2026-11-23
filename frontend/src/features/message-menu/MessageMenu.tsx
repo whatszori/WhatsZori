@@ -1,8 +1,19 @@
 import { useState } from 'react';
-import { Copy, History, Info, Pencil, Reply, Trash2 } from 'lucide-react';
-import type { Chat, Message } from '../../api';
+import {
+  Copy,
+  Download,
+  Expand,
+  History,
+  ImageDown,
+  Info,
+  Pencil,
+  Reply,
+  Trash2,
+} from 'lucide-react';
+import { backend, type Chat, type Message } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { canEdit, useMessages } from '../../stores/messages';
+import { toastError, useToasts } from '../../stores/toasts';
 import { useUI } from '../../stores/ui';
 import { Button, Dialog, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { toPluginMessage } from '../conversation/plugin-adapters';
@@ -43,6 +54,47 @@ export function MessageMenu({ chat, target, onClose, onShowHistory }: Props) {
         focusComposer();
       },
     });
+    // file actions only exist in the desktop app, where the media are real files
+    if (m.media && backend.media.canAttach) {
+      const visual = m.kind === 'image' || m.kind === 'video';
+      if (visual)
+        items.push({
+          id: 'open',
+          label: m.kind === 'video' ? 'Play' : 'Open',
+          icon: <Expand />,
+          onSelect: () => useUI.getState().openViewer(chat.jid, m.pk),
+        });
+      items.push(
+        {
+          id: 'copy-media',
+          label:
+            m.kind === 'image' ? 'Copy image' : m.kind === 'video' ? 'Copy video' : 'Copy file',
+          icon: <ImageDown />,
+          onSelect: () =>
+            void backend.media
+              .copy(m.pk)
+              .then(() =>
+                useToasts.getState().push({ kind: 'info', text: 'Copied to the clipboard' }),
+              )
+              .catch((err) => toastError(err)),
+        },
+        {
+          id: 'save',
+          label: 'Save as…',
+          icon: <Download />,
+          onSelect: () =>
+            void backend.media
+              .saveAs(m.pk)
+              .then((path) => {
+                if (path)
+                  useToasts
+                    .getState()
+                    .push({ kind: 'info', text: `Saved as ${path.split(/[\\/]/).pop()}` });
+              })
+              .catch((err) => toastError(err)),
+        },
+      );
+    }
     if (m.text)
       items.push({
         id: 'copy',

@@ -3,6 +3,7 @@ import { useConnection } from '../stores/connection';
 import { Logo, Spinner } from '../ui';
 import { MainLayout } from './MainLayout';
 import { Toasts } from './Toasts';
+import { MediaViewer } from '../features/media-viewer/MediaViewer';
 import { AppProviders } from './providers';
 import './App.css';
 
@@ -23,6 +24,7 @@ export function App() {
   return (
     <AppProviders>
       <Screens />
+      <MediaViewer />
       <Toasts />
     </AppProviders>
   );

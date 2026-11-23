@@ -137,6 +137,11 @@ export interface MediaInfo {
     "duration"?: number;
     "waveform"?: number[] | null;
     "caption"?: string;
+
+    /**
+     * a video note: shown as a circle and played inline
+     */
+    "round"?: boolean;
 }
 
 export interface MediaRef {

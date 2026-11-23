@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { RoundVideo } from './RoundVideo';
 import { FileText, Image as ImageIcon, Pause, Play } from 'lucide-react';
-import { backend, type MediaInfo, type MessageKind, type MessagePK } from '../../api';
+import { backend, type JID, type MediaInfo, type MessageKind, type MessagePK } from '../../api';
 import { formatDuration, formatFileSize } from '../../lib/format';
+import { useUI } from '../../stores/ui';
 
 const MAX_W = 300;
 const MAX_H = 340;
@@ -21,59 +23,108 @@ function Placeholder({ kind }: { kind: MessageKind }) {
   );
 }
 
-function Visual({ pk, kind, media }: { pk: MessagePK; kind: MessageKind; media: MediaInfo }) {
+function Visual({
+  chatJid,
+  pk,
+  kind,
+  media,
+}: {
+  chatJid: JID;
+  pk: MessagePK;
+  kind: MessageKind;
+  media: MediaInfo;
+}) {
   const { width, height } = fit(media.width, media.height);
   const url = backend.media.url(pk);
+  const thumb = backend.media.url(pk, true);
   const [failed, setFailed] = useState(false);
-  const real = url && !failed;
-  return (
-    <div
-      className={`wz-media wz-media--${kind}${real ? ' wz-media--loaded' : ''}`}
-      style={{
-        width,
-        aspectRatio: `${width} / ${height}`,
-        // the thumbnail from the message shows until the full file is there
-        backgroundImage:
-          real && kind !== 'sticker' ? `url("${backend.media.url(pk, true)}")` : undefined,
-      }}
-      role={real ? undefined : 'img'}
-      aria-label={
-        real
-          ? undefined
-          : kind === 'video'
-            ? `Video, ${formatDuration(media.duration ?? 0)}`
-            : 'Photo'
-      }
-    >
-      {real && kind === 'video' ? (
-        <video
-          className="wz-media__el"
-          src={url}
-          controls
-          preload="none"
-          poster={backend.media.url(pk, true)}
-          onError={() => setFailed(true)}
-        />
-      ) : real ? (
-        <img
-          className="wz-media__el"
-          src={url}
-          alt={media.caption || (kind === 'sticker' ? 'Sticker' : 'Photo')}
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-        />
-      ) : (
+  const real = url !== '' && !failed;
+  const style = {
+    width,
+    aspectRatio: `${width} / ${height}`,
+    // the thumbnail from the message shows until the full picture is there
+    backgroundImage: real && kind !== 'sticker' ? `url("${thumb}")` : undefined,
+  };
+
+  if (!real) {
+    return (
+      <div
+        className={`wz-media wz-media--${kind}`}
+        style={style}
+        role="img"
+        aria-label={kind === 'video' ? `Video, ${formatDuration(media.duration ?? 0)}` : 'Photo'}
+      >
         <Placeholder kind={kind} />
-      )}
-      {!real && (
         <span className="wz-media__label">
           {kind === 'video' && media.duration != null ? formatDuration(media.duration) : null}
           {kind === 'image' && media.size ? formatFileSize(media.size) : null}
         </span>
+      </div>
+    );
+  }
+
+  if (kind === 'sticker') {
+    return (
+      <div className="wz-media wz-media--sticker wz-media--loaded" style={style}>
+        <img
+          className="wz-media__el"
+          src={url}
+          alt="Sticker"
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+        />
+      </div>
+    );
+  }
+
+  // photos and videos open the viewer; a video in the bubble is just its poster
+  return (
+    <button
+      type="button"
+      className={`wz-media wz-media--${kind} wz-media--loaded wz-media--open`}
+      style={style}
+      onClick={() => useUI.getState().openViewer(chatJid, pk)}
+      aria-label={
+        kind === 'video' ? `Play video, ${formatDuration(media.duration ?? 0)}` : 'Open photo'
+      }
+    >
+      {kind === 'video' ? (
+        <>
+          <span className="wz-media__play">
+            <Play size={20} strokeWidth={1.75} />
+          </span>
+          {media.duration != null && (
+            <span className="wz-media__label">{formatDuration(media.duration)}</span>
+          )}
+        </>
+      ) : (
+        <img
+          className="wz-media__el"
+          src={url}
+          alt={media.caption || 'Photo'}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onError={() => setFailed(true)}
+        />
       )}
-    </div>
+    </button>
   );
+}
+
+// WhatsApp sends 64 amplitudes; that many bars don't fit a bubble, so keep the loudest per bucket
+const VOICE_BARS = 40;
+
+export function resampleWave(values: number[], n: number): number[] {
+  if (values.length <= n) return values;
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const from = Math.floor((i * values.length) / n);
+    const to = Math.max(from + 1, Math.floor(((i + 1) * values.length) / n));
+    out.push(Math.max(...values.slice(from, to)));
+  }
+  return out;
 }
 
 function Voice({ pk, media }: { pk: MessagePK; media: MediaInfo }) {
@@ -81,7 +132,9 @@ function Voice({ pk, media }: { pk: MessagePK; media: MediaInfo }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const bars = media.waveform?.length ? media.waveform : Array.from({ length: 32 }, () => 0.4);
+  const bars = media.waveform?.length
+    ? resampleWave(media.waveform, VOICE_BARS)
+    : Array.from({ length: VOICE_BARS }, () => 0.4);
 
   useEffect(() => {
     const el = audio.current;
@@ -168,16 +221,19 @@ function Document({ pk, media }: { pk: MessagePK; media: MediaInfo }) {
 }
 
 export function MediaBlock({
+  chatJid,
   pk,
   kind,
   media,
 }: {
+  chatJid: JID;
   pk: MessagePK;
   kind: MessageKind;
   media: MediaInfo;
 }) {
+  if (kind === 'video' && media.round) return <RoundVideo pk={pk} media={media} />;
   if (kind === 'image' || kind === 'video' || kind === 'sticker')
-    return <Visual pk={pk} kind={kind} media={media} />;
+    return <Visual chatJid={chatJid} pk={pk} kind={kind} media={media} />;
   if (kind === 'document') return <Document pk={pk} media={media} />;
   if (kind === 'voice') return <Voice pk={pk} media={media} />;
   return null;
