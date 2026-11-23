@@ -44,6 +44,7 @@ type (
 		ApplyLocalEdit(ctx context.Context, chat, msgID, text string, at int64) error
 		ApplyLocalRevoke(ctx context.Context, chat string, isGroup bool, msgID string, at int64) error
 		ApplyLocalReaction(ctx context.Context, chat, msgID, emoji string, at int64) error
+		ApplyLocalVote(ctx context.Context, chat, pollID string, options [][]byte, at int64) error
 	}
 	MediaSaver interface {
 		Save(data, sum []byte, mimeType, fileName string) (string, error)

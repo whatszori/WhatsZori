@@ -178,6 +178,23 @@ func (in *Ingester) conversation(ctx context.Context, tx *sql.Tx, fx *effects, c
 		if err := in.message(ctx, tx, fx, evt, false); err != nil {
 			return err
 		}
+		// the phone hands over poll votes already decrypted, next to the poll
+		for _, pu := range web.GetPollUpdates() {
+			k := pu.GetPollUpdateMessageKey()
+			voter := chat
+			if k.GetFromMe() {
+				voter = me
+			} else if p := k.GetParticipant(); p != "" {
+				if j, err := types.ParseJID(p); err == nil {
+					voter = in.jids.Key(ctx, j)
+				}
+			} else if isGroup {
+				continue
+			}
+			if err := in.storeVote(ctx, tx, fx, chat, web.GetKey().GetID(), voter, pu.GetVote().GetSelectedOptions(), pu.GetSenderTimestampMS()); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

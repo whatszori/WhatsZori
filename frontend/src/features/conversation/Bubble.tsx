@@ -7,6 +7,8 @@ import { PluginSlot } from '../../plugin-core/slots';
 import type { PopoverAnchor } from '../../ui';
 import { Marked } from '../search/MessageHits';
 import { MediaBlock } from './Media';
+import { Poll } from './Poll';
+import './Poll.css';
 import { useUI } from '../../stores/ui';
 import { StatusTicks } from './StatusTicks';
 import { toPluginMessage } from './plugin-adapters';
@@ -183,13 +185,21 @@ export const Bubble = memo(function Bubble({
               {hasMedia && (
                 <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
               )}
-              {m.text && (
-                <p className="wz-bubble__text wz-selectable" dir="auto">
-                  <Text text={m.text} chat={m.chatJid} />
-                  <span className="wz-bubble__meta-spacer" aria-hidden="true">
-                    <Meta m={m} />
-                  </span>
-                </p>
+              {m.poll && !m.deleted ? (
+                <>
+                  <Poll m={m} />
+                  {/* room for the time, which sits in the corner */}
+                  <span className="wz-bubble__poll-meta" aria-hidden="true" />
+                </>
+              ) : (
+                m.text && (
+                  <p className="wz-bubble__text wz-selectable" dir="auto">
+                    <Text text={m.text} chat={m.chatJid} />
+                    <span className="wz-bubble__meta-spacer" aria-hidden="true">
+                      <Meta m={m} />
+                    </span>
+                  </p>
+                )
               )}
             </div>
           )}

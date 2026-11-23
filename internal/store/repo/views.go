@@ -22,6 +22,8 @@ func UIKind(kind string) domain.MessageKind {
 		return domain.KindDocument
 	case KindSticker:
 		return domain.KindSticker
+	case KindPoll:
+		return domain.KindPoll
 	}
 	return domain.KindText
 }
@@ -120,6 +122,16 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 		}
 		reactions[chat] = r
 	}
+	votes := map[string]map[string][]PollVote{}
+	for _, m := range rows {
+		if m.Kind == KindPoll && votes[m.ChatJID] == nil {
+			pv, err := PollVotesFor(ctx, q, m.ChatJID, byChat[m.ChatJID])
+			if err != nil {
+				return nil, err
+			}
+			votes[m.ChatJID] = pv
+		}
+	}
 
 	name := func(jid, pushName string) string {
 		c := contacts[jid]
@@ -172,6 +184,18 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 					dto.ReplyTo.SenderName = "You"
 				}
 			}
+		}
+		if p, ok := PollOf(m.Raw); ok && m.Kind == KindPoll && !m.IsDeleted {
+			pv := votes[m.ChatJID][m.MsgID]
+			voters := make([]string, 0, len(pv))
+			for _, x := range pv {
+				voters = append(voters, x.Voter)
+			}
+			names, err := ContactsFor(ctx, q, voters)
+			if err != nil {
+				return nil, err
+			}
+			dto.Poll = pollInfo(p, pv, v.Me, func(jid string) string { return v.Name(names[jid], jid) })
 		}
 		for _, r := range reactions[m.ChatJID][m.MsgID] {
 			dto.Reactions = append(dto.Reactions, domain.Reaction{Emoji: r.Emoji, Count: r.Count, Mine: r.Mine})

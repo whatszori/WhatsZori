@@ -44,6 +44,7 @@ type fakeClient struct {
 	mu      sync.Mutex
 	sent    []sent
 	sendErr error
+	votedOn *types.MessageInfo
 	n       int
 
 	uploaded [][]byte

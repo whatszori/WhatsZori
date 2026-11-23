@@ -270,6 +270,7 @@ export interface Message {
      * WhatsApp's forwarding score: 0 not forwarded, 5+ "forwarded many times"
      */
     "forwarded"?: number;
+    "poll"?: PollInfo | null;
     "reactions": Reaction[] | null;
 }
 
@@ -288,6 +289,7 @@ export enum MessageKind {
     KindDocument = "document",
     KindVoice = "voice",
     KindSticker = "sticker",
+    KindPoll = "poll",
 };
 
 export interface MessagePage {
@@ -364,6 +366,28 @@ export interface NotificationOpenEvent {
     "chatJid": string;
     "pk": string;
     "reply": boolean;
+}
+
+export interface PollInfo {
+    "name": string;
+    "options": PollOption[] | null;
+
+    /**
+     * how many options one person may pick; 0 = any number
+     */
+    "selectable": number;
+    "totalVoters": number;
+}
+
+export interface PollOption {
+    "name": string;
+    "votes": number;
+    "mine": boolean;
+
+    /**
+     * display names, "You" for us
+     */
+    "voters": string[] | null;
 }
 
 export interface PresenceEvent {

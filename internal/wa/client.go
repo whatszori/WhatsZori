@@ -59,6 +59,9 @@ type Client interface {
 	AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
 	// IsOnWhatsApp asks which phone numbers ("+" and digits) have an account
 	IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error)
+	// polls: votes come encrypted with the poll's message secret, which whatsmeow keeps
+	DecryptPollVote(ctx context.Context, vote *events.Message) (*waE2E.PollVoteMessage, error)
+	BuildPollVote(ctx context.Context, poll *types.MessageInfo, options []string) (*waE2E.Message, error)
 
 	// Blocked lists who we blocked; SetBlocked blocks or unblocks one person.
 	Blocked(ctx context.Context) ([]types.JID, error)
@@ -189,6 +192,13 @@ func (m *Meow) GetProfilePicture(ctx context.Context, jid types.JID, existingID 
 }
 func (m *Meow) AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
 	return m.Cli.Store.Contacts.GetAllContacts(ctx)
+}
+
+func (m *Meow) DecryptPollVote(ctx context.Context, vote *events.Message) (*waE2E.PollVoteMessage, error) {
+	return m.Cli.DecryptPollVote(ctx, vote)
+}
+func (m *Meow) BuildPollVote(ctx context.Context, poll *types.MessageInfo, options []string) (*waE2E.Message, error) {
+	return m.Cli.BuildPollVote(ctx, poll, options)
 }
 
 func (m *Meow) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error) {

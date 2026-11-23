@@ -555,6 +555,22 @@ export class MockBackend implements Backend {
       }
       return n;
     },
+    vote: async (pk: MessagePK, options: string[]): Promise<void> => {
+      await this.wait();
+      const m = this.byPk.get(pk);
+      if (!m?.poll) throw new Error('Not a poll');
+      for (const o of m.poll.options) {
+        const was = o.mine;
+        o.mine = options.includes(o.name);
+        if (was !== o.mine) {
+          o.votes += o.mine ? 1 : -1;
+          o.voters = o.mine ? [...o.voters, 'You'] : o.voters.filter((v) => v !== 'You');
+        }
+      }
+      const voters = new Set(m.poll.options.flatMap((o) => o.voters));
+      m.poll.totalVoters = voters.size;
+      this.emit('msg:batch', { messages: [clone(m)] });
+    },
     deleteLocal: async (jid: JID, pks: MessagePK[]): Promise<void> => {
       await this.wait();
       const list = this.db.messages.get(jid);

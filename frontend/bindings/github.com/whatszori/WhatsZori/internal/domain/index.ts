@@ -41,6 +41,8 @@ export type {
     MsgRemovedEvent,
     MsgStatusEvent,
     NotificationOpenEvent,
+    PollInfo,
+    PollOption,
     PresenceEvent,
     Profile,
     QRPayload,

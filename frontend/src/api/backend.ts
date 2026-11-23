@@ -95,6 +95,8 @@ export interface MessageService {
   // "Delete for me": only on this computer
   deleteLocal(jid: JID, pks: MessagePK[]): Promise<void>;
   react(pk: MessagePK, emoji: string): Promise<Reaction[]>;
+  // our vote on a poll, by option name; [] takes it back
+  vote(pk: MessagePK, options: string[]): Promise<void>;
   // jid limits it to one chat
   search(query: string, jid?: JID): Promise<SearchHit[]>;
   // opens the system file picker and sends the choice; null when cancelled

@@ -540,6 +540,22 @@ function addShowcase(db: MockDB, now: number, pk: () => string): void {
     mk(design, sophie, 19, { kind: 'image', media: { width: 1080, height: 1350, size: 920_000 } }),
   );
   d.push(mk(design, mark, 9, { text: 'Thanks all, I think we are in good shape' }));
+  d.push(
+    mk(design, mark, 8, {
+      kind: 'poll',
+      text: '📊 Retro on Friday or Monday?\n• Friday\n• Monday\n• Skip this week',
+      poll: {
+        name: 'Retro on Friday or Monday?',
+        selectable: 1,
+        totalVoters: 2,
+        options: [
+          { name: 'Friday', votes: 1, mine: false, voters: ['Mark Ellison'] },
+          { name: 'Monday', votes: 1, mine: false, voters: ['Sophie Laurent'] },
+          { name: 'Skip this week', votes: 0, mine: false, voters: [] },
+        ],
+      },
+    }),
+  );
   db.messages.get(design)!.push(...d);
 
   // generated history ends before the showcase, so these counts match the tail

@@ -140,6 +140,7 @@ export class WailsBackend implements Backend {
     edit: (pk: MessagePK, text: string) => Messages.Edit(pk, text),
     revoke: (pk: MessagePK) => Messages.Revoke(pk),
     forward: (pks: MessagePK[], jids: JID[]): Promise<number> => Messages.Forward(pks, jids),
+    vote: (pk: MessagePK, options: string[]) => Messages.Vote(pk, options),
     deleteLocal: (jid: JID, pks: MessagePK[]) => Messages.DeleteLocal(jid, pks),
     react: async (pk: MessagePK, emoji: string): Promise<Reaction[]> =>
       (await Messages.React(pk, emoji)) ?? [],

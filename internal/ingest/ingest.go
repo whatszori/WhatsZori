@@ -403,6 +403,9 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		// history sync hands edits over already unwrapped: the original id with the new content
 		return in.edit(ctx, tx, fx, chat, info.ID, sender, info.IsFromMe, msg, ts)
 	}
+	if pu := msg.GetPollUpdateMessage(); pu != nil {
+		return in.pollVote(ctx, tx, fx, e, chat, sender, ts)
+	}
 	if r := msg.GetReactionMessage(); r != nil {
 		rts := r.GetSenderTimestampMS()
 		if rts == 0 {
@@ -679,6 +682,49 @@ func (in *Ingester) reaction(ctx context.Context, tx *sql.Tx, fx *effects, chat,
 	}
 	fx.event(evnames.MsgReaction, domain.MsgReactionEvent{ChatJID: chat, PK: strconv.FormatInt(m.PK, 10), Reactions: list})
 	return nil
+}
+
+// pollVote decrypts someone's vote and stores it. A vote we can't decrypt (we never saw the poll,
+// so there's no secret) is dropped; it isn't worth failing the message for.
+func (in *Ingester) pollVote(ctx context.Context, tx *sql.Tx, fx *effects, e *events.Message, chat, voter string, ts int64) error {
+	cli := in.cli()
+	if cli == nil {
+		return nil
+	}
+	pu := e.Message.GetPollUpdateMessage()
+	if ms := pu.GetSenderTimestampMS(); ms > 0 {
+		ts = ms
+	}
+	vote, err := cli.DecryptPollVote(ctx, e)
+	if err != nil {
+		in.log.Debug("poll vote", "error", redact.Digits(err.Error()))
+		return nil
+	}
+	return in.storeVote(ctx, tx, fx, chat, pu.GetPollCreationMessageKey().GetID(), voter, vote.GetSelectedOptions(), ts)
+}
+
+func (in *Ingester) storeVote(ctx context.Context, tx *sql.Tx, fx *effects, chat, pollID, voter string, options [][]byte, ts int64) error {
+	if pollID == "" {
+		return nil
+	}
+	if err := repo.SetPollVote(ctx, tx, chat, pollID, voter, options, ts); err != nil {
+		return err
+	}
+	// the poll goes out again with the new counts
+	if m, err := repo.GetMessageByID(ctx, tx, chat, pollID); err == nil {
+		fx.msgs = append(fx.msgs, m.PK)
+	} else if !errors.Is(err, repo.ErrNotFound) {
+		return err
+	}
+	return nil
+}
+
+// ApplyLocalVote records our own vote, which whatsmeow doesn't echo back.
+func (in *Ingester) ApplyLocalVote(ctx context.Context, chat, pollID string, options [][]byte, at int64) error {
+	me := in.Me(ctx)
+	return in.run(ctx, func(tx *sql.Tx, fx *effects) error {
+		return in.storeVote(ctx, tx, fx, chat, pollID, me, options, at)
+	})
 }
 
 // The ApplyLocal* functions run our own outgoing edits, revokes and reactions through the same

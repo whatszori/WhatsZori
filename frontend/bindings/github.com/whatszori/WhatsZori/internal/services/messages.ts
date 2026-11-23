@@ -81,3 +81,10 @@ export function SendText(jid: string, text: string, replyToPk: string): $Cancell
 export function SendVoice(jid: string, data: string, waveform: number[] | null): $CancellablePromise<domain$0.Message> {
     return $Call.ByID(535195876, jid, data, waveform);
 }
+
+/**
+ * Vote sets our choice on a poll; no options takes the vote back.
+ */
+export function Vote(pk: string, options: string[] | null): $CancellablePromise<void> {
+    return $Call.ByID(818900160, pk, options);
+}

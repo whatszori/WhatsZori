@@ -111,7 +111,23 @@ export interface QRPayload {
 
 export type ConnState = 'connected' | 'connecting' | 'reconnecting' | 'offline';
 
-export type MessageKind = 'text' | 'image' | 'video' | 'document' | 'voice' | 'sticker';
+export type MessageKind = 'text' | 'image' | 'video' | 'document' | 'voice' | 'sticker' | 'poll';
+
+export interface PollOption {
+  name: string;
+  votes: number;
+  mine: boolean;
+  // display names, "You" for us
+  voters: string[];
+}
+
+export interface PollInfo {
+  name: string;
+  options: PollOption[];
+  // how many one person may pick; 0 = any number
+  selectable: number;
+  totalVoters: number;
+}
 
 export interface MessagePreview {
   pk: MessagePK;
@@ -201,6 +217,7 @@ export interface Message {
   contentUnknown?: boolean;
   // forwarding score: 0/absent not forwarded, 5+ "forwarded many times"
   forwarded?: number;
+  poll?: PollInfo;
   reactions: Reaction[];
 }
 

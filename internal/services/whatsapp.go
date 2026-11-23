@@ -580,3 +580,14 @@ func parsePKs(pks []string) ([]int64, error) {
 	}
 	return out, nil
 }
+
+// Vote sets our choice on a poll; no options takes the vote back.
+func (s *Messages) Vote(pk string, options []string) error {
+	id, err := parsePK(pk)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.Vote(ctx, id, options)
+}

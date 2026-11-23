@@ -41,6 +41,8 @@ export type Checks = [
   Assert<SameKeys<T.EditVersion, Go.EditVersion>>,
   Assert<SameKeys<T.MessagePage, Go.MessagePage>>,
   Assert<SameKeys<T.SearchHit, Go.SearchHit>>,
+  Assert<SameKeys<T.PollInfo, Go.PollInfo>>,
+  Assert<SameKeys<T.PollOption, Go.PollOption>>,
   Assert<SameKeys<T.GhostSettings, Go.GhostSettings>>,
   Assert<SameKeys<T.Profile, Go.Profile>>,
   Assert<SameKeys<T.Me, Go.Me>>,

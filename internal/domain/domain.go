@@ -54,6 +54,7 @@ const (
 	KindDocument MessageKind = "document"
 	KindVoice    MessageKind = "voice"
 	KindSticker  MessageKind = "sticker"
+	KindPoll     MessageKind = "poll"
 )
 
 type MessageStatus string
@@ -222,7 +223,24 @@ type Message struct {
 	ContentUnknown bool          `json:"contentUnknown,omitempty"`
 	// WhatsApp's forwarding score: 0 not forwarded, 5+ "forwarded many times"
 	Forwarded int        `json:"forwarded,omitempty"`
+	Poll      *PollInfo  `json:"poll,omitempty"`
 	Reactions []Reaction `json:"reactions"`
+}
+
+type PollOption struct {
+	Name  string `json:"name"`
+	Votes int    `json:"votes"`
+	Mine  bool   `json:"mine"`
+	// display names, "You" for us
+	Voters []string `json:"voters"`
+}
+
+type PollInfo struct {
+	Name    string       `json:"name"`
+	Options []PollOption `json:"options"`
+	// how many options one person may pick; 0 = any number
+	Selectable  int `json:"selectable"`
+	TotalVoters int `json:"totalVoters"`
 }
 
 type EditVersion struct {

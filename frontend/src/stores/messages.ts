@@ -205,7 +205,7 @@ export function mergeByPk(a: Message[], b: Message[]): Message[] {
 
 // what WhatsApp lets you forward: not deleted, and not something we only have a placeholder for
 export function canForward(m: Message): boolean {
-  return !m.deleted && !m.contentUnknown && !(m.kind === 'text' && m.text.startsWith('📊 '));
+  return !m.deleted && !m.contentUnknown && m.kind !== 'poll';
 }
 
 export function canEdit(m: Message, now = Date.now()): boolean {
