@@ -34,9 +34,11 @@ type MessageRow struct {
 
 // Store kinds. Finer than what the UI shows; domain.UIKind maps them.
 const (
-	KindText     = "text"
-	KindImage    = "image"
-	KindVideo    = "video"
+	KindText  = "text"
+	KindImage = "image"
+	KindVideo = "video"
+	// video note ("кружок", PtvMessage): a round video, played inline
+	KindRound    = "round"
 	KindAudio    = "audio"
 	KindVoice    = "voice"
 	KindDocument = "document"

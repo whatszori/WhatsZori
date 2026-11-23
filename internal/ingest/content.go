@@ -66,7 +66,7 @@ func extract(msg *waE2E.Message) content {
 			Thumbnail: m.GetJPEGThumbnail()}
 	case msg.PtvMessage != nil:
 		m := msg.GetPtvMessage()
-		c.kind, c.body, ctx = repo.KindVideo, m.GetCaption(), m
+		c.kind, c.body, ctx = repo.KindRound, m.GetCaption(), m
 		c.media = &repo.MediaRow{MediaType: "video", Mime: m.GetMimetype(), Size: int64(m.GetFileLength()),
 			Width: int(m.GetWidth()), Height: int(m.GetHeight()), Duration: int(m.GetSeconds()), MediaKey: m.GetMediaKey(),
 			DirectPath: m.GetDirectPath(), FileSHA256: m.GetFileSHA256(), FileEncSHA256: m.GetFileEncSHA256(),

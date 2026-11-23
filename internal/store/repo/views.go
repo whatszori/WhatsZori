@@ -14,7 +14,7 @@ func UIKind(kind string) domain.MessageKind {
 	switch kind {
 	case KindImage:
 		return domain.KindImage
-	case KindVideo:
+	case KindVideo, KindRound:
 		return domain.KindVideo
 	case KindAudio, KindVoice:
 		return domain.KindVoice
@@ -201,6 +201,7 @@ func mediaInfo(med MediaRow, m MessageRow) *domain.MediaInfo {
 		Mime:     med.Mime,
 		Duration: med.Duration,
 		Caption:  m.Body,
+		Round:    m.Kind == KindRound,
 	}
 	for _, b := range med.Waveform {
 		info.Waveform = append(info.Waveform, float64(b)/100)
@@ -217,6 +218,8 @@ func previewText(m MessageRow) string {
 		return "Photo"
 	case KindVideo:
 		return "Video"
+	case KindRound:
+		return "Video message"
 	case KindAudio, KindVoice:
 		return "Voice message"
 	case KindDocument:

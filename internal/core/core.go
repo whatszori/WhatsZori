@@ -140,6 +140,10 @@ func New(ctx context.Context, o Options) (*Core, error) {
 func (c *Core) Start(ctx context.Context) error {
 	ctx, c.cancel = context.WithCancel(ctx)
 	c.Media.Start(ctx, 2)
+	if err := c.In.Backfill(ctx); err != nil {
+		// a failed fix leaves data as it was; not worth refusing to start over
+		c.log.Error("backfill", "error", err)
+	}
 	return c.Mgr.Start(ctx)
 }
 

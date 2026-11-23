@@ -132,6 +132,8 @@ type MediaInfo struct {
 	Duration int       `json:"duration,omitempty"`
 	Waveform []float64 `json:"waveform,omitempty"`
 	Caption  string    `json:"caption,omitempty"`
+	// a video note: shown as a circle and played inline
+	Round bool `json:"round,omitempty"`
 }
 
 type ReplyRef struct {

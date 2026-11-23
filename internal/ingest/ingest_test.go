@@ -648,7 +648,9 @@ func TestLIDChatFoldsIntoPhoneNumber(t *testing.T) {
 
 type fakeAvatars struct{ invalidated []string }
 
-func (f *fakeAvatars) Invalidate(_ context.Context, jid string) { f.invalidated = append(f.invalidated, jid) }
+func (f *fakeAvatars) Invalidate(_ context.Context, jid string) {
+	f.invalidated = append(f.invalidated, jid)
+}
 
 func TestPictureChange(t *testing.T) {
 	e := newEnv(t)
@@ -663,5 +665,54 @@ func TestPictureChange(t *testing.T) {
 	evs := e.rec.take(evnames.AvatarChange)
 	if len(evs) != 1 || evs[0].(domain.AvatarChangedEvent).JID != alice.String() {
 		t.Errorf("avatar:changed: %+v", evs)
+	}
+}
+
+func TestVideoNote(t *testing.T) {
+	ctx := context.Background()
+	e := newEnv(t)
+	note := &events.Message{Info: info(alice, alice, "PTV"), Message: &waE2E.Message{PtvMessage: &waE2E.VideoMessage{
+		Mimetype: proto.String("video/mp4"), Seconds: proto.Uint32(9), FileLength: proto.Uint64(400_000),
+		Width: proto.Uint32(400), Height: proto.Uint32(400), DirectPath: proto.String("/v/p"), MediaKey: []byte{1},
+	}}}
+	e.handle(t, note)
+	m := e.msg(t, alice, "PTV")
+	if m.Kind != repo.KindRound {
+		t.Fatalf("kind %q, want round", m.Kind)
+	}
+	dto, _ := repo.View{Me: me.String()}.Message(ctx, e.db, m.PK)
+	if dto.Kind != domain.KindVideo || dto.Media == nil || !dto.Media.Round || dto.Media.Duration != 9 {
+		t.Errorf("dto: %+v %+v", dto, dto.Media)
+	}
+	if len(e.media.queued) != 1 {
+		t.Error("video note not auto-downloaded")
+	}
+}
+
+func TestBackfillRoundVideos(t *testing.T) {
+	ctx := context.Background()
+	e := newEnv(t)
+	raw, _ := proto.Marshal(&waE2E.Message{PtvMessage: &waE2E.VideoMessage{Seconds: proto.Uint32(3)}})
+	plain, _ := proto.Marshal(&waE2E.Message{VideoMessage: &waE2E.VideoMessage{Seconds: proto.Uint32(3)}})
+	repo.EnsureChat(ctx, e.db, alice.String(), false)
+	for id, r := range map[string][]byte{"OLD-PTV": raw, "OLD-VID": plain} {
+		if _, _, err := repo.InsertMessage(ctx, e.db, &repo.MessageRow{ChatJID: alice.String(), MsgID: id, SenderJID: alice.String(), TS: 1, Kind: repo.KindVideo, Raw: r}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := e.in.Backfill(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if k := e.msg(t, alice, "OLD-PTV").Kind; k != repo.KindRound {
+		t.Errorf("old video note kind %q", k)
+	}
+	if k := e.msg(t, alice, "OLD-VID").Kind; k != repo.KindVideo {
+		t.Errorf("plain video changed to %q", k)
+	}
+	// runs once
+	e.db.ExecContext(ctx, `UPDATE messages SET kind = 'video' WHERE msg_id = 'OLD-PTV'`)
+	e.in.Backfill(ctx)
+	if k := e.msg(t, alice, "OLD-PTV").Kind; k != repo.KindVideo {
+		t.Error("backfill ran twice")
 	}
 }

@@ -452,7 +452,7 @@ const AutoDownloadLimit = 16 << 20
 
 func autoDownloadable(kind string, size int64) bool {
 	switch kind {
-	case repo.KindImage, repo.KindVoice, repo.KindSticker:
+	case repo.KindImage, repo.KindVoice, repo.KindSticker, repo.KindRound:
 		return size <= AutoDownloadLimit
 	}
 	return false
