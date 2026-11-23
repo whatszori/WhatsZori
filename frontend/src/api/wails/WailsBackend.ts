@@ -184,6 +184,7 @@ export class WailsBackend implements Backend {
 
   contacts = {
     list: async (): Promise<Contact[]> => (await Contacts.List()) ?? [],
+    lookup: (phone: string): Promise<Contact> => Contacts.Lookup(phone),
   };
 
   media = {

@@ -2,7 +2,9 @@ import { Logo } from '../../ui';
 import './EmptyStates.css';
 
 const SHORTCUTS: [string, string][] = [
-  ['Ctrl K', 'Search chats'],
+  ['Ctrl K', 'Search chats and messages'],
+  ['Ctrl N', 'New chat'],
+  ['Ctrl F', 'Search in the open chat'],
   ['Alt ↑ / ↓', 'Previous / next chat'],
   ['Ctrl ,', 'Settings'],
   ['Esc', 'Close menus, cancel reply'],

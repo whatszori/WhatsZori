@@ -57,6 +57,8 @@ interface UIState {
   // words to mark in the bubbles of one chat while its Ctrl+F bar is open
   searchHighlight: { jid: JID; query: string } | null;
   chatSearchOpen: boolean;
+  newChatOpen: boolean;
+  setNewChatOpen(open: boolean): void;
   setSearchHighlight(v: { jid: JID; query: string } | null): void;
   setChatSearchOpen(open: boolean): void;
   openChat(jid: JID | null): void;
@@ -100,6 +102,9 @@ export const useUI = create<UIState>((set, get) => {
     searchFocusNonce: 0,
     searchHighlight: null,
     chatSearchOpen: false,
+    newChatOpen: false,
+    setNewChatOpen: (newChatOpen) =>
+      set(newChatOpen ? { newChatOpen, view: 'chats', railPanel: 'chats' } : { newChatOpen }),
     setSearchHighlight: (searchHighlight) => set({ searchHighlight }),
     setChatSearchOpen: (chatSearchOpen) => set({ chatSearchOpen }),
     openChat: (jid) =>

@@ -12,3 +12,11 @@ import * as domain$0 from "../domain/models.js";
 export function List(): $CancellablePromise<domain$0.Contact[] | null> {
     return $Call.ByID(1633818707);
 }
+
+/**
+ * Lookup finds the WhatsApp account behind a phone number, for starting a chat with someone who
+ * isn't in the chat list yet. It's one query to WhatsApp, nothing is sent to the person.
+ */
+export function Lookup(phone: string): $CancellablePromise<domain$0.Contact> {
+    return $Call.ByID(3274381253, phone);
+}

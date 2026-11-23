@@ -108,6 +108,8 @@ export interface MessageService {
 
 export interface ContactService {
   list(): Promise<Contact[]>;
+  // the account behind a phone number; rejects when it isn't on WhatsApp
+  lookup(phone: string): Promise<Contact>;
 }
 
 export interface MediaService {

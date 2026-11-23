@@ -468,3 +468,51 @@ func (s *Contacts) List() ([]domain.Contact, error) {
 	}
 	return out, nil
 }
+
+// PhoneDigits turns what the user typed ("+7 (912) 345-67-89", "00 49 151...") into the digits of
+// an international number, or "" when it can't be one.
+func PhoneDigits(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		switch {
+		case r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == ' ' || r == '-' || r == '(' || r == ')' || r == '.' || r == '+' || r == '/':
+		default:
+			return ""
+		}
+	}
+	d := strings.TrimPrefix(b.String(), "00")
+	if len(d) < 7 || len(d) > 15 || d[0] == '0' {
+		return ""
+	}
+	return d
+}
+
+// Lookup finds the WhatsApp account behind a phone number, for starting a chat with someone who
+// isn't in the chat list yet. It's one query to WhatsApp, nothing is sent to the person.
+func (s *Contacts) Lookup(phone string) (domain.Contact, error) {
+	ctx, cancel := call()
+	defer cancel()
+	d := PhoneDigits(phone)
+	if d == "" {
+		return domain.Contact{}, errors.New("enter the number with its country code, like +49 151 2345678")
+	}
+	cli, err := s.c.Mgr.Ready()
+	if err != nil {
+		return domain.Contact{}, err
+	}
+	res, err := cli.IsOnWhatsApp(ctx, []string{"+" + d})
+	if err != nil {
+		return domain.Contact{}, fmt.Errorf("couldn't check the number: %w", err)
+	}
+	if len(res) == 0 || !res[0].IsIn {
+		return domain.Contact{}, fmt.Errorf("+%s isn't on WhatsApp", d)
+	}
+	jid := res[0].JID.ToNonAD().String()
+	rows, err := repo.ContactsFor(ctx, s.c.DB, []string{jid})
+	if err != nil {
+		return domain.Contact{}, err
+	}
+	return domain.Contact{JID: jid, Name: s.c.View(ctx).Name(rows[jid], jid), Phone: repo.PhoneOf(jid)}, nil
+}

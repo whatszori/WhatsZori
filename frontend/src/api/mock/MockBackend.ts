@@ -27,6 +27,7 @@ import { DEFAULT_GHOST, withDefaults } from '../defaults';
 import type { SystemPalette } from '../events';
 import type { UserTheme } from '../types';
 import { Emitter } from './emitter';
+import { phoneDigits } from '../../lib/phone';
 import { Simulator } from './simulator';
 
 // Browsers don't expose the OS accent, so "Use system accent" gets a calm blue here.
@@ -400,6 +401,13 @@ export class MockBackend implements Backend {
       return [...this.db.chats.values()]
         .filter((c) => !c.isGroup)
         .map((c) => ({ jid: c.jid, name: c.name, phone: '+' + c.jid.split('@')[0] }));
+    },
+    // every valid number "is on WhatsApp" in the preview
+    lookup: async (phone: string): Promise<Contact> => {
+      await this.wait();
+      const d = phoneDigits(phone);
+      if (!d) throw new Error('Enter the number with its country code, like +49 151 2345678');
+      return { jid: d + '@s.whatsapp.net', name: '+' + d, phone: '+' + d };
     },
   };
 

@@ -84,6 +84,7 @@ function useGlobalShortcuts() {
 
   useHotkeys({
     'ctrl+k': () => useUI.getState().focusSearch(),
+    'ctrl+n': () => useUI.getState().setNewChatOpen(true),
     'ctrl+comma': () => {
       const ui = useUI.getState();
       if (ui.view === 'settings') ui.closeSettings();

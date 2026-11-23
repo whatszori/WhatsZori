@@ -57,6 +57,8 @@ type Client interface {
 	// GetProfilePicture returns nil, nil when the picture is still existingID
 	GetProfilePicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error)
 	AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
+	// IsOnWhatsApp asks which phone numbers ("+" and digits) have an account
+	IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error)
 
 	// Blocked lists who we blocked; SetBlocked blocks or unblocks one person.
 	Blocked(ctx context.Context) ([]types.JID, error)
@@ -187,6 +189,10 @@ func (m *Meow) GetProfilePicture(ctx context.Context, jid types.JID, existingID 
 }
 func (m *Meow) AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
 	return m.Cli.Store.Contacts.GetAllContacts(ctx)
+}
+
+func (m *Meow) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error) {
+	return m.Cli.IsOnWhatsApp(ctx, phones)
 }
 
 // The three below are only reachable through PresenceTransport.

@@ -8,6 +8,7 @@ import {
   Plus,
   Search,
   Settings,
+  SquarePen,
   X,
 } from 'lucide-react';
 import { backend } from '../../api';
@@ -16,6 +17,7 @@ import { buildChatList } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
 import { IconButton, Input, Logo, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
+import { NewChatDialog } from '../new-chat/NewChatDialog';
 import { MessageHits } from '../search/MessageHits';
 import { ChatList } from './ChatList';
 import { FilterChips } from './FilterChips';
@@ -103,26 +105,34 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
                 aria-expanded={!!menu}
                 onClick={(e) => setMenu(e.currentTarget.getBoundingClientRect())}
               />
-              {/* no contact picker yet, so new chat = search, like the official placeholder says */}
               <IconButton
                 label="New chat"
+                hint="Ctrl N"
                 className="wz-chat-pane__new"
                 icon={<Plus size={20} />}
-                onClick={() => useUI.getState().focusSearch()}
+                onClick={() => useUI.getState().setNewChatOpen(true)}
               />
             </>
           ) : (
-            <IconButton
-              label="Settings"
-              hint="Ctrl ,"
-              icon={<Settings size={18} />}
-              active={view === 'settings'}
-              onClick={() => {
-                const ui = useUI.getState();
-                if (ui.view === 'settings') ui.closeSettings();
-                else ui.openSettings();
-              }}
-            />
+            <>
+              <IconButton
+                label="New chat"
+                hint="Ctrl N"
+                icon={<SquarePen size={18} />}
+                onClick={() => useUI.getState().setNewChatOpen(true)}
+              />
+              <IconButton
+                label="Settings"
+                hint="Ctrl ,"
+                icon={<Settings size={18} />}
+                active={view === 'settings'}
+                onClick={() => {
+                  const ui = useUI.getState();
+                  if (ui.view === 'settings') ui.closeSettings();
+                  else ui.openSettings();
+                }}
+              />
+            </>
           )}
         </div>
         <Menu
@@ -177,6 +187,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
       <ChatList view={list} showArchived={showArchived} query={query} filter={filter} />
       {searching && <MessageHits query={query} />}
 
+      <NewChatDialog />
       <PluginSlot name="sidebar.footer" className="wz-chat-pane__footer" />
     </div>
   );
