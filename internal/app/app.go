@@ -52,6 +52,8 @@ type App struct {
 	core     *core.Core
 	notifier notify.Desktop
 	toasts   *toastWindow
+	tray     *tray
+	quitting atomic.Bool
 	focused  atomic.Bool
 
 	mu     sync.Mutex
@@ -60,13 +62,15 @@ type App struct {
 }
 
 type windowState struct {
-	X          int    `json:"x"`
-	Y          int    `json:"y"`
-	Width      int    `json:"width"`
-	Height     int    `json:"height"`
-	Maximised  bool   `json:"maximised"`
-	Dark       *bool  `json:"dark,omitempty"`
-	Background string `json:"background,omitempty"`
+	X         int  `json:"x"`
+	Y         int  `json:"y"`
+	Width     int  `json:"width"`
+	Height    int  `json:"height"`
+	Maximised bool `json:"maximised"`
+	// the "still running in the tray" note was shown once
+	TrayNoticed bool   `json:"trayNoticed,omitempty"`
+	Dark        *bool  `json:"dark,omitempty"`
+	Background  string `json:"background,omitempty"`
 }
 
 func New(cfg config.Config, frontend fs.FS) (*App, error) {
@@ -95,6 +99,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 	wa.SetFolderOpener(func(dir string) error { return a.wails.Env.OpenFileManager(dir, false) })
 	a.core = wa
 	a.toasts = newToastWindow(a)
+	a.tray = newTray(a)
 	// Windows (and macOS) go through Wails' toast service; Linux talks the freedesktop spec
 	// itself, which GNOME, KDE and the rest share. See internal/notify.
 	var toastService []application.Service
@@ -131,6 +136,8 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewExport(wa, desktop{a})),
 			application.NewService(services.NewNotifications(wa)),
 			application.NewService(&Toasts{t: a.toasts}),
+			// unread badge on the taskbar button
+			application.NewService(a.tray.dock),
 		),
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
@@ -158,6 +165,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 		slog.Warn("starting in safe mode", "recovered", a.boot.Recovered())
 	}
 	a.createWindow()
+	a.tray.setup(frontend)
 	return a, nil
 }
 
@@ -238,10 +246,19 @@ func (a *App) createWindow() {
 
 	a.window.OnWindowEvent(wailsevents.Common.WindowDidMove, func(*application.WindowEvent) { a.trackNormal() })
 	a.window.OnWindowEvent(wailsevents.Common.WindowDidResize, func(*application.WindowEvent) { a.trackNormal() })
-	a.window.OnWindowEvent(wailsevents.Common.WindowClosing, func(*application.WindowEvent) {
+	// a hook, not a listener: it can cancel the close
+	a.window.RegisterHook(wailsevents.Common.WindowClosing, func(e *application.WindowEvent) {
+		if !a.quitting.Load() && a.tray.available() && a.closeToTray() {
+			// keep running (and receiving messages) in the tray
+			e.Cancel()
+			a.saveWindowState()
+			a.window.Hide()
+			a.trayNotice()
+			return
+		}
 		a.saveWindowState()
 		// the hidden toast window would otherwise keep the process alive with no window to see
-		application.InvokeAsync(a.wails.Quit)
+		application.InvokeAsync(a.quit)
 	})
 	a.toasts.create()
 
@@ -420,3 +437,35 @@ func (f flashing) Show(t notify.Toast) error {
 	}
 	return err
 }
+
+func (a *App) quit() {
+	a.quitting.Store(true)
+	a.wails.Quit()
+}
+
+// closeToTray is AppSettings.tray.closeToTray, on unless turned off.
+func (a *App) closeToTray() bool {
+	var s struct {
+		Tray struct {
+			CloseToTray *bool `json:"closeToTray"`
+		} `json:"tray"`
+	}
+	a.store.Decode(services.KeyApp, &s)
+	return s.Tray.CloseToTray == nil || *s.Tray.CloseToTray
+}
+
+// trayNotice tells the user, once, that closing the window didn't quit the app.
+func (a *App) trayNotice() {
+	a.mu.Lock()
+	seen := a.state.TrayNoticed
+	a.state.TrayNoticed = true
+	a.mu.Unlock()
+	if seen {
+		return
+	}
+	a.saveWindowState()
+	a.core.Notify.Info("WhatsZori is still running in the tray and keeps receiving messages. Quit it from the tray icon.")
+}
+
+// SetUnread implements services.ThemeTarget: the frontend reports unread chats.
+func (a *App) SetUnread(n int) { a.tray.setUnread(max(n, 0)) }

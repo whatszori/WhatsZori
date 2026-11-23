@@ -245,6 +245,11 @@ func (c *Center) OfflineDone() {
 	c.send(c.summary(body, ""))
 }
 
+// Info shows a plain note from the app.
+func (c *Center) Info(text string) {
+	c.send(c.summary(text, ""))
+}
+
 // Error tells the user something failed while the window may be in the background (a reply
 // from a notification that couldn't be sent).
 func (c *Center) Error(text string) {

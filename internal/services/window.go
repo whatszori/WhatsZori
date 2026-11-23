@@ -9,6 +9,8 @@ import (
 // ThemeTarget is the main window as far as theming goes; the app implements it.
 type ThemeTarget interface {
 	ApplyTheme(dark bool, background string)
+	// unread chats, for the tray icon and the taskbar badge
+	SetUnread(n int)
 }
 
 type Window struct {
@@ -28,3 +30,6 @@ func (w *Window) SetTheme(dark bool, background string) error {
 	w.target.ApplyTheme(dark, background)
 	return nil
 }
+
+// SetUnread is the number of chats with unread messages, as the chat list counts them.
+func (w *Window) SetUnread(n int) { w.target.SetUnread(n) }
