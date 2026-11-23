@@ -13,6 +13,13 @@ function fit(w = 4, h = 3): { width: number; height: number } {
   return { width: Math.round(w * scale), height: Math.round(h * scale) };
 }
 
+const STICKER = 160;
+
+function stickerBox(w = 1, h = 1): { width: number; height: number } {
+  const s = Math.min(STICKER / w, STICKER / h);
+  return { width: Math.round(w * s), height: Math.round(h * s) };
+}
+
 function Placeholder({ kind }: { kind: MessageKind }) {
   return kind === 'video' ? (
     <span className="wz-media__play">
@@ -34,7 +41,8 @@ function Visual({
   kind: MessageKind;
   media: MediaInfo;
 }) {
-  const { width, height } = fit(media.width, media.height);
+  const { width, height } =
+    kind === 'sticker' ? stickerBox(media.width, media.height) : fit(media.width, media.height);
   const url = backend.media.url(pk);
   const thumb = backend.media.url(pk, true);
   const [failed, setFailed] = useState(false);
@@ -64,17 +72,45 @@ function Visual({
   }
 
   if (kind === 'sticker') {
+    // animated Lottie stickers (application/was) can't play here; their PNG preview stands in
+    const still = media.mime !== undefined && !media.mime.startsWith('image/');
     return (
       <div className="wz-media wz-media--sticker wz-media--loaded" style={style}>
         <img
           className="wz-media__el"
-          src={url}
+          src={still ? thumb : url}
+          draggable={false}
           alt="Sticker"
           loading="lazy"
           decoding="async"
           onError={() => setFailed(true)}
         />
       </div>
+    );
+  }
+
+  if (kind === 'video' && media.gif) {
+    // GIFs loop silently right in the chat, like everywhere else; a click opens them big
+    return (
+      <button
+        type="button"
+        className="wz-media wz-media--video wz-media--loaded wz-media--open wz-media--gif"
+        style={style}
+        onClick={() => useUI.getState().openViewer(chatJid, pk)}
+        aria-label="Open GIF"
+      >
+        <video
+          className="wz-media__el"
+          src={url}
+          poster={thumb}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onError={() => setFailed(true)}
+        />
+        <span className="wz-media__label wz-media__gif-badge">GIF</span>
+      </button>
     );
   }
 

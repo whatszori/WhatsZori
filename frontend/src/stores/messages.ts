@@ -26,6 +26,8 @@ interface MessagesState {
   // load pages until pk is in memory; for jumping to a quoted message
   ensureLoaded(jid: JID, pk: MessagePK): Promise<boolean>;
   receive(messages: Message[]): void;
+  // forget a chat's loaded messages (it was cleared)
+  reset(jid: JID): void;
   setStatus(jid: JID, pk: MessagePK, status: MessageStatus): void;
   applyEdit(jid: JID, pk: MessagePK, text: string, editedAt: number, editCount: number): void;
   applyDelete(jid: JID, pk: MessagePK, deleted: DeletedInfo, purged: boolean): void;
@@ -92,6 +94,13 @@ export const useMessages = create<MessagesState>((set, get) => {
       }
       return false;
     },
+
+    reset: (jid) =>
+      set((s) => {
+        const byChat = { ...s.byChat };
+        delete byChat[jid];
+        return { byChat };
+      }),
 
     receive(messages) {
       const byJid = new Map<JID, Message[]>();

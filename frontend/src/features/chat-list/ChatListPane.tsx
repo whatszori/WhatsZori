@@ -12,26 +12,13 @@ import {
 } from 'lucide-react';
 import { backend } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
-import { buildChatList, type ChatFilter } from '../../stores/chat-selectors';
+import { buildChatList } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
-import {
-  IconButton,
-  Input,
-  Logo,
-  Menu,
-  Segmented,
-  type MenuEntry,
-  type PopoverAnchor,
-} from '../../ui';
+import { IconButton, Input, Logo, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { ChatList } from './ChatList';
+import { FilterChips } from './FilterChips';
 import './ChatListPane.css';
-
-const FILTERS: { value: ChatFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'unread', label: 'Unread' },
-  { value: 'groups', label: 'Groups' },
-];
 
 function markAllRead(): void {
   const { chats, markRead } = useChats.getState();
@@ -43,7 +30,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
   const filter = useChats((s) => s.filter);
   const query = useChats((s) => s.query);
   const showArchived = useChats((s) => s.showArchived);
-  const { setFilter, setQuery, setShowArchived } = useChats.getState();
+  const { setQuery, setShowArchived } = useChats.getState();
   const nonce = useUI((s) => s.searchFocusNonce);
   const view = useUI((s) => s.view);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -181,15 +168,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
             )
           }
         />
-        {!showArchived && (
-          <Segmented
-            label="Filter chats"
-            value={filter}
-            options={FILTERS}
-            onChange={setFilter}
-            size="sm"
-          />
-        )}
+        {!showArchived && <FilterChips />}
       </div>
 
       <ChatList view={list} showArchived={showArchived} query={query} filter={filter} />

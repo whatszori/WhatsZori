@@ -22,10 +22,12 @@ declare module "@wailsio/runtime" {
             "auth:qr": domain$0.QRPayload;
             "auth:state": domain$0.AuthStatus;
             "avatar:changed": domain$0.AvatarChangedEvent;
+            "chat:cleared": domain$0.ChatRemovedEvent;
             "chat:removed": domain$0.ChatRemovedEvent;
             "chat:typing": domain$0.TypingEvent;
             "chat:update": domain$0.ChatUpdateEvent;
             "conn:state": domain$0.ConnStateEvent;
+            "export:progress": domain$0.ExportProgressEvent;
             "msg:batch": domain$0.MsgBatchEvent;
             "msg:deleted": domain$0.MsgDeletedEvent;
             "msg:edited": domain$0.MsgEditedEvent;

@@ -4,6 +4,7 @@ import {
   Auth,
   Chats,
   Contacts,
+  Export,
   Media,
   Messages,
   Privacy,
@@ -28,7 +29,11 @@ import type {
   BackendEvents,
   Chat,
   ChatInfo,
+  ChatList,
   ConfigFolder,
+  ExportOptions,
+  GroupEvent,
+  SharedKind,
   ConnState,
   Contact,
   EditVersion,
@@ -89,6 +94,27 @@ export class WailsBackend implements Backend {
     setMuted: (jid: JID, muted: boolean) => Chats.SetMuted(jid, muted),
     getInfo: async (jid: JID): Promise<ChatInfo> => chatInfo(await Chats.GetInfo(jid)),
     setTyping: (jid: JID, typing: boolean) => Chats.SetTyping(jid, typing),
+    open: async (jid: JID): Promise<Chat> => as<Chat>(await Chats.Open(jid)),
+    setFavorite: (jid: JID, on: boolean) => Chats.SetFavorite(jid, on),
+    clear: (jid: JID) => Chats.Clear(jid),
+    delete: (jid: JID) => Chats.Delete(jid),
+    setBlocked: (jid: JID, blocked: boolean) => Chats.SetBlocked(jid, blocked),
+    leave: (jid: JID) => Chats.Leave(jid),
+    removeMember: (group: JID, member: JID) => Chats.RemoveMember(group, member),
+    groupEvents: async (jid: JID): Promise<GroupEvent[]> =>
+      as<GroupEvent[]>((await Chats.GroupEvents(jid)) ?? []),
+    lists: async (): Promise<ChatList[]> => (await Chats.Lists()) ?? [],
+    createList: (name: string): Promise<ChatList> => Chats.CreateList(name),
+    renameList: (id: number, name: string) => Chats.RenameList(id, name),
+    deleteList: (id: number) => Chats.DeleteList(id),
+    setInList: (id: number, jid: JID, inList: boolean) => Chats.SetInList(id, jid, inList),
+  };
+
+  export = {
+    run: async (opts: ExportOptions): Promise<string | null> =>
+      (await Export.Run(as<Go.ExportOptions>(opts))) || null,
+    cancel: () => Export.Cancel(),
+    open: (folder: string) => Export.Open(folder),
   };
 
   messages = {
@@ -110,6 +136,15 @@ export class WailsBackend implements Backend {
       (await Messages.React(pk, emoji)) ?? [],
     search: async (query: string): Promise<SearchHit[]> =>
       ((await Messages.Search(query)) ?? []).map((h) => ({ ...h, message: message(h.message) })),
+    listShared: async (
+      jid: JID,
+      kind: SharedKind,
+      beforePk: MessagePK | null,
+      limit: number,
+    ): Promise<MessagePage> => {
+      const page = await Messages.ListShared(jid, kind, beforePk ?? '', limit);
+      return { messages: (page.messages ?? []).map(message), hasMore: page.hasMore };
+    },
     attachFile: async (jid: JID): Promise<Message | null> => {
       const m = await Messages.AttachFile(jid);
       return m ? message(m) : null;

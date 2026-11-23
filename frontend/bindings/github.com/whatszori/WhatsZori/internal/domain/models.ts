@@ -43,6 +43,12 @@ export interface Chat {
     "lastActivity": number;
 
     /**
+     * only in WhatsZori, not synced with the phone
+     */
+    "favorite"?: boolean;
+    "lists"?: number[] | null;
+
+    /**
      * presence comes through its own event; these stay empty in snapshots
      */
     "lastSeen"?: number | null;
@@ -62,6 +68,27 @@ export interface ChatInfo {
     "recentMedia": MediaRef[] | null;
     "deletedKept": number;
     "edited": number;
+
+    /**
+     * 1:1 only: we blocked them (as far as we know; needs a connection to check)
+     */
+    "blocked"?: boolean;
+
+    /**
+     * a contact we have no chat with yet
+     */
+    "noChat"?: boolean;
+
+    /**
+     * display name, for contacts opened from a group
+     */
+    "name": string;
+}
+
+export interface ChatList {
+    "id": number;
+    "name": string;
+    "position": number;
 }
 
 /**
@@ -108,10 +135,55 @@ export interface EditVersion {
     "at": number;
 }
 
+export interface ExportOptions {
+    "jid": string;
+
+    /**
+     * photo, video, voice, round, sticker, gif, file
+     */
+    "media": string[] | null;
+
+    /**
+     * per file, 0 = no limit
+     */
+    "maxBytes": number;
+
+    /**
+     * html, json or txt
+     */
+    "format": string;
+
+    /**
+     * ms, 0 = open-ended
+     */
+    "from": number;
+    "to": number;
+}
+
+export interface ExportProgressEvent {
+    "jid": string;
+    "done": number;
+    "total": number;
+
+    /**
+     * collecting, media, writing, done, failed, cancelled
+     */
+    "phase": string;
+}
+
 export interface GhostSettings {
     "hideOnline": boolean;
     "hideTyping": boolean;
     "readReceipts": ReadReceiptMode;
+}
+
+export interface GroupEvent {
+    "at": number;
+    "kind": string;
+    "actorJid": string;
+    "actorName": string;
+    "targetJid": string;
+    "targetName": string;
 }
 
 export interface GroupMember {
@@ -142,6 +214,11 @@ export interface MediaInfo {
      * a video note: shown as a circle and played inline
      */
     "round"?: boolean;
+
+    /**
+     * plays muted on a loop, like any GIF
+     */
+    "gif"?: boolean;
 }
 
 export interface MediaRef {

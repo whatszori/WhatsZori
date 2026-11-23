@@ -6,6 +6,10 @@ import type {
   BackendEvents,
   Chat,
   ChatInfo,
+  ChatList,
+  ExportOptions,
+  GroupEvent,
+  SharedKind,
   Profile,
   ConnState,
   Contact,
@@ -90,6 +94,9 @@ export class MockBackend implements Backend {
   private simulator: Simulator;
   // chat the user last opened, the simulator prefers it so events are visible
   focusChat: JID | null = null;
+  private lists_: ChatList[] = [];
+  private nextListId = 1;
+  private blocked = new Set<JID>();
 
   constructor(private opts: MockOptions = {}) {
     this.db = createMockDB(opts.now);
@@ -243,9 +250,147 @@ export class MockBackend implements Backend {
     setMuted: (jid: JID, muted: boolean) => this.patchChat(jid, { muted }),
     getInfo: async (jid: JID): Promise<ChatInfo> => {
       await this.wait();
-      return clone(buildChatInfo(this.db, jid));
+      const chat = this.db.chats.get(jid);
+      if (!chat) {
+        // a group member we never wrote to
+        const member = [...this.db.members.values()].flat().find((m) => m.jid === jid);
+        return {
+          jid,
+          name: member?.name ?? '+' + jid.split('@')[0],
+          about: 'Hey there! I am using WhatsApp.',
+          phone: '+' + jid.split('@')[0],
+          mediaCount: 0,
+          docCount: 0,
+          linkCount: 0,
+          recentMedia: [],
+          deletedKept: 0,
+          edited: 0,
+          noChat: true,
+          blocked: this.blocked.has(jid),
+        };
+      }
+      return clone({
+        ...buildChatInfo(this.db, jid),
+        name: chat.name,
+        blocked: this.blocked.has(jid),
+      });
     },
     setTyping: async (): Promise<void> => undefined,
+    open: async (jid: JID): Promise<Chat> => {
+      await this.wait();
+      let chat = this.db.chats.get(jid);
+      if (!chat) {
+        const member = [...this.db.members.values()].flat().find((m) => m.jid === jid);
+        chat = {
+          jid,
+          name: member?.name ?? '+' + jid.split('@')[0],
+          isGroup: false,
+          pinned: false,
+          archived: false,
+          muted: false,
+          unread: 0,
+          lastMessage: null,
+          lastActivity: Date.now(),
+        };
+        this.db.chats.set(jid, chat);
+        this.db.messages.set(jid, []);
+      }
+      return clone(chat);
+    },
+    setFavorite: (jid: JID, favorite: boolean) => this.patchChat(jid, { favorite }),
+    clear: async (jid: JID): Promise<void> => {
+      await this.wait();
+      const chat = this.db.chats.get(jid);
+      if (!chat) return;
+      this.db.messages.set(jid, []);
+      chat.lastMessage = null;
+      chat.unread = 0;
+      this.emit('chat:cleared', { jid });
+      this.emit('chat:update', { chat: clone(chat) });
+    },
+    delete: async (jid: JID): Promise<void> => {
+      await this.wait();
+      this.db.chats.delete(jid);
+      this.db.messages.delete(jid);
+      this.emit('chat:removed', { jid });
+    },
+    setBlocked: async (jid: JID, blocked: boolean): Promise<void> => {
+      await this.wait();
+      if (blocked) this.blocked.add(jid);
+      else this.blocked.delete(jid);
+    },
+    leave: async (jid: JID): Promise<void> => {
+      await this.wait();
+      const chat = this.db.chats.get(jid);
+      if (chat) this.emit('chat:update', { chat: clone(chat) });
+    },
+    removeMember: async (group: JID, member: JID): Promise<void> => {
+      await this.wait();
+      const list = this.db.members.get(group);
+      if (list)
+        this.db.members.set(
+          group,
+          list.filter((m) => m.jid !== member),
+        );
+    },
+    groupEvents: async (jid: JID): Promise<GroupEvent[]> => {
+      await this.wait();
+      const members = this.db.members.get(jid) ?? [];
+      const day = 86_400_000;
+      const now = Date.now();
+      const admin = members[0];
+      if (!admin) return [];
+      const out: GroupEvent[] = members.slice(1, 6).map((m, i) => ({
+        at: now - (i + 1) * 3 * day,
+        kind: i % 3 === 2 ? 'join' : 'add',
+        actorJid: i % 3 === 2 ? m.jid : admin.jid,
+        actorName: i % 3 === 2 ? m.name : admin.name,
+        targetJid: m.jid,
+        targetName: m.name,
+      }));
+      out.push({
+        at: now - 40 * day,
+        kind: 'create',
+        actorJid: admin.jid,
+        actorName: admin.name,
+        targetJid: '',
+        targetName: '',
+      });
+      return out;
+    },
+    lists: async (): Promise<ChatList[]> => clone(this.lists_),
+    createList: async (name: string): Promise<ChatList> => {
+      await this.wait();
+      const n = name.trim().slice(0, 40);
+      if (!n) throw new Error('A list needs a name');
+      const l = { id: this.nextListId++, name: n, position: this.lists_.length };
+      this.lists_.push(l);
+      return clone(l);
+    },
+    renameList: async (id: number, name: string): Promise<void> => {
+      await this.wait();
+      const l = this.lists_.find((x) => x.id === id);
+      if (!l || !name.trim()) throw new Error('A list needs a name');
+      l.name = name.trim().slice(0, 40);
+    },
+    deleteList: async (id: number): Promise<void> => {
+      await this.wait();
+      this.lists_ = this.lists_.filter((l) => l.id !== id);
+      for (const c of this.db.chats.values()) {
+        if (c.lists?.includes(id)) {
+          c.lists = c.lists.filter((x) => x !== id);
+          this.emit('chat:update', { chat: clone(c) });
+        }
+      }
+    },
+    setInList: async (id: number, jid: JID, inList: boolean): Promise<void> => {
+      const c = this.db.chats.get(jid);
+      if (!c) return;
+      const cur = new Set(c.lists ?? []);
+      if (inList) cur.add(id);
+      else cur.delete(id);
+      await this.patchChat(jid, { lists: [...cur].sort((a, b) => a - b) });
+    },
   };
 
   contacts = {
@@ -255,6 +400,14 @@ export class MockBackend implements Backend {
         .filter((c) => !c.isGroup)
         .map((c) => ({ jid: c.jid, name: c.name, phone: '+' + c.jid.split('@')[0] }));
     },
+  };
+
+  export = {
+    run: async (_opts: ExportOptions): Promise<string | null> => {
+      throw new Error('Exporting chats works in the desktop app');
+    },
+    cancel: async (): Promise<void> => undefined,
+    open: async (): Promise<void> => undefined,
   };
 
   // mock media are placeholders, there's nothing to load or attach
@@ -392,6 +545,26 @@ export class MockBackend implements Backend {
       return clone(hits.slice(0, 50));
     },
     attachFile: async (): Promise<Message | null> => null,
+    listShared: async (
+      jid: JID,
+      kind: SharedKind,
+      beforePk: MessagePK | null,
+      limit: number,
+    ): Promise<MessagePage> => {
+      await this.wait();
+      const match = (m: Message) =>
+        kind === 'media'
+          ? (m.kind === 'image' || m.kind === 'video') && !!m.media && !m.media.round
+          : kind === 'docs'
+            ? m.kind === 'document'
+            : /https?:\/\/|www\./.test(m.text);
+      const all = (this.db.messages.get(jid) ?? [])
+        .filter((m) => match(m) && !m.contentUnknown)
+        .reverse();
+      const start = beforePk ? all.findIndex((m) => m.pk === beforePk) + 1 : 0;
+      const page = all.slice(start, start + limit);
+      return { messages: clone(page), hasMore: start + limit < all.length };
+    },
   };
 
   privacy = {

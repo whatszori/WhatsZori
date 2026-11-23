@@ -3,6 +3,7 @@ import { useAvatars } from './avatars';
 import { useChats } from './chats';
 import { useConnection } from './connection';
 import { useMessages } from './messages';
+import { useExports } from './exports';
 import { useToasts } from './toasts';
 import { useUI } from './ui';
 
@@ -41,6 +42,12 @@ export function bindBackendEvents(be: Backend): () => void {
       useMessages.getState().setReactions(chatJid, pk, reactions),
     ),
     be.on('chat:update', ({ chat }) => useChats.getState().upsert(chat)),
+    be.on('chat:cleared', ({ jid }) => {
+      useMessages.getState().reset(jid);
+      // the open conversation reloads its (now empty) first page
+      if (useUI.getState().activeChat === jid) void useMessages.getState().loadInitial(jid);
+    }),
+    be.on('export:progress', (p) => useExports.getState().update(p)),
     be.on('avatar:changed', ({ jid }) => useAvatars.getState().bump(jid)),
     be.on('chat:removed', ({ jid }) => {
       useChats.getState().remove(jid);

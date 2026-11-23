@@ -73,11 +73,12 @@ function useStageSize() {
 export function MediaViewer() {
   const viewer = useUI((s) => s.viewer);
   if (!viewer) return null;
-  return <Viewer key={viewer.jid} jid={viewer.jid} pk={viewer.pk} />;
+  return <Viewer key={viewer.jid} jid={viewer.jid} pk={viewer.pk} given={viewer.items} />;
 }
 
-function Viewer({ jid, pk }: { jid: string; pk: string }) {
-  const all = useMessages((s) => s.byChat[jid]?.items);
+function Viewer({ jid, pk, given }: { jid: string; pk: string; given?: Message[] }) {
+  const loaded = useMessages((s) => s.byChat[jid]?.items);
+  const all = given ?? loaded;
   const items = useMemo(() => (all ?? []).filter(isViewable), [all]);
   const index = items.findIndex((m) => m.pk === pk);
   const m = index >= 0 ? items[index] : undefined;

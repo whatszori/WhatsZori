@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Archive, BellOff, Bell, CheckCheck, Pin, PinOff, ArchiveRestore } from 'lucide-react';
+import {
+  Archive,
+  BellOff,
+  Bell,
+  CheckCheck,
+  ListPlus,
+  Pin,
+  PinOff,
+  ArchiveRestore,
+  Star,
+  StarOff,
+} from 'lucide-react';
 import type { Chat, JID } from '../../api';
 import type { ChatFilter, ChatListView } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
@@ -8,6 +19,7 @@ import { useSettings } from '../../stores/settings';
 import { useUI } from '../../stores/ui';
 import { Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { ChatItem } from './ChatItem';
+import { ListsDialog } from './ListsDialog';
 import './ChatList.css';
 
 type Row =
@@ -57,6 +69,7 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
   const loaded = useChats((s) => s.loaded);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<{ jid: JID; anchor: PopoverAnchor } | null>(null);
+  const [listsFor, setListsFor] = useState<JID | null>(null);
 
   const rows = useMemo(() => buildRows(view, showArchived, query), [view, showArchived, query]);
   const itemH = Math.round((density === 'compact' ? 56 : 68) * Math.max(1, fontScale));
@@ -139,6 +152,18 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
           icon: menuChat.muted ? <Bell /> : <BellOff />,
           onSelect: () => void useChats.getState().setMuted(menuChat.jid, !menuChat.muted),
         },
+        {
+          id: 'favorite',
+          label: menuChat.favorite ? 'Remove from favorites' : 'Add to favorites',
+          icon: menuChat.favorite ? <StarOff /> : <Star />,
+          onSelect: () => void useChats.getState().setFavorite(menuChat.jid, !menuChat.favorite),
+        },
+        {
+          id: 'lists',
+          label: 'Add to list…',
+          icon: <ListPlus />,
+          onSelect: () => setListsFor(menuChat.jid),
+        },
         { kind: 'separator', id: 's1' },
         {
           id: 'read',
@@ -162,7 +187,11 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
               ? 'No archived chats'
               : filter === 'unread'
                 ? 'You’re all caught up'
-                : 'No chats here yet'}
+                : filter === 'favorites'
+                  ? 'No favorites yet. Right-click a chat to add it.'
+                  : filter.startsWith('list:')
+                    ? 'This list is empty. Right-click a chat to add it.'
+                    : 'No chats here yet'}
         </p>
       </div>
     );
@@ -232,6 +261,7 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
         items={menuItems}
         label="Chat actions"
       />
+      {listsFor && <ListsDialog jid={listsFor} onClose={() => setListsFor(null)} />}
     </div>
   );
 }

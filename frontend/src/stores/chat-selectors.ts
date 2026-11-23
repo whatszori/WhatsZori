@@ -1,6 +1,7 @@
 import type { Chat } from '../api/types';
 
-export type ChatFilter = 'all' | 'unread' | 'groups';
+// list:<id> is one of the user's own lists
+export type ChatFilter = 'all' | 'unread' | 'groups' | 'favorites' | `list:${number}`;
 
 export interface ChatListView {
   pinned: Chat[];
@@ -14,6 +15,8 @@ const byActivity = (a: Chat, b: Chat) => b.lastActivity - a.lastActivity;
 function matches(chat: Chat, filter: ChatFilter, query: string): boolean {
   if (filter === 'unread' && chat.unread === 0) return false;
   if (filter === 'groups' && !chat.isGroup) return false;
+  if (filter === 'favorites' && !chat.favorite) return false;
+  if (filter.startsWith('list:') && !chat.lists?.includes(Number(filter.slice(5)))) return false;
   if (!query) return true;
   const q = query.toLocaleLowerCase();
   return (

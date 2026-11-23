@@ -613,6 +613,7 @@ export function buildChatInfo(db: MockDB, jid: JID): ChatInfo {
 
   const base = {
     jid,
+    name: chat.name,
     mediaCount: media.length,
     docCount: list.filter((m) => m.kind === 'document').length,
     linkCount: list.filter((m) => /https?:\/\/|www\./.test(m.text)).length,

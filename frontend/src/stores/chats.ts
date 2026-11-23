@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { backend, type Chat, type JID } from '../api';
+import { backend, type Chat, type ChatList, type JID } from '../api';
 import type { ChatFilter } from './chat-selectors';
 import { toastError } from './toasts';
+import { useUI } from './ui';
 
 interface ChatsState {
   chats: Record<JID, Chat>;
@@ -11,7 +12,15 @@ interface ChatsState {
   showArchived: boolean;
   // chatJid -> senderJid -> senderName
   typing: Record<JID, Record<JID, string>>;
+  lists: ChatList[];
   load(): Promise<void>;
+  setFavorite(jid: JID, on: boolean): Promise<void>;
+  setInList(id: number, jid: JID, inList: boolean): Promise<void>;
+  createList(name: string): Promise<ChatList | null>;
+  renameList(id: number, name: string): Promise<void>;
+  deleteList(id: number): Promise<void>;
+  // open a chat with someone, creating it if we never wrote to them
+  openWith(jid: JID): Promise<void>;
   upsert(chat: Chat): void;
   remove(jid: JID): void;
   setFilter(filter: ChatFilter): void;
@@ -52,9 +61,63 @@ export const useChats = create<ChatsState>((set, get) => {
     query: '',
     showArchived: false,
     typing: {},
+    lists: [],
     async load() {
-      const list = await backend.chats.listChats();
-      set({ chats: Object.fromEntries(list.map((c) => [c.jid, c])), loaded: true });
+      const [list, lists] = await Promise.all([backend.chats.listChats(), backend.chats.lists()]);
+      set({ chats: Object.fromEntries(list.map((c) => [c.jid, c])), lists, loaded: true });
+    },
+    setFavorite: (jid, on) =>
+      patch(jid, { favorite: on }, () => backend.chats.setFavorite(jid, on)),
+    setInList: (id, jid, inList) => {
+      const cur = new Set(get().chats[jid]?.lists ?? []);
+      if (inList) cur.add(id);
+      else cur.delete(id);
+      return patch(jid, { lists: [...cur] }, () => backend.chats.setInList(id, jid, inList));
+    },
+    async createList(name) {
+      try {
+        const l = await backend.chats.createList(name);
+        set((s) => ({ lists: [...s.lists, l] }));
+        return l;
+      } catch (err) {
+        toastError(err);
+        return null;
+      }
+    },
+    async renameList(id, name) {
+      try {
+        await backend.chats.renameList(id, name);
+        const n = name.trim().slice(0, 40);
+        set((s) => ({ lists: s.lists.map((l) => (l.id === id ? { ...l, name: n } : l)) }));
+      } catch (err) {
+        toastError(err);
+      }
+    },
+    async deleteList(id) {
+      try {
+        await backend.chats.deleteList(id);
+        set((s) => ({
+          lists: s.lists.filter((l) => l.id !== id),
+          filter: s.filter === `list:${id}` ? 'all' : s.filter,
+          chats: Object.fromEntries(
+            Object.entries(s.chats).map(([k, c]) => [
+              k,
+              c.lists?.includes(id) ? { ...c, lists: c.lists.filter((x) => x !== id) } : c,
+            ]),
+          ),
+        }));
+      } catch (err) {
+        toastError(err);
+      }
+    },
+    async openWith(jid) {
+      try {
+        const chat = get().chats[jid] ?? (await backend.chats.open(jid));
+        get().upsert(chat);
+        useUI.getState().openChat(jid);
+      } catch (err) {
+        toastError(err);
+      }
     },
     upsert: (chat) =>
       set((s) => {

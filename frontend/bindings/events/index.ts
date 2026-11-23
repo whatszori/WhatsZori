@@ -29,6 +29,11 @@ export const AuthState = "auth:state";
 export const AvatarChanged = "avatar:changed";
 
 /**
+ * Name of the custom event "chat:cleared".
+ */
+export const ChatCleared = "chat:cleared";
+
+/**
  * Name of the custom event "chat:removed".
  */
 export const ChatRemoved = "chat:removed";
@@ -47,6 +52,11 @@ export const ChatUpdate = "chat:update";
  * Name of the custom event "conn:state".
  */
 export const ConnState = "conn:state";
+
+/**
+ * Name of the custom event "export:progress".
+ */
+export const ExportProgress = "export:progress";
 
 /**
  * Name of the custom event "msg:batch".

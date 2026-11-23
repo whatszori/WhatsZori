@@ -1,0 +1,23 @@
+.wz-lists {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-1);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.wz-lists__new {
+  display: flex;
+  gap: var(--wz-space-2);
+  margin-top: var(--wz-space-3);
+}
+
+.wz-lists__new .wz-input {
+  flex: 1;
+}
+
+.wz-lists__note {
+  margin: var(--wz-space-3) 0 0;
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+}

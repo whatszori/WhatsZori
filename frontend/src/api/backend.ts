@@ -9,6 +9,10 @@ import type {
   BackendEvents,
   Chat,
   ChatInfo,
+  ChatList,
+  ExportOptions,
+  GroupEvent,
+  SharedKind,
   Profile,
   EditVersion,
   GhostSettings,
@@ -41,6 +45,29 @@ export interface ChatService {
   getInfo(jid: JID): Promise<ChatInfo>;
   // composing / paused; the backend drops it when typing is hidden
   setTyping(jid: JID, typing: boolean): Promise<void>;
+  // makes sure a chat exists (e.g. a group member we never wrote to) and returns it
+  open(jid: JID): Promise<Chat>;
+  setFavorite(jid: JID, on: boolean): Promise<void>;
+  // removes the messages on this computer only
+  clear(jid: JID): Promise<void>;
+  // deletes the chat on all your devices
+  delete(jid: JID): Promise<void>;
+  setBlocked(jid: JID, blocked: boolean): Promise<void>;
+  leave(jid: JID): Promise<void>;
+  removeMember(group: JID, member: JID): Promise<void>;
+  groupEvents(jid: JID): Promise<GroupEvent[]>;
+  lists(): Promise<ChatList[]>;
+  createList(name: string): Promise<ChatList>;
+  renameList(id: number, name: string): Promise<void>;
+  deleteList(id: number): Promise<void>;
+  setInList(id: number, jid: JID, inList: boolean): Promise<void>;
+}
+
+export interface ExportService {
+  // asks for a folder, writes the export there, resolves to the folder (null when cancelled)
+  run(opts: ExportOptions): Promise<string | null>;
+  cancel(): Promise<void>;
+  open(folder: string): Promise<void>;
 }
 
 export interface ProfileService {
@@ -59,6 +86,13 @@ export interface MessageService {
   search(query: string): Promise<SearchHit[]>;
   // opens the system file picker and sends the choice; null when cancelled
   attachFile(jid: JID): Promise<Message | null>;
+  // a chat's photos and videos, documents, or messages with links, newest first
+  listShared(
+    jid: JID,
+    kind: SharedKind,
+    beforePk: MessagePK | null,
+    limit: number,
+  ): Promise<MessagePage>;
 }
 
 export interface ContactService {
@@ -132,6 +166,7 @@ export interface Backend {
   privacy: PrivacyService;
   contacts: ContactService;
   media: MediaService;
+  export: ExportService;
   settings: SettingsService;
   on<E extends BackendEventName>(
     event: E,

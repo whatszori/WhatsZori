@@ -50,7 +50,53 @@ export interface ChatInfo {
   // what anti-delete and edit history have kept locally for this chat
   deletedKept: number;
   edited: number;
+  // 1:1: we blocked them
+  blocked?: boolean;
+  // a contact opened from a group, with no chat of our own yet
+  noChat?: boolean;
+  name: string;
 }
+
+// a custom chat list (local to WhatsZori)
+export interface ChatList {
+  id: number;
+  name: string;
+  position: number;
+}
+
+export type GroupEventKind = 'add' | 'remove' | 'leave' | 'join' | 'promote' | 'demote' | 'create';
+
+export interface GroupEvent {
+  at: number;
+  kind: GroupEventKind;
+  actorJid: JID;
+  actorName: string;
+  targetJid: JID;
+  targetName: string;
+}
+
+export type ExportMedia = 'photo' | 'video' | 'voice' | 'round' | 'sticker' | 'gif' | 'file';
+export type ExportFormat = 'html' | 'json' | 'txt';
+
+export interface ExportOptions {
+  jid: JID;
+  media: ExportMedia[];
+  // per file, 0 = no limit
+  maxBytes: number;
+  format: ExportFormat;
+  // ms, 0 = open-ended
+  from: number;
+  to: number;
+}
+
+export interface ExportProgress {
+  jid: JID;
+  done: number;
+  total: number;
+  phase: 'collecting' | 'media' | 'writing' | 'done' | 'failed' | 'cancelled';
+}
+
+export type SharedKind = 'media' | 'docs' | 'links';
 
 export interface AuthStatus {
   state: AuthState;
@@ -88,6 +134,9 @@ export interface Chat {
   unread: number;
   lastMessage: MessagePreview | null;
   lastActivity: number;
+  // only in WhatsZori, not synced with the phone
+  favorite?: boolean;
+  lists?: number[];
   // 1:1 only; null = hidden by their privacy settings
   lastSeen?: number | null;
   online?: boolean;
@@ -108,6 +157,8 @@ export interface MediaInfo {
   caption?: string;
   // video note ("кружок"): a circle that plays inline
   round?: boolean;
+  // a GIF: plays muted on a loop
+  gif?: boolean;
 }
 
 export interface ReplyRef {
@@ -253,6 +304,9 @@ export interface BackendEvents extends WzEvents {
   'chat:removed': { jid: JID };
   // a profile picture or group photo changed; reload it
   'avatar:changed': { jid: JID };
+  // every message of the chat was removed locally
+  'chat:cleared': { jid: JID };
+  'export:progress': ExportProgress;
   presence: { jid: JID; online: boolean; lastSeen: number | null };
   'chat:typing': { chatJid: JID; senderJid: JID; senderName: string; typing: boolean };
   'sync:progress': SyncProgress;

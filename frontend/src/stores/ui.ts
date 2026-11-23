@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { JID, MessagePK } from '../api';
+import type { JID, Message, MessagePK } from '../api';
 import { DEFAULT_SETTINGS } from '../api/defaults';
 import { useSettings } from './settings';
 
@@ -40,6 +40,8 @@ interface UIState {
   settingsDirect: boolean;
   // contact / group info panel next to the conversation
   chatInfoOpen: boolean;
+  // whose info it shows; null = the open chat. A group member clicked in a group, for example
+  infoJid: JID | null;
   activeChat: JID | null;
   railPanel: RailPanel;
   sidebarWidth: number;
@@ -48,18 +50,20 @@ interface UIState {
   composer: Record<JID, ComposerState>;
   infoMessage: { jid: JID; pk: MessagePK } | null;
   // full-window media viewer
-  viewer: { jid: JID; pk: MessagePK } | null;
+  // items: what ←/→ walk through; default is what's loaded in the chat
+  viewer: { jid: JID; pk: MessagePK; items?: Message[] } | null;
   searchFocusNonce: number;
   openChat(jid: JID | null): void;
   setRailPanel(panel: RailPanel): void;
   openSettings(section?: SettingsSection, direct?: boolean): void;
   setChatInfoOpen(open: boolean): void;
+  openInfo(jid: JID | null): void;
   closeSettings(): void;
   setSettingsSection(section: SettingsSection): void;
   setSidebarWidth(w: number): void;
   jumpTo(jid: JID, pk: MessagePK): void;
   setInfoMessage(v: { jid: JID; pk: MessagePK } | null): void;
-  openViewer(jid: JID, pk: MessagePK): void;
+  openViewer(jid: JID, pk: MessagePK, items?: Message[]): void;
   closeViewer(): void;
   focusSearch(): void;
   setDraft(jid: JID, draft: string): void;
@@ -79,6 +83,7 @@ export const useUI = create<UIState>((set, get) => {
     settingsSection: 'appearance',
     settingsDirect: false,
     chatInfoOpen: false,
+    infoJid: null,
     activeChat: null,
     railPanel: 'chats',
     sidebarWidth: DEFAULT_SETTINGS.ui.sidebarWidth,
@@ -92,6 +97,7 @@ export const useUI = create<UIState>((set, get) => {
         activeChat: jid,
         view: 'chats',
         chatInfoOpen: s.activeChat === jid ? s.chatInfoOpen : false,
+        infoJid: s.activeChat === jid ? s.infoJid : null,
       })),
     setRailPanel: (railPanel) => set({ railPanel, view: 'chats' }),
     openSettings: (section, direct = false) =>
@@ -100,7 +106,8 @@ export const useUI = create<UIState>((set, get) => {
         settingsSection: section ?? s.settingsSection,
         settingsDirect: direct,
       })),
-    setChatInfoOpen: (chatInfoOpen) => set({ chatInfoOpen }),
+    setChatInfoOpen: (chatInfoOpen) => set({ chatInfoOpen, infoJid: null }),
+    openInfo: (infoJid) => set({ chatInfoOpen: true, infoJid }),
     closeSettings: () => set({ view: 'chats' }),
     setSettingsSection: (settingsSection) => set({ settingsSection }),
     setSidebarWidth(w) {
@@ -113,7 +120,10 @@ export const useUI = create<UIState>((set, get) => {
     jumpTo: (jid, pk) =>
       set((s) => ({ focusMessage: { jid, pk, nonce: (s.focusMessage?.nonce ?? 0) + 1 } })),
     setInfoMessage: (infoMessage) => set({ infoMessage }),
-    openViewer: (jid, pk) => set({ viewer: { jid, pk } }),
+    openViewer: (jid, pk, items) =>
+      set((s) => ({
+        viewer: { jid, pk, items: items ?? (s.viewer?.jid === jid ? s.viewer.items : undefined) },
+      })),
     closeViewer: () => set({ viewer: null }),
     focusSearch: () => set((s) => ({ view: 'chats', searchFocusNonce: s.searchFocusNonce + 1 })),
     setDraft: (jid, draft) => patchComposer(jid, { draft }),

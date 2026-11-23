@@ -8,6 +8,8 @@
 
 .wz-bubble--round .wz-bubble__meta {
   position: static;
+  /* a block, so margin-left: auto can push it to the right edge */
+  display: flex;
   align-self: flex-end;
   width: fit-content;
   margin: 4px 0 0 auto;

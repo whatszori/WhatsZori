@@ -94,10 +94,25 @@
 }
 
 .wz-bubble__sender {
+  display: block;
+  max-width: 100%;
   margin-bottom: 2px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: var(--wz-font-size-sm);
   font-weight: 600;
   color: var(--wz-text-secondary);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wz-bubble__sender:hover {
+  text-decoration: underline;
 }
 
 .wz-bubble__text {
@@ -531,4 +546,44 @@ button.wz-bubble__edited:hover {
 .wz-media--voice .wz-media__bar {
   min-width: 0;
   max-width: 4px;
+}
+
+/* stickers sit on the chat background like on the phone: no bubble, the time in a pill below */
+.wz-bubble--sticker {
+  padding: 0;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.wz-bubble--sticker .wz-media--sticker {
+  background: transparent;
+  border-radius: 0;
+}
+
+.wz-bubble--sticker .wz-media--sticker .wz-media__el {
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.12));
+}
+
+.wz-bubble--sticker .wz-bubble__meta,
+.wz-bubble--sticker .wz-bubble__meta.wz-bubble__meta--overlay {
+  position: static;
+  /* a block, so margin-left: auto can push it to the right edge */
+  display: flex;
+  width: fit-content;
+  margin: 2px 0 0 auto;
+  padding: 2px 8px;
+  border-radius: var(--wz-radius-full);
+  background: var(--wz-bg-secondary);
+  color: var(--wz-text-muted) !important;
+}
+
+.wz-media__gif-badge {
+  padding: 1px 6px;
+  border-radius: var(--wz-radius-sm);
+  background: rgb(0 0 0 / 0.5);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }

@@ -6,6 +6,7 @@ import { linkify } from '../../lib/linkify';
 import { PluginSlot } from '../../plugin-core/slots';
 import type { PopoverAnchor } from '../../ui';
 import { MediaBlock } from './Media';
+import { useUI } from '../../stores/ui';
 import { StatusTicks } from './StatusTicks';
 import { toPluginMessage } from './plugin-adapters';
 
@@ -102,6 +103,7 @@ export const Bubble = memo(function Bubble({
     hasMedia && `wz-bubble--has-${m.kind}`,
     visualOnly && 'wz-bubble--visual',
     round && 'wz-bubble--round',
+    hasMedia && m.kind === 'sticker' && !m.text && 'wz-bubble--sticker',
   ]
     .filter(Boolean)
     .join(' ');
@@ -120,7 +122,16 @@ export const Bubble = memo(function Bubble({
     >
       <div className="wz-message__row">
         <div className={cls} onContextMenu={openMenu}>
-          {showSender && !m.fromMe && <div className="wz-bubble__sender">{m.senderName}</div>}
+          {showSender && !m.fromMe && (
+            <button
+              type="button"
+              className="wz-bubble__sender"
+              onClick={() => useUI.getState().openInfo(m.senderJid)}
+              title={`About ${m.senderName}`}
+            >
+              {m.senderName}
+            </button>
+          )}
 
           {m.contentUnknown ? (
             <p className="wz-bubble__unknown">

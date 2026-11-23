@@ -1,0 +1,55 @@
+.wz-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 1px 0 2px;
+}
+
+.wz-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.wz-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-full);
+  background: transparent;
+  color: var(--wz-text-secondary);
+  font: inherit;
+  font-size: var(--wz-font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--wz-duration-fast) var(--wz-ease),
+    color var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-chip:hover {
+  background: var(--wz-bg-hover);
+  color: var(--wz-text-primary);
+}
+
+.wz-chip--on,
+.wz-chip--on:hover {
+  border-color: transparent;
+  background: var(--wz-accent-soft);
+  color: var(--wz-accent);
+  font-weight: 600;
+}
+
+.wz-chip:focus-visible {
+  outline: 2px solid var(--wz-accent);
+  outline-offset: 1px;
+}
+
+.wz-chip--add {
+  width: 28px;
+  justify-content: center;
+  padding: 0;
+  border-style: dashed;
+}

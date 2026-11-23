@@ -32,6 +32,13 @@ export function GetMessages(jid: string, beforePk: string, limit: number): $Canc
     return $Call.ByID(1399447316, jid, beforePk, limit);
 }
 
+/**
+ * ListShared pages a chat's media ("media"), documents ("docs") or messages with links ("links").
+ */
+export function ListShared(jid: string, kind: string, beforePk: string, limit: number): $CancellablePromise<domain$0.MessagePage> {
+    return $Call.ByID(1407556369, jid, kind, beforePk, limit);
+}
+
 export function React(pk: string, emoji: string): $CancellablePromise<domain$0.Reaction[] | null> {
     return $Call.ByID(4210929667, pk, emoji);
 }

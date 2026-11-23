@@ -9,12 +9,49 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 // @ts-ignore: Unused imports
 import * as domain$0 from "../domain/models.js";
 
+/**
+ * Clear deletes the chat's messages on this computer only; the phone and other people keep them.
+ */
+export function Clear(jid: string): $CancellablePromise<void> {
+    return $Call.ByID(2330310786, jid);
+}
+
+export function CreateList(name: string): $CancellablePromise<domain$0.ChatList> {
+    return $Call.ByID(3698982777, name);
+}
+
+/**
+ * Delete removes the chat on all your devices (like "Delete chat" on the phone) and here.
+ */
+export function Delete(jid: string): $CancellablePromise<void> {
+    return $Call.ByID(1516020522, jid);
+}
+
+export function DeleteList(id: number): $CancellablePromise<void> {
+    return $Call.ByID(553542470, id);
+}
+
 export function GetInfo(jid: string): $CancellablePromise<domain$0.ChatInfo> {
     return $Call.ByID(2136739315, jid);
 }
 
+export function GroupEvents(jid: string): $CancellablePromise<domain$0.GroupEvent[] | null> {
+    return $Call.ByID(969476085, jid);
+}
+
+/**
+ * Leave leaves a group. The chat and its history stay, like on the phone.
+ */
+export function Leave(jid: string): $CancellablePromise<void> {
+    return $Call.ByID(988100640, jid);
+}
+
 export function ListChats(): $CancellablePromise<domain$0.Chat[] | null> {
     return $Call.ByID(1444040420);
+}
+
+export function Lists(): $CancellablePromise<domain$0.ChatList[] | null> {
+    return $Call.ByID(1251430998);
 }
 
 /**
@@ -25,8 +62,38 @@ export function MarkRead(jid: string): $CancellablePromise<void> {
     return $Call.ByID(873912788, jid);
 }
 
+/**
+ * Open makes sure there's a chat row for jid (a group member we never wrote to) and returns it.
+ */
+export function Open(jid: string): $CancellablePromise<domain$0.Chat> {
+    return $Call.ByID(474554025, jid);
+}
+
+/**
+ * RemoveMember kicks someone out of a group. Only admins can; WhatsApp refuses otherwise.
+ */
+export function RemoveMember(group: string, member: string): $CancellablePromise<void> {
+    return $Call.ByID(2583216795, group, member);
+}
+
+export function RenameList(id: number, name: string): $CancellablePromise<void> {
+    return $Call.ByID(3976060443, id, name);
+}
+
 export function SetArchived(jid: string, archived: boolean): $CancellablePromise<void> {
     return $Call.ByID(3249146445, jid, archived);
+}
+
+export function SetBlocked(jid: string, block: boolean): $CancellablePromise<void> {
+    return $Call.ByID(137482285, jid, block);
+}
+
+export function SetFavorite(jid: string, on: boolean): $CancellablePromise<void> {
+    return $Call.ByID(3280949355, jid, on);
+}
+
+export function SetInList(id: number, jid: string, $in: boolean): $CancellablePromise<void> {
+    return $Call.ByID(4037961464, id, jid, $in);
 }
 
 export function SetMuted(jid: string, muted: boolean): $CancellablePromise<void> {
