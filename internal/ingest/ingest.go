@@ -34,6 +34,11 @@ type Media interface {
 	Remove(rel string)
 }
 
+// Avatars is the profile picture cache; a Picture event makes it refetch.
+type Avatars interface {
+	Invalidate(ctx context.Context, jid string)
+}
+
 type Options struct {
 	DB     *sql.DB
 	JIDs   *wa.JIDs
@@ -41,21 +46,23 @@ type Options struct {
 	Policy func() domain.HistoryPolicy
 	// Client is the current whatsmeow client (it changes after a re-login). Used for our own JID,
 	// parsing history sync messages and fetching group info.
-	Client func() wa.Client
-	Media  Media
-	Log    *slog.Logger
-	Now    func() time.Time
+	Client  func() wa.Client
+	Media   Media
+	Avatars Avatars
+	Log     *slog.Logger
+	Now     func() time.Time
 }
 
 type Ingester struct {
-	db     *sql.DB
-	jids   *wa.JIDs
-	emit   evnames.Emitter
-	policy func() domain.HistoryPolicy
-	client func() wa.Client
-	media  Media
-	log    *slog.Logger
-	now    func() time.Time
+	db      *sql.DB
+	jids    *wa.JIDs
+	emit    evnames.Emitter
+	policy  func() domain.HistoryPolicy
+	client  func() wa.Client
+	media   Media
+	avatars Avatars
+	log     *slog.Logger
+	now     func() time.Time
 
 	groupsMu      sync.Mutex
 	groupsFetched map[string]bool
@@ -71,7 +78,7 @@ func New(o Options) *Ingester {
 	if o.Policy == nil {
 		o.Policy = func() domain.HistoryPolicy { return domain.History{}.Policy() }
 	}
-	return &Ingester{db: o.DB, jids: o.JIDs, emit: o.Emit, policy: o.Policy, client: o.Client, media: o.Media,
+	return &Ingester{db: o.DB, jids: o.JIDs, emit: o.Emit, policy: o.Policy, client: o.Client, media: o.Media, avatars: o.Avatars,
 		log: o.Log, now: o.Now, groupsFetched: map[string]bool{}}
 }
 
@@ -181,6 +188,12 @@ func (in *Ingester) Handle(evt any) error {
 			// "mark as unread" on the phone; show it as one unread message, like the phone does
 			return repo.SetUnread(ctx, tx, jid, 1)
 		})
+	case *events.Picture:
+		jid := in.jids.Key(ctx, e.JID)
+		if in.avatars != nil {
+			in.avatars.Invalidate(ctx, jid)
+		}
+		in.emit.Emit(evnames.AvatarChange, domain.AvatarChangedEvent{JID: jid})
 	case *events.UndecryptableMessage:
 		// whatsmeow already asked the sender to retry; a readable copy arrives as a normal message
 		in.log.Info("undecryptable message", "id", e.Info.ID, "unavailable", e.IsUnavailable)

@@ -138,7 +138,7 @@ func InTx(ctx context.Context, db *sql.DB, fn func(tx *sql.Tx) error) error {
 // Wipe deletes everything we stored, but keeps the schema. whatsmeow's session.db isn't touched.
 func Wipe(ctx context.Context, db *sql.DB) error {
 	return InTx(ctx, db, func(tx *sql.Tx) error {
-		for _, t := range []string{"reactions", "receipts", "message_edits", "media", "messages", "group_participants", "contacts", "chats"} {
+		for _, t := range []string{"avatars", "reactions", "receipts", "message_edits", "media", "messages", "group_participants", "contacts", "chats"} {
 			if _, err := tx.ExecContext(ctx, "DELETE FROM "+t); err != nil {
 				return err
 			}

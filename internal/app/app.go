@@ -107,6 +107,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 				ThemesDir:  cfg.Paths.Themes,
 				PluginsDir: cfg.Paths.Plugins,
 				Media:      wa.Media.Handler(assets.MediaPrefix),
+				Avatars:    wa.Avatars.Handler(assets.AvatarPrefix),
 				HTMLAttrs:  a.htmlAttrs,
 			}),
 		},

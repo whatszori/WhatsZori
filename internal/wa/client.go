@@ -54,6 +54,8 @@ type Client interface {
 	SetPushName(ctx context.Context, name string) error
 	SetAbout(ctx context.Context, about string) error
 	GetAbout(ctx context.Context, jid types.JID) (string, error)
+	// GetProfilePicture returns nil, nil when the picture is still existingID
+	GetProfilePicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error)
 	AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
 }
 
@@ -173,6 +175,9 @@ func (m *Meow) GetAbout(ctx context.Context, jid types.JID) (string, error) {
 		return "", err
 	}
 	return info[jid].Status, nil
+}
+func (m *Meow) GetProfilePicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error) {
+	return m.Cli.GetProfilePictureInfo(ctx, jid, &whatsmeow.GetProfilePictureParams{Preview: preview, ExistingID: existingID})
 }
 func (m *Meow) AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
 	return m.Cli.Store.Contacts.GetAllContacts(ctx)

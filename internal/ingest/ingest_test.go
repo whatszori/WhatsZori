@@ -645,3 +645,23 @@ func TestLIDChatFoldsIntoPhoneNumber(t *testing.T) {
 		t.Error("chat:removed not emitted for the lid chat")
 	}
 }
+
+type fakeAvatars struct{ invalidated []string }
+
+func (f *fakeAvatars) Invalidate(_ context.Context, jid string) { f.invalidated = append(f.invalidated, jid) }
+
+func TestPictureChange(t *testing.T) {
+	e := newEnv(t)
+	av := &fakeAvatars{}
+	e.in.avatars = av
+	lid := types.NewJID("200000000000009", types.HiddenUserServer)
+	e.lids.PutLIDMapping(context.Background(), lid, alice)
+	e.handle(t, &events.Picture{JID: lid, Author: lid, Timestamp: tick()})
+	if len(av.invalidated) != 1 || av.invalidated[0] != alice.String() {
+		t.Fatalf("invalidated %v, want the canonical jid", av.invalidated)
+	}
+	evs := e.rec.take(evnames.AvatarChange)
+	if len(evs) != 1 || evs[0].(domain.AvatarChangedEvent).JID != alice.String() {
+		t.Errorf("avatar:changed: %+v", evs)
+	}
+}

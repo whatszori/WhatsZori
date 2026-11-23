@@ -20,6 +20,7 @@ const (
 	ThemesPrefix  = "/wz-themes/"
 	PluginsPrefix = "/wz-plugins/"
 	MediaPrefix   = "/wz-media/"
+	AvatarPrefix  = "/wz-avatar/"
 )
 
 type Options struct {
@@ -27,6 +28,8 @@ type Options struct {
 	PluginsDir string
 	// Media serves /wz-media/<pk>; nil answers 404
 	Media http.Handler
+	// Avatars serves /wz-avatar/<jid>; nil answers 404
+	Avatars http.Handler
 	// HTMLAttrs is added to the index page's <html> tag, so data-theme is right before any CSS
 	// or script runs and a dark window doesn't flash light.
 	HTMLAttrs func() map[string]string
@@ -49,6 +52,12 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 					return
 				}
 				serveFile(w, r, o.PluginsDir, rest, false)
+			case strings.HasPrefix(p, AvatarPrefix):
+				if o.Avatars == nil {
+					http.NotFound(w, r)
+					return
+				}
+				o.Avatars.ServeHTTP(w, r)
 			case strings.HasPrefix(p, MediaPrefix):
 				if o.Media == nil {
 					http.NotFound(w, r)

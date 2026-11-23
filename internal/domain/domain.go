@@ -290,6 +290,11 @@ type ChatRemovedEvent struct {
 	JID string `json:"jid"`
 }
 
+// a profile picture or group photo changed; the UI reloads it
+type AvatarChangedEvent struct {
+	JID string `json:"jid"`
+}
+
 type PresenceEvent struct {
 	JID      string `json:"jid"`
 	Online   bool   `json:"online"`

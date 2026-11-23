@@ -17,6 +17,7 @@ type Paths struct {
 	Themes  string
 	Plugins string
 	Media   string
+	Avatars string
 }
 
 func (p Paths) SettingsFile() string { return filepath.Join(p.Root, "settings.json") }
@@ -81,12 +82,13 @@ func NewPaths(root string) Paths {
 		Themes:  filepath.Join(root, "themes"),
 		Plugins: filepath.Join(root, "plugins"),
 		Media:   filepath.Join(root, "media"),
+		Avatars: filepath.Join(root, "avatars"),
 	}
 }
 
 func (p Paths) Ensure() error {
 	var errs []error
-	for _, dir := range []string{p.Root, p.Themes, p.Plugins, p.Media} {
+	for _, dir := range []string{p.Root, p.Themes, p.Plugins, p.Media, p.Avatars} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			errs = append(errs, err)
 		}

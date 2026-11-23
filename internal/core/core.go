@@ -14,6 +14,7 @@ import (
 	waStore "go.mau.fi/whatsmeow/store"
 
 	"github.com/whatszori/WhatsZori/internal/antispam"
+	"github.com/whatszori/WhatsZori/internal/avatar"
 	"github.com/whatszori/WhatsZori/internal/config"
 	"github.com/whatszori/WhatsZori/internal/domain"
 	"github.com/whatszori/WhatsZori/internal/events"
@@ -42,6 +43,7 @@ type Core struct {
 	In       *ingest.Ingester
 	Gate     *privacy.Gate
 	Media    *media.Store
+	Avatars  *avatar.Store
 	Sender   *wa.Sender
 	JIDs     *wa.JIDs
 	Emit     *events.Batcher
@@ -101,7 +103,14 @@ func New(ctx context.Context, o Options) (*Core, error) {
 		}
 		return cli
 	}, o.Log)
-	c.In = ingest.New(ingest.Options{DB: db, JIDs: c.JIDs, Emit: c.Emit, Policy: c.Policy, Client: client, Media: c.Media, Log: o.Log})
+	c.Avatars = avatar.New(o.Paths.Avatars, db, func() avatar.Fetcher {
+		cli, err := c.Mgr.Ready()
+		if err != nil {
+			return nil
+		}
+		return cli
+	}, o.Log)
+	c.In = ingest.New(ingest.Options{DB: db, JIDs: c.JIDs, Emit: c.Emit, Policy: c.Policy, Client: client, Media: c.Media, Avatars: c.Avatars, Log: o.Log})
 
 	mgr = wa.NewManager(wa.Options{
 		Factory:   sess.Factory(),
@@ -188,13 +197,15 @@ func (c *Core) Wipe(ctx context.Context) error {
 	if err := store.Wipe(ctx, c.DB); err != nil {
 		return err
 	}
-	entries, err := os.ReadDir(c.Paths.Media)
-	if err != nil {
-		return nil
-	}
-	for _, e := range entries {
-		if err := os.RemoveAll(filepath.Join(c.Paths.Media, e.Name())); err != nil {
-			return fmt.Errorf("clear media: %w", err)
+	for _, dir := range []string{c.Paths.Media, c.Paths.Avatars} {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if err := os.RemoveAll(filepath.Join(dir, e.Name())); err != nil {
+				return fmt.Errorf("clear %s: %w", filepath.Base(dir), err)
+			}
 		}
 	}
 	return nil
