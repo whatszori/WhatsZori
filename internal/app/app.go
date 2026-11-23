@@ -2,10 +2,14 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"io/fs"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -100,6 +104,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewProfile(wa)),
 			application.NewService(services.NewPrivacy(wa)),
 			application.NewService(services.NewContacts(wa)),
+			application.NewService(services.NewMedia(wa, desktop{a})),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
@@ -112,7 +117,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			}),
 		},
 		SingleInstance: &application.SingleInstanceOptions{
-			UniqueID:               appID,
+			UniqueID:               instanceID(cfg),
 			OnSecondInstanceLaunch: func(application.SecondInstanceData) { a.focus() },
 		},
 		Mac: application.MacOptions{
@@ -316,4 +321,22 @@ type filePicker struct{ a *App }
 
 func (p filePicker) PickFile(title string) (string, error) {
 	return p.a.wails.Dialog.OpenFile().SetTitle(title).AttachToWindow(p.a.window).PromptForSingleSelection()
+}
+
+type desktop struct{ a *App }
+
+func (d desktop) PickSavePath(title, name string) (string, error) {
+	return d.a.wails.Dialog.SaveFile().SetMessage(title).SetFilename(name).AttachToWindow(d.a.window).PromptForSingleSelection()
+}
+
+func (d desktop) RevealFile(path string) error { return d.a.wails.Env.OpenFileManager(path, true) }
+
+// instanceID is per profile: a second launch with the same config folder focuses the running
+// window, but WHATSZORI_CONFIG_DIR pointing elsewhere is another account and may run alongside.
+func instanceID(cfg config.Config) string {
+	if os.Getenv(config.EnvDir) == "" {
+		return appID
+	}
+	sum := sha256.Sum256([]byte(strings.ToLower(filepath.Clean(cfg.Paths.Root))))
+	return appID + "." + hex.EncodeToString(sum[:6])
 }
