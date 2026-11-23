@@ -57,6 +57,12 @@ type Client interface {
 	// GetProfilePicture returns nil, nil when the picture is still existingID
 	GetProfilePicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error)
 	AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
+
+	// Blocked lists who we blocked; SetBlocked blocks or unblocks one person.
+	Blocked(ctx context.Context) ([]types.JID, error)
+	SetBlocked(ctx context.Context, jid types.JID, block bool) error
+	LeaveGroup(ctx context.Context, group types.JID) error
+	RemoveParticipants(ctx context.Context, group types.JID, members []types.JID) error
 }
 
 // PresenceTransport is what the privacy gate sends through. Nothing else may hold one; a test in
@@ -193,4 +199,52 @@ func (m *Meow) SendChatPresence(ctx context.Context, jid types.JID, state types.
 }
 func (m *Meow) MarkRead(ctx context.Context, ids []types.MessageID, ts time.Time, chat, sender types.JID) error {
 	return m.Cli.MarkRead(ctx, ids, ts, chat, sender)
+}
+
+func (m *Meow) Blocked(ctx context.Context) ([]types.JID, error) {
+	bl, err := m.Cli.GetBlocklist(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+	var out []types.JID
+	for _, it := range bl.Items {
+		if !it.PN.IsEmpty() {
+			out = append(out, it.PN)
+		}
+		if !it.LID.IsEmpty() {
+			out = append(out, it.LID)
+		}
+	}
+	return out, nil
+}
+
+func (m *Meow) SetBlocked(ctx context.Context, jid types.JID, block bool) error {
+	// the server wants the current list hash with every change
+	bl, err := m.Cli.GetBlocklist(ctx, "")
+	if err != nil {
+		return err
+	}
+	action := events.BlocklistChangeActionUnblock
+	if block {
+		action = events.BlocklistChangeActionBlock
+	}
+	_, err = m.Cli.UpdateBlocklist(ctx, jid, action, bl.DHash)
+	return err
+}
+
+func (m *Meow) LeaveGroup(ctx context.Context, group types.JID) error {
+	return m.Cli.LeaveGroup(ctx, group)
+}
+
+func (m *Meow) RemoveParticipants(ctx context.Context, group types.JID, members []types.JID) error {
+	res, err := m.Cli.UpdateGroupParticipants(ctx, group, members, whatsmeow.ParticipantChangeRemove)
+	if err != nil {
+		return err
+	}
+	for _, p := range res {
+		if p.Error != 0 {
+			return fmt.Errorf("WhatsApp refused the change (error %d)", p.Error)
+		}
+	}
+	return nil
 }

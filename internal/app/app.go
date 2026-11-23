@@ -84,6 +84,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	wa.SetFolderOpener(func(dir string) error { return a.wails.Env.OpenFileManager(dir, false) })
 	if cfg.Flags.NoConnect {
 		slog.Warn("WhatsApp connection disabled", "env", config.EnvNoConnect)
 	}
@@ -105,6 +106,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewPrivacy(wa)),
 			application.NewService(services.NewContacts(wa)),
 			application.NewService(services.NewMedia(wa, desktop{a})),
+			application.NewService(services.NewExport(wa, desktop{a})),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
@@ -330,6 +332,11 @@ func (d desktop) PickSavePath(title, name string) (string, error) {
 }
 
 func (d desktop) RevealFile(path string) error { return d.a.wails.Env.OpenFileManager(path, true) }
+
+func (d desktop) PickFolder(title string) (string, error) {
+	return d.a.wails.Dialog.OpenFile().SetTitle(title).CanChooseDirectories(true).CanChooseFiles(false).
+		CanCreateDirectories(true).AttachToWindow(d.a.window).PromptForSingleSelection()
+}
 
 // instanceID is per profile: a second launch with the same config folder focuses the running
 // window, but WHATSZORI_CONFIG_DIR pointing elsewhere is another account and may run alongside.

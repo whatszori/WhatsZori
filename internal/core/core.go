@@ -5,6 +5,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -50,7 +51,19 @@ type Core struct {
 	settings *settings.Store
 	log      *slog.Logger
 	cancel   context.CancelFunc
+
+	openFolder func(string) error
 }
+
+// OpenFolder shows a folder in the file manager; set by the app.
+func (c *Core) OpenFolder(dir string) error {
+	if c.openFolder == nil {
+		return errors.New("not available")
+	}
+	return c.openFolder(dir)
+}
+
+func (c *Core) SetFolderOpener(fn func(string) error) { c.openFolder = fn }
 
 type Options struct {
 	Paths     config.Paths
@@ -191,6 +204,15 @@ func (c *Core) onConnected(cli wa.Client) {
 	if contacts, err := cli.AllContacts(ctx); err == nil {
 		if err := c.In.SyncContacts(ctx, contacts); err != nil {
 			c.log.Error("store contacts", "error", err)
+		}
+	}
+}
+
+// RemoveFiles deletes media files that no message points at anymore.
+func (c *Core) RemoveFiles(ctx context.Context, files []string) {
+	for _, rel := range files {
+		if used, err := repo.FileInUse(ctx, c.DB, rel); err == nil && !used {
+			c.Media.Remove(rel)
 		}
 	}
 }

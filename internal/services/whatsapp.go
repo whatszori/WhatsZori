@@ -206,6 +206,9 @@ func (s *Chats) GetInfo(jid string) (domain.ChatInfo, error) {
 	if err != nil {
 		return info, err
 	}
+	if info.Members == nil && !strings.HasSuffix(jid, "@g.us") {
+		info.Blocked = s.isBlocked(ctx, jid)
+	}
 	// a 1:1 "about" we never saw: ask once, it's cheap and cached in contacts
 	if info.Members == nil && info.About == "" {
 		if cli, err := s.c.Mgr.Ready(); err == nil {
