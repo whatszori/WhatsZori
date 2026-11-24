@@ -101,7 +101,11 @@ export async function startPlugin(p: PluginInfo): Promise<void> {
   errors.delete(p.id);
   const offs: Unregister[] = [];
   try {
-    const mod = (await import(/* @vite-ignore */ backend.plugins.url(p.id, p.main))) as {
+    // modules are cached by URL; a fresh one per start, so turning a plugin off and on after
+    // `wz-plugin dev` rebuilt it loads the new code
+    const url = backend.plugins.url(p.id, p.main);
+    const fresh = url.startsWith('/') ? `${url}?v=${Date.now()}` : url;
+    const mod = (await import(/* @vite-ignore */ fresh)) as {
       default?: Partial<PluginModule> | PluginModule['start'];
       start?: PluginModule['start'];
     };

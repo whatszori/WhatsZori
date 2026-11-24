@@ -36,6 +36,20 @@ plugins/
 
 A plugin with a broken manifest still shows in the list, with the reason, and can't be turned on.
 
+## With the SDK
+
+[`@whatszori/plugin-sdk`](https://github.com/whatszori/plugin-sdk) gives you types for all of the below,
+TSX and React hooks that run on the app's React, and a CLI:
+
+```sh
+npx @whatszori/plugin-sdk create my-plugin
+cd my-plugin && npm install
+npm run dev      # builds into the plugins folder and rebuilds on save
+```
+
+After a rebuild, turn the plugin off and on in Settings → Plugins to load the new code.
+Plain JavaScript without a build step (below) keeps working too.
+
 ## The module
 
 ```js
