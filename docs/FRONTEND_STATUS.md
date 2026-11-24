@@ -90,12 +90,12 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
 - **Modular themes** (`src/themes/`): a theme is a folder with `manifest.json` plus CSS modules,
   and the loader injects one `<style>` per enabled theme. The built-in **Adwaita** theme (GNOME /
   libadwaita look) has 5 modules: palette (required), GTK widgets, header bars, boxed lists, and
-  accent bubbles (off by default). Screenshots: `screenshots/adwaita-*.png`. Built-in **WinUI**
+  accent bubbles (off by default). Screenshot: `screenshots/theme-adwaita-light.png`. Built-in **WinUI**
   theme (Windows 11 / Fluent 2) has 6 modules: palette (required), Fluent controls, navigation
   (selection pills), Mica layout, settings cards, and accent bubbles (off by default).
-  Screenshots: `screenshots/winui-*.png`. Built-in **Classic Green** theme (familiar
+  Screenshot: `screenshots/theme-winui-dark.png`. Built-in **Classic Green** theme (familiar
   desktop-messenger look: icon rail, green accent, tailed bubbles, floating composer) has 5 modules
-  and switches the app to the rail layout. Screenshots: `screenshots/classic-*.png`.
+  and switches the app to the rail layout. Screenshot: `screenshots/theme-classic-green-dark.png`.
 - **Profile** (Settings → Profile, or the avatar at the bottom of the rail): your name and about
   line, editable in place, and your phone number. About stays app info.
 - **Contact / group info panel**: click the chat header (or ⋮ → Contact info).
@@ -106,8 +106,6 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   - Mute toggle.
   - Groups: member list with admin badges and search; clicking a member opens their chat.
     Footer shows who created the group and when.
-  - Screenshots: `screenshots/contact-info-*.png`, `group-info-members-dark.png`,
-    `profile-dark.png`.
 - **Two layouts** (Settings → Appearance → Window layout): *Panels* (sidebar + content, settings in
   the content area) and *Rail* (icon rail with Chats / Calls / Status / Archived / Settings /
   profile, settings inside the sidebar with a searchable section list, ⋮ menu and a "+" button in
@@ -119,9 +117,9 @@ All four checks pass: `typecheck`, `lint` (0 errors, 2 expected warnings, see DE
   working.
 - **Keyboard**: Ctrl+K, Ctrl+, (toggles settings), Alt+Up/Down (previous/next chat), Esc
   (topmost layer first, then reply/edit, then settings).
-- **Screenshots** in [screenshots/](screenshots/): the Adwaita theme (`adwaita-*`), auth, the main view, a chat with deleted and
-  edited messages in light and dark, edit history, context menu, delete confirmation, a group chat,
-  settings appearance (light and dark) and privacy, and the live demo.
+- **Screenshots** in [screenshots/](screenshots/), taken from the browser preview with its demo data:
+  chats in light and dark, search, selection and forwarding, polls, statuses, the Deleted & edited
+  screen, the emoji picker, privacy and themes settings, and the three bundled themes.
 - **Checked in a real browser** (Edge via playwright-core): 16 checks passed. These cover:
   - Alt+Down and Ctrl+K
   - starting at the bottom, loading older messages and keeping the position
