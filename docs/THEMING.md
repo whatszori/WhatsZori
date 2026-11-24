@@ -247,17 +247,17 @@ theme, accent and user CSS theme apply there too. The cards use these variables,
 
 | Variable | Default | |
 | --- | --- | --- |
-| `--wz-ntf-width` | `360px` | card width |
+| `--wz-ntf-width` | `340px` | card width |
 | `--wz-ntf-bg` | `--wz-bg-elevated` | card background |
 | `--wz-ntf-fg` | `--wz-text-primary` | text |
-| `--wz-ntf-muted` | `--wz-text-muted` | app name, time |
-| `--wz-ntf-border` | `--wz-border` | card and button borders |
-| `--wz-ntf-radius` | `12px` | corner radius |
-| `--wz-ntf-shadow` | `--wz-shadow-popover` | card shadow |
-| `--wz-ntf-accent` | `--wz-accent` | reply field and send button |
+| `--wz-ntf-muted` | `--wz-text-muted` | time, close button |
+| `--wz-ntf-border` | 8% of the text colour | hairline around the card |
+| `--wz-ntf-radius` | `14px` | corner radius |
+| `--wz-ntf-shadow` | soft two-layer shadow | card shadow |
+| `--wz-ntf-accent` | `--wz-accent` | Reply / Mark as read, reply field, send button |
 | `--wz-ntf-gap` | `8px` | space between stacked cards |
 
-Stable class names for anything else: `.wz-ntf` (card), `.wz-ntf__head`, `.wz-ntf__main`,
+Stable class names for anything else: `.wz-ntf` (card), `.wz-ntf__main`, `.wz-ntf__time`, `.wz-ntf__close`,
 `.wz-ntf__title`, `.wz-ntf__body`, `.wz-ntf__actions`, `.wz-ntf__action`, `.wz-ntf__reply`,
 `.wz-ntf__input`, `.wz-ntf--summary` (summaries like "12 new messages"). The page has
 `html[data-window="toast"]`, if a theme wants to style the toast window differently. Its

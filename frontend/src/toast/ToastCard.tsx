@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { CheckCheck, Reply, SendHorizontal, X } from 'lucide-react';
+import { SendHorizontal, X } from 'lucide-react';
 import type { InAppToast } from '../api';
 import { formatTime } from '../lib/format';
 import { ErrorBoundary } from '../plugin-core/ErrorBoundary';
@@ -79,34 +79,36 @@ function StockCard({ toast, controls }: { toast: InAppToast; controls: CardContr
       className={`wz-ntf${summary ? ' wz-ntf--summary' : ''}${replying ? ' wz-ntf--replying' : ''}`}
       aria-label={`${toast.title}: ${toast.body}`}
     >
-      <header className="wz-ntf__head">
-        <Logo variant="mark" height={14} className="wz-ntf__logo" />
-        <span className="wz-ntf__app">WhatsZori</span>
-        <span className="wz-ntf__time">{formatTime(toast.at)}</span>
-        <button
-          type="button"
-          className="wz-ntf__close"
-          aria-label="Dismiss"
-          onClick={controls.dismiss}
-        >
-          <X size={14} />
-        </button>
-      </header>
       <button type="button" className="wz-ntf__main" onClick={controls.open}>
-        {!summary && (
+        {summary ? (
+          <span className="wz-ntf__mark">
+            <Logo variant="mark" height={22} />
+          </span>
+        ) : (
           <Avatar
             name={toast.title.replace(/\s*\(\d+ new\)$/, '')}
             jid={toast.avatar ? toast.chatJid : undefined}
-            size={40}
+            size={44}
             group={toast.isGroup}
           />
         )}
         <span className="wz-ntf__text">
-          <span className="wz-ntf__title">{toast.title}</span>
+          <span className="wz-ntf__top">
+            <span className="wz-ntf__title">{toast.title}</span>
+            <span className="wz-ntf__time">{formatTime(toast.at)}</span>
+          </span>
           <span className="wz-ntf__body" dir="auto">
             {toast.body}
           </span>
         </span>
+      </button>
+      <button
+        type="button"
+        className="wz-ntf__close"
+        aria-label="Dismiss"
+        onClick={controls.dismiss}
+      >
+        <X size={14} />
       </button>
       <PluginSlot
         name="notification.accessories"
@@ -138,11 +140,11 @@ function StockCard({ toast, controls }: { toast: InAppToast; controls: CardContr
           </div>
         ) : (
           <div className="wz-ntf__actions">
-            <button type="button" className="wz-ntf__action" onClick={startReply}>
-              <Reply size={14} /> Reply
-            </button>
             <button type="button" className="wz-ntf__action" onClick={controls.markRead}>
-              <CheckCheck size={14} /> Mark as read
+              Mark as read
+            </button>
+            <button type="button" className="wz-ntf__action" onClick={startReply}>
+              Reply
             </button>
           </div>
         ))}

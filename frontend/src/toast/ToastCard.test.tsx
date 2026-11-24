@@ -48,9 +48,13 @@ describe('toast card', () => {
     expect(el.textContent).toContain('Alan (2 new)');
     act(() => el.querySelector<HTMLButtonElement>('.wz-ntf__main')!.click());
     expect(c.open).toHaveBeenCalled();
-    act(() => [...el.querySelectorAll<HTMLButtonElement>('.wz-ntf__action')][1].click());
+    const action = (label: string) =>
+      [...el.querySelectorAll<HTMLButtonElement>('.wz-ntf__action')].find(
+        (b) => b.textContent?.trim() === label,
+      )!;
+    act(() => action('Mark as read').click());
     expect(c.markRead).toHaveBeenCalled();
-    act(() => el.querySelector<HTMLButtonElement>('.wz-ntf__action')!.click());
+    act(() => action('Reply').click());
     expect(c.startTyping).toHaveBeenCalled();
     expect(el.querySelector('.wz-ntf__input')).not.toBeNull();
     unmount();

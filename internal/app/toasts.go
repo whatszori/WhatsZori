@@ -31,7 +31,7 @@ type toastWindow struct {
 
 const (
 	// the card is 360 wide; the rest is room for its shadow
-	toastWidth  = 392
+	toastWidth  = 372
 	toastMargin = 8
 )
 
@@ -56,6 +56,9 @@ func (t *toastWindow) create() {
 		BackgroundColour: application.NewRGBA(0, 0, 0, 0),
 		Windows: application.WindowsWindow{
 			HiddenOnTaskbar: true,
+			// Windows 11 would draw its own border, corners and shadow around the whole window,
+			// transparent padding included; the card draws its own
+			DisableFramelessWindowDecorations: true,
 		},
 	})
 }
