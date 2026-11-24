@@ -50,3 +50,13 @@ wails3 task check
 You don't need to touch the app to share a theme or plugin: see
 [docs/THEMING.md](docs/THEMING.md) and [docs/PLUGINS.md](docs/PLUGINS.md). If a theme needs a
 variable or class that doesn't exist yet, open an issue.
+
+## Releasing
+
+The version lives in `build/config.yml`, with copies in a few other files. Change all of them at once:
+
+```sh
+node scripts/version.mjs set 0.2.0
+```
+
+Optionally write the release text in `docs/releases/v0.2.0.md`; without it, GitHub lists the commits. Commit and push to `main`. The `release` workflow sees that `v0.2.0` isn't released yet, runs the checks, builds Windows and Linux, and publishes the release with the files and checksums. Pushes that don't change the version don't release anything.

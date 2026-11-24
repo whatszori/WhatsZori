@@ -1,0 +1,155 @@
+name: release
+
+# Every push to main checks the app version (build/config.yml). When there's no GitHub release for
+# it yet, this builds Windows and Linux and publishes release v<version> with the files.
+# To release: `node scripts/version.mjs set 1.2.3`, optionally write docs/releases/v1.2.3.md,
+# commit and push to main.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      new: ${{ steps.v.outputs.new }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: v
+        name: Version and whether it's released
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # fails the run if the copies of the version disagree
+          v=$(node scripts/version.mjs)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "v$v" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "v$v is already released, nothing to do"
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$v isn't released yet"
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: version
+    if: needs.version.outputs.new == 'true'
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: windows-latest
+          - os: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Wails 3.1 on Linux is GTK4 + WebKitGTK 6.0
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev build-essential pkg-config
+
+      - name: Wails CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.1.0
+
+      - name: Frontend checks
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm run test
+
+      - name: Go checks
+        run: |
+          go vet . ./internal/...
+          go test . ./internal/...
+
+      - name: Build
+        run: wails3 build
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $n = "WhatsZori-$env:VERSION-windows-x64"
+          # the exe must say the version it's released as
+          $pv = (Get-Item bin/WhatsZori.exe).VersionInfo.ProductVersion
+          if ($pv -ne $env:VERSION) { throw "the exe says $pv, the release is $env:VERSION" }
+          New-Item -ItemType Directory -Force out, "stage/$n" | Out-Null
+          Copy-Item bin/WhatsZori.exe "out/$n.exe"
+          Copy-Item bin/WhatsZori.exe "stage/$n/WhatsZori.exe"
+          Copy-Item LICENSE.md "stage/$n/LICENSE.md"
+          $readme = (Get-Content build/release/README.txt -Raw -Encoding UTF8).Replace('{{version}}', $env:VERSION) -replace "`r?`n", "`r`n"
+          [IO.File]::WriteAllText("$PWD/stage/$n/README.txt", $readme, (New-Object Text.UTF8Encoding $true))
+          Compress-Archive -Path "stage/$n" -DestinationPath "out/$n.zip" -CompressionLevel Optimal
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          n="WhatsZori-$VERSION-linux-x64"
+          mkdir -p out "stage/$n"
+          install -m 755 bin/WhatsZori "stage/$n/WhatsZori"
+          cp LICENSE.md "stage/$n/"
+          sed "s/{{version}}/$VERSION/g" build/release/README.txt > "stage/$n/README.txt"
+          tar -C stage -czf "out/$n.tar.gz" "$n"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ runner.os }}
+          path: out/*
+          if-no-files-found: error
+
+  publish:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: out
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: out
+        run: sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Release
+        run: |
+          notes="docs/releases/v$VERSION.md"
+          if [ -f "$notes" ]; then how=(--notes-file "$notes"); else how=(--generate-notes); fi
+          gh release create "v$VERSION" out/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "WhatsZori $VERSION" \
+            "${how[@]}"
