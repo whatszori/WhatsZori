@@ -1,6 +1,7 @@
 import { backend, type PluginInfo } from '../api';
 import { buildContext } from './context';
 import { startSandboxed } from './sandbox/host';
+import { useActivity } from './activity';
 import { setSchema } from './settings';
 import type { PluginModule, Unregister } from './types';
 
@@ -49,6 +50,7 @@ export async function startPlugin(p: PluginInfo): Promise<void> {
   if (running.has(p.id) || p.error || p.needsApproval) return;
   errors.delete(p.id);
   setSchema(p.id, p.settings ?? []);
+  useActivity.getState().setName(p.id, p.name);
   const offs: Unregister[] = [];
   try {
     let stop: void | Unregister;

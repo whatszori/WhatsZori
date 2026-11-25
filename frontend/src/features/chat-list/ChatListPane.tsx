@@ -16,6 +16,7 @@ import {
 import { backend } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { ViewButtons } from '../../plugin-core/host';
+import { ActivityIndicator } from '../../plugin-core/ActivityIndicator';
 import { buildChatList } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
@@ -134,6 +135,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
                   else ui.openStatus();
                 }}
               />
+              <ActivityIndicator />
               <ViewButtons />
               <IconButton
                 label="Deleted & edited"

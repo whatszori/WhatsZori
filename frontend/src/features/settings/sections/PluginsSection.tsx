@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import {
   AlertTriangle,
   BadgeCheck,
@@ -307,6 +314,82 @@ const READS: Record<string, string> = {
 const andList = (xs: string[]) =>
   xs.length < 2 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
 
+type Level = 'high' | 'some' | 'little';
+const LEVEL: Record<Level, { title: string; text: string }> = {
+  high: {
+    title: 'High access',
+    text: 'It can read private things and send them out of WhatsZori. Allow it only if you know who made it and why it needs this.',
+  },
+  some: { title: 'Some access', text: 'It can see or change some of your data, as listed below.' },
+  little: { title: 'Little access', text: 'It only adds things to the app.' },
+};
+
+const HOLD_MS = 1100;
+
+// For high access a click isn't enough: Allow has to be held down (or Space / Enter held) for
+// about a second, so it can't be clicked through on the way somewhere else.
+function HoldButton({
+  disabled,
+  label,
+  onDone,
+  children,
+}: {
+  disabled: boolean;
+  label: string;
+  onDone: () => void;
+  children?: ReactNode;
+}) {
+  const [progress, setProgress] = useState(0);
+  const timer = useRef<number | undefined>(undefined);
+  const start = () => {
+    if (disabled || timer.current) return;
+    let began = 0;
+    timer.current = window.setInterval(() => {
+      const now = performance.now();
+      began ||= now;
+      const p = Math.min(1, (now - began) / HOLD_MS);
+      setProgress(p);
+      if (p >= 1) {
+        stop();
+        onDone();
+      }
+    }, 16);
+  };
+  const stop = () => {
+    window.clearInterval(timer.current);
+    timer.current = undefined;
+    setProgress(0);
+  };
+  useEffect(() => () => window.clearInterval(timer.current), []);
+  return (
+    <Button
+      variant="danger"
+      disabled={disabled}
+      className="wz-approve__hold"
+      style={{ ['--hold' as string]: progress }}
+      title={disabled ? 'Read the list first' : 'Press and hold'}
+      onPointerDown={start}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      onPointerCancel={stop}
+      onKeyDown={(e) => {
+        if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+          e.preventDefault();
+          start();
+        }
+      }}
+      onKeyUp={(e) => (e.key === ' ' || e.key === 'Enter') && stop()}
+      onBlur={stop}
+    >
+      <span className="wz-approve__hold-fill" aria-hidden="true" />
+      <span className="wz-approve__hold-text">
+        {label}
+        {children}
+      </span>
+    </Button>
+  );
+}
+
 // Allow waits until the end of the list has been on screen with the window in front, a moment
 // longer for every risky permission. Nobody has to tick boxes, but clicking through without
 // looking takes longer than reading.
@@ -369,6 +452,9 @@ function ApprovalDialog({
     : turnOn
       ? 'Allow and turn on'
       : 'Allow';
+  // reading plus a way out, or most of the sensitive list: that's high
+  const level: Level =
+    leaks || risky.length >= 3 ? 'high' : p.permissions.length > 0 ? 'some' : 'little';
   return (
     <Dialog
       open
@@ -380,19 +466,33 @@ function ApprovalDialog({
           <Button variant="ghost" autoFocus onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            disabled={left > 0}
-            title={left > 0 ? 'Read the list first' : undefined}
-            onClick={onAllow}
-          >
-            {allowLabel}
-            {left > 0 && <span className="wz-approve__wait"> ({Math.ceil(left / 1000)})</span>}
-          </Button>
+          {level === 'high' ? (
+            <HoldButton
+              disabled={left > 0}
+              label={`Hold to allow: ${verbs.join(', ')}`}
+              onDone={onAllow}
+            >
+              {left > 0 && <span className="wz-approve__wait"> ({Math.ceil(left / 1000)})</span>}
+            </HoldButton>
+          ) : (
+            <Button
+              variant="primary"
+              disabled={left > 0}
+              title={left > 0 ? 'Read the list first' : undefined}
+              onClick={onAllow}
+            >
+              {allowLabel}
+              {left > 0 && <span className="wz-approve__wait"> ({Math.ceil(left / 1000)})</span>}
+            </Button>
+          )}
         </>
       }
     >
       <div className="wz-approve">
+        <div className={`wz-approve__level wz-approve__level--${level}`}>
+          <strong>{LEVEL[level].title}</strong>
+          <span>{LEVEL[level].text}</span>
+        </div>
         {perms.length === 0 && p.network.length === 0 ? (
           <p>It doesn’t ask for anything beyond adding buttons and panels to the app.</p>
         ) : (

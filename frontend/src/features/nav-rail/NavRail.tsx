@@ -6,6 +6,7 @@ import { useProfile } from '../../stores/profile';
 import { useUI, type RailPanel } from '../../stores/ui';
 import { Avatar, Tooltip } from '../../ui';
 import { RailViewButtons } from '../../plugin-core/host';
+import { ActivityIndicator } from '../../plugin-core/ActivityIndicator';
 import './NavRail.css';
 
 type RailItem = 'chats' | 'archived' | 'calls' | 'status' | 'changes' | 'settings' | 'plugin';
@@ -123,6 +124,7 @@ export function NavRail() {
         <RailViewButtons />
       </div>
       <div className="wz-rail__group">
+        <ActivityIndicator rail />
         <RailButton
           item="settings"
           label="Settings"

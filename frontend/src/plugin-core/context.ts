@@ -22,6 +22,7 @@ import {
   Toggle,
   Tooltip,
 } from '../ui';
+import { useActivity } from './activity';
 import { pluginFetch, toBase64 } from './net';
 import { useOverlays } from './overlays';
 import { commands, editorTools, formatters, panels, usePluginUI, views } from './registry';
@@ -116,8 +117,11 @@ export function buildContext(
     offs.push(off);
     return off;
   };
-  const need = (perm: Permission) => {
+  // every allowed use goes into the activity list; later, because this can run while React
+  // renders a plugin's component
+  const need = (perm: Permission, detail?: string) => {
     if (!perms.has(perm)) throw new PermissionError(perm);
+    queueMicrotask(() => useActivity.getState().note(id, perm, detail));
   };
   const needAsync = async (perm: Permission) => need(perm);
   const safe =
@@ -154,6 +158,7 @@ export function buildContext(
             if (seen.has(m.pk) || (!opts?.history && m.timestamp < since)) continue;
             seen.add(m.pk);
             if (seen.size > 5000) seen.clear();
+            need('messages', 'new message');
             handler(toPluginMessage(m));
           }
         }),
@@ -509,7 +514,13 @@ export function buildContext(
     },
     net: {
       async fetch(url, init) {
-        need('network');
+        let host = '';
+        try {
+          host = new URL(String(url)).host;
+        } catch {
+          // a bad address fails in Go with a proper message
+        }
+        need('network', host);
         return pluginFetch(id, url, init);
       },
     },

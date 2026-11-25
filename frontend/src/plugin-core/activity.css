@@ -1,0 +1,100 @@
+.wz-activity {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.wz-activity--live {
+  color: var(--wz-warning);
+}
+
+.wz-activity__dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--wz-bg-primary);
+  border-radius: var(--wz-radius-full);
+  background: var(--wz-warning);
+  animation: wz-activity-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes wz-activity-pulse {
+  50% {
+    transform: scale(1.35);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-activity__dot {
+    animation: none;
+  }
+}
+
+.wz-activity-pop {
+  width: min(380px, calc(100vw - 32px));
+}
+
+.wz-activity-list__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--wz-space-3) var(--wz-space-4) var(--wz-space-2);
+}
+
+.wz-activity-list__head span {
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-activity-list ul {
+  max-height: 320px;
+  margin: 0;
+  padding: 0 var(--wz-space-2);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.wz-activity-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 120px) 1fr auto;
+  align-items: baseline;
+  gap: var(--wz-space-2);
+  padding: 6px var(--wz-space-2);
+  border-radius: var(--wz-radius-sm);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-activity-list li.is-sensitive .wz-activity-list__what {
+  color: var(--wz-warning);
+}
+
+.wz-activity-list__who {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wz-activity-list__what code {
+  font-family: var(--wz-font-mono);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-activity-list__count,
+.wz-activity-list__at {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.wz-activity-list__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--wz-space-2);
+  padding: var(--wz-space-2) var(--wz-space-3) var(--wz-space-3);
+  border-top: 1px solid var(--wz-border);
+  margin-top: var(--wz-space-2);
+}
