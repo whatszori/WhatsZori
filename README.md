@@ -74,6 +74,8 @@ It's built in the spirit of AyuGram for privacy, and Vencord for themes and plug
 - A full **emoji picker** with search, categories, recents and skin tones
 - New chat from your contacts or by phone number
 - Contact and group info, members, shared media, links and documents
+- **Plugins** with permissions you approve, a network allowlist, an isolated sandbox and signed
+  releases, plus a command palette (**Ctrl+Shift+P**)
 - Favourites and your own chat lists, pin, mute, archive, block
 - Export chats to HTML, TXT or JSON, with media
 - Native notifications on Windows, GNOME and KDE, or WhatsZori's own themeable cards
@@ -172,25 +174,27 @@ set your own chat wallpaper in *Settings → Appearance*.
 [data-theme='dark'] { --wz-accent: #4aa3ff; --wz-bubble-out: #0f3a63; }
 ```
 
-**Plugins** are ES modules in `plugins/<id>/`. They can:
+**Plugins** are ES modules in `plugins/<id>/`. They can add buttons, menu items, side panels
+and whole screens, commands with shortcuts, their own settings, tools in the photo editor, and
+react to what happens in your chats. Each one lists what it needs in its manifest, and you allow
+that before it runs:
 
-- add buttons and menu items in fixed slots;
-- show their own settings;
-- store data;
-- react to events.
-
-Plugins can't send messages on their own: sending is always your click.
-
-```js
-export default {
-  start(ctx) {
-    const h = ctx.React.createElement;
-    ctx.registerSlot('composer.actions', () =>
-      h(ctx.ui.IconButton, { label: 'Wave', icon: '👋', onClick: () => ctx.actions.insertIntoComposer('👋') }),
-    );
-  },
-};
+```json
+{
+  "id": "weather",
+  "name": "Weather",
+  "version": "1.0.0",
+  "apiVersion": 2,
+  "permissions": ["network", "composer"],
+  "network": ["api.open-meteo.com"],
+  "sandbox": true
+}
 ```
+
+A plugin reaches the internet only through the app, and only the sites it lists. Sandboxed
+plugins run apart from the app's page, and signed ones show who made them. Plugins can't send
+messages on their own: sending is always your click. Build them in TypeScript with the
+[plugin SDK](https://github.com/whatszori/plugin-sdk).
 
 See [docs/THEMING.md](docs/THEMING.md) and [docs/PLUGINS.md](docs/PLUGINS.md), plus the examples
 in [`examples/`](examples/).

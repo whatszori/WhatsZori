@@ -18,6 +18,20 @@ The first version that covers daily use.
 - Search across chats and inside a chat (Ctrl+F)
 - Full emoji picker; make your own stickers and resend ones from chats
 
+### Plugins
+
+- Plugin API 2: plugins ask for permissions and list the sites they connect to, and you allow
+  them before they run (and again when an update asks for more or is signed by someone else)
+- Plugins reach the internet only through the app, and only the sites you allowed
+- Sandboxed plugins that run isolated from the app's page
+- Signed plugins: the signer's key is shown, and a plugin whose files changed won't run
+- Command palette (Ctrl+Shift+P) with the app's and plugins' commands and shortcuts
+- Plugins can add side panels, whole screens, a badge in the chat list, a banner in the chat, a
+  block in contact info, buttons in the photo viewer and the attachment preview, their own
+  formatting of message text and tools in the photo editor
+- Plugin settings forms come from the manifest; plugins reload by themselves when their files
+  change
+
 ### Privacy
 
 - Anti-delete and edit history, and a Deleted & edited screen

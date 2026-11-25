@@ -1,0 +1,40 @@
+{
+  "id": "chat-insights",
+  "name": "Chat Insights",
+  "version": "2.0.0",
+  "description": "Stats for any chat (who writes most, when, top words and emoji), bookmarks for messages, highlighted words and a grayscale tool for the photo editor.",
+  "author": "WhatsZori",
+  "main": "index.js",
+  "icon": "icon.svg",
+  "apiVersion": 2,
+  "minAppVersion": "0.1.0",
+  "permissions": ["messages", "notifications", "clipboard"],
+  "settings": [
+    {
+      "key": "highlight",
+      "type": "text",
+      "label": "Words to highlight",
+      "description": "Comma-separated. They get marked in every message.",
+      "placeholder": "urgent, deadline",
+      "default": ""
+    },
+    {
+      "key": "notifyOnDelete",
+      "type": "toggle",
+      "label": "Notify when someone deletes a message",
+      "description": "A desktop notification; WhatsZori keeps the message either way.",
+      "default": false
+    },
+    {
+      "key": "sample",
+      "type": "select",
+      "label": "Messages to analyse",
+      "default": "200",
+      "options": [
+        { "value": "50", "label": "Last 50" },
+        { "value": "200", "label": "Last 200" },
+        { "value": "1000", "label": "Last 1000" }
+      ]
+    }
+  ]
+}

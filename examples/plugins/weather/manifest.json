@@ -1,0 +1,25 @@
+{
+  "id": "weather",
+  "name": "Weather",
+  "version": "1.0.0",
+  "description": "The weather for your city in a panel, and a command that puts it into the message box. Runs sandboxed.",
+  "author": "WhatsZori",
+  "main": "index.js",
+  "apiVersion": 2,
+  "sandbox": true,
+  "permissions": ["network", "composer"],
+  "network": ["api.open-meteo.com", "geocoding-api.open-meteo.com"],
+  "settings": [
+    { "key": "city", "type": "text", "label": "City", "default": "Moscow", "placeholder": "Berlin" },
+    {
+      "key": "units",
+      "type": "select",
+      "label": "Units",
+      "default": "celsius",
+      "options": [
+        { "value": "celsius", "label": "°C, km/h" },
+        { "value": "fahrenheit", "label": "°F, mph" }
+      ]
+    }
+  ]
+}
