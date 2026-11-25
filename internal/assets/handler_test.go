@@ -45,6 +45,7 @@ func setup(t *testing.T) fixture {
 		ThemesDir:  f.themes,
 		PluginsDir: f.plugins,
 		HTMLAttrs:  func() map[string]string { return map[string]string{"data-theme": "dark"} },
+		CSP:        PageCSP,
 	})(next)
 	return f
 }
@@ -152,5 +153,16 @@ func TestSafeRel(t *testing.T) {
 		if _, err := SafeRel(p); err != nil {
 			t.Errorf("%q should be fine", p)
 		}
+	}
+}
+
+func TestIndexGetsCSP(t *testing.T) {
+	f := setup(t)
+	csp := get(f.h, "/").Header().Get("Content-Security-Policy")
+	if !strings.Contains(csp, "connect-src 'self';") {
+		t.Fatalf("the page must not reach the internet on its own: %q", csp)
+	}
+	if get(f.h, "/assets/app.js").Header().Get("Content-Security-Policy") != "" {
+		t.Error("only the page gets the policy")
 	}
 }

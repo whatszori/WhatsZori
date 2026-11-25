@@ -12,6 +12,9 @@ import { ChatInfoPanel } from '../chat-info/ChatInfoPanel';
 import { Composer } from '../composer/Composer';
 import { ConversationHeader } from './ConversationHeader';
 import { MessageList } from './MessageList';
+import { toPluginChat } from './plugin-adapters';
+import { PluginPanel } from '../../plugin-core/host';
+import { PluginSlot } from '../../plugin-core/slots';
 import './Bubble.css';
 import './Conversation.css';
 
@@ -57,6 +60,7 @@ export function Conversation({ jid }: { jid: JID }) {
             onClose={() => useUI.getState().setChatSearchOpen(false)}
           />
         )}
+        <PluginSlot name="conversation.banner" props={{ chat: toPluginChat(chat) }} />
         <MessageList chat={chat} />
         {selecting ? <SelectionBar chat={chat} /> : <Composer chat={chat} />}
         {dragging && (
@@ -66,7 +70,7 @@ export function Conversation({ jid }: { jid: JID }) {
           </div>
         )}
       </section>
-      {infoOpen && <ChatInfoPanel chat={chat} />}
+      {infoOpen ? <ChatInfoPanel chat={chat} /> : <PluginPanel chat={chat} />}
       <ForwardDialog />
       <AttachPreview jid={jid} />
     </div>

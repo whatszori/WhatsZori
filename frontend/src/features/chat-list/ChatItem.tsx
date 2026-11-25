@@ -4,6 +4,8 @@ import type { Chat, JID } from '../../api';
 import { formatChatTime } from '../../lib/format';
 import { Avatar, Badge, type PopoverAnchor } from '../../ui';
 import { StatusTicks } from '../conversation/StatusTicks';
+import { toPluginChat } from '../conversation/plugin-adapters';
+import { PluginSlot } from '../../plugin-core/slots';
 
 interface ChatItemProps {
   chat: Chat;
@@ -83,6 +85,7 @@ export const ChatItem = memo(function ChatItem({
       <span className="wz-chat-item__body">
         <span className="wz-chat-item__top">
           <span className="wz-chat-item__name">{chat.name}</span>
+          <PluginSlot name="chatList.item.badge" props={{ chat: toPluginChat(chat) }} />
           {chat.muted && (
             <BellOff
               className="wz-chat-item__muted"

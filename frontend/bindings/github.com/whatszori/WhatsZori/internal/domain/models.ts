@@ -414,6 +414,40 @@ export interface NotificationOpenEvent {
 }
 
 /**
+ * a file in a plugin's folder changed
+ */
+export interface PluginChangedEvent {
+    "id": string;
+}
+
+/**
+ * a request a plugin makes through ctx.net.fetch
+ */
+export interface PluginFetchRequest {
+    "url": string;
+    "method": string;
+    "headers": { [_ in string]?: string } | null;
+
+    /**
+     * base64
+     */
+    "body": string;
+    "timeoutMs": number;
+}
+
+export interface PluginFetchResponse {
+    "status": number;
+    "statusText": string;
+    "headers": { [_ in string]?: string } | null;
+
+    /**
+     * base64
+     */
+    "body": string;
+    "url": string;
+}
+
+/**
  * a plugin folder in <config>/plugins
  */
 export interface PluginInfo {
@@ -422,17 +456,80 @@ export interface PluginInfo {
     "version": string;
     "description": string;
     "author": string;
+    "homepage"?: string;
 
     /**
      * the module to load, relative to the plugin folder
      */
     "main": string;
+
+    /**
+     * the icon's file, relative to the plugin folder; empty for none
+     */
+    "icon"?: string;
+    "apiVersion": number;
+
+    /**
+     * runs in an isolated frame with a declarative UI
+     */
+    "sandbox": boolean;
+
+    /**
+     * what it asks for (a v1 plugin: what the first API gave every plugin)
+     */
+    "permissions": string[] | null;
+    "network": string[] | null;
+    "settings": PluginSetting[] | null;
+    "signature": PluginSignature;
     "enabled": boolean;
 
     /**
-     * why it can't be loaded (bad manifest, missing file); empty when fine
+     * it asks for something the user hasn't allowed yet (new permissions or sites, another
+     * signing key); it doesn't run until they do
+     */
+    "needsApproval": boolean;
+    "newPermissions": string[] | null;
+    "newNetwork": string[] | null;
+    "keyChanged": boolean;
+
+    /**
+     * why it can't be loaded (bad manifest, missing file, broken signature); empty when fine
      */
     "error"?: string;
+}
+
+export interface PluginOption {
+    "value": string;
+    "label": string;
+}
+
+/**
+ * one field of the settings form WhatsZori draws for a plugin
+ */
+export interface PluginSetting {
+    "key": string;
+
+    /**
+     * text | password | textarea | toggle | select | number
+     */
+    "type": string;
+    "label": string;
+    "description"?: string;
+    "placeholder"?: string;
+    "default"?: any;
+    "options"?: PluginOption[] | null;
+    "min"?: number | null;
+    "max"?: number | null;
+}
+
+export interface PluginSignature {
+    /**
+     * unsigned | signed | invalid
+     */
+    "state": string;
+    "key"?: string;
+    "publisher"?: string;
+    "reason"?: string;
 }
 
 export interface PollInfo {

@@ -5,9 +5,10 @@ import { useConnection } from '../../stores/connection';
 import { useProfile } from '../../stores/profile';
 import { useUI, type RailPanel } from '../../stores/ui';
 import { Avatar, Tooltip } from '../../ui';
+import { RailViewButtons } from '../../plugin-core/host';
 import './NavRail.css';
 
-type RailItem = 'chats' | 'archived' | 'calls' | 'status' | 'changes' | 'settings';
+type RailItem = 'chats' | 'archived' | 'calls' | 'status' | 'changes' | 'settings' | 'plugin';
 
 function useActiveItem(): RailItem {
   const view = useUI((s) => s.view);
@@ -16,6 +17,7 @@ function useActiveItem(): RailItem {
   if (view === 'settings') return 'settings';
   if (view === 'changes') return 'changes';
   if (view === 'status') return 'status';
+  if (view === 'plugin') return 'plugin';
   if (panel !== 'chats') return panel;
   return archived ? 'archived' : 'chats';
 }
@@ -118,6 +120,7 @@ export function NavRail() {
           icon={<History size={20} />}
           active={active === 'changes'}
         />
+        <RailViewButtons />
       </div>
       <div className="wz-rail__group">
         <RailButton

@@ -8,6 +8,7 @@ export const WZ_EVENTS = {
   settingsChanged: 'wz:settings:changed',
   toastShow: 'wz:toast:show',
   toastWithdraw: 'wz:toast:withdraw',
+  pluginChanged: 'wz:plugin:changed',
 } as const;
 
 export type WzEventName = (typeof WZ_EVENTS)[keyof typeof WZ_EVENTS];
@@ -78,6 +79,8 @@ export interface InAppToast {
 export interface WzEvents {
   'wz:systheme:changed': SystemPalette;
   'wz:theme:changed': ThemeFileChanged;
+  // a file in a plugin's folder changed
+  'wz:plugin:changed': { id: string };
   'wz:settings:changed': { key: string };
   'wz:toast:show': InAppToast;
   'wz:toast:withdraw': { jid: string };

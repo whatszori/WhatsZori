@@ -1,5 +1,6 @@
 // The photo editor's document: a rotation, a crop and a list of drawings, all in the coordinates
 // of the rotated, uncropped picture. Nothing is baked until "Done", so undo is a list of states.
+import { editorTools } from '../../plugin-core/registry';
 
 export type Tool = 'crop' | 'pen' | 'shape' | 'text' | 'blur';
 export type ShapeKind = 'rect' | 'ellipse' | 'arrow' | 'line';
@@ -29,7 +30,9 @@ export type Op =
   // x, y: top left of the first line
   | { t: 'text'; color: string; size: number; x: number; y: number; text: string; bg: boolean }
   // strength 1..10
-  | { t: 'blur'; mode: 'blur' | 'pixelate'; strength: number; rect: Rect };
+  | { t: 'blur'; mode: 'blur' | 'pixelate'; strength: number; rect: Rect }
+  // a plugin's tool over the whole picture, by registry key ("<plugin>:<tool>")
+  | { t: 'filter'; tool: string };
 
 export interface EditState {
   rot: Rotation;
@@ -116,6 +119,8 @@ export function rotateCW(s: EditState, H: number): EditState {
       }
       case 'blur':
         return { ...op, rect: turnRect(op.rect, H) };
+      case 'filter':
+        return op;
     }
   });
   return {
@@ -248,6 +253,16 @@ export function drawOp(ctx: Ctx, op: Op, W: number, H: number): void {
     case 'blur':
       drawBlur(ctx, op, W, H);
       break;
+    case 'filter': {
+      // a plugin that stopped since leaves its step out
+      const tool = editorTools.get(op.tool);
+      try {
+        tool?.value.apply(ctx, { width: W, height: H });
+      } catch (err) {
+        console.error(`[plugin ${tool?.pluginId}] editor tool failed`, err);
+      }
+      break;
+    }
   }
   ctx.restore();
 }

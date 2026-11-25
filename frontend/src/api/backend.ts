@@ -1,5 +1,7 @@
 import type {
   Attachment,
+  PluginFetchRequest,
+  PluginFetchResponse,
   Sticker,
   UserThemePackage,
   PluginInfo,
@@ -148,6 +150,15 @@ export interface PluginService {
   storageSet(id: string, key: string, value: string): Promise<void>;
   storageDelete(id: string, key: string): Promise<void>;
   storageKeys(id: string): Promise<string[]>;
+  // what each permission means, for the approval dialog
+  permissionInfo(): Promise<Record<string, string>>;
+  // allow what the plugin asks for right now (permissions, sites, signing key)
+  approve(id: string): Promise<void>;
+  // the plugin's network requests, only to the sites it lists and the user allowed
+  fetch(id: string, req: PluginFetchRequest): Promise<PluginFetchResponse>;
+  notify(id: string, title: string, body: string): Promise<void>;
+  // native save dialog for a file uploaded to /wz-upload/; the path, or null when cancelled
+  saveFile(id: string, token: string, name: string): Promise<string | null>;
 }
 
 export interface StickerService {

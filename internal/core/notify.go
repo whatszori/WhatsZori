@@ -100,6 +100,19 @@ func (c *Core) TestNotification() error {
 		Body: "Notifications work. This is what a new message looks like.", Silent: !c.notifySettings().Sound})
 }
 
+// PluginNotification shows a notification a plugin asked for, if notifications are on.
+func (c *Core) PluginNotification(title, body string) error {
+	s := c.notifySettings()
+	if !s.Enabled {
+		return fmt.Errorf("notifications are turned off in Settings")
+	}
+	d := c.currentDesktop()
+	if !d.Available() {
+		return fmt.Errorf("this desktop has no notification service")
+	}
+	return d.Show(notify.Toast{ID: fmt.Sprintf("wz-plugin-%d", time.Now().UnixNano()), Title: title, Body: body, Silent: !s.Sound})
+}
+
 func (c *Core) onNotification(r notify.Response) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()

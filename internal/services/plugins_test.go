@@ -4,8 +4,10 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/whatszori/WhatsZori/internal/domain"
 	"github.com/whatszori/WhatsZori/internal/store"
 )
 
@@ -31,7 +33,7 @@ func TestPlugins(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	p := NewPlugins(dir, db, func() bool { return false })
+	p := NewPlugins(dir, db, func() bool { return false }, PluginOptions{AppVersion: "0.1.0"})
 
 	list, err := p.List()
 	if err != nil {
@@ -89,5 +91,61 @@ func TestPlugins(t *testing.T) {
 	}
 	if err := p.SetSetting("hello", "", "1"); err == nil {
 		t.Error("empty key accepted")
+	}
+}
+
+func TestPluginApproval(t *testing.T) {
+	dir := t.TempDir()
+	write := func(rel, body string) {
+		p := filepath.Join(dir, filepath.FromSlash(rel))
+		os.MkdirAll(filepath.Dir(p), 0o755)
+		os.WriteFile(p, []byte(body), 0o644)
+	}
+	write("net/manifest.json", `{"id":"net","name":"Net","version":"1.0.0","apiVersion":2,"permissions":["network"],"network":["api.example.com"]}`)
+	write("net/index.js", `export default { start() {} }`)
+	db, err := store.Open(context.Background(), filepath.Join(t.TempDir(), "whatszori.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	p := NewPlugins(dir, db, func() bool { return false }, PluginOptions{AppVersion: "0.1.0"})
+
+	get := func() (out struct {
+		needs bool
+		perms []string
+		sites []string
+	}) {
+		list, _ := p.List()
+		out.needs, out.perms, out.sites = list[0].NeedsApproval, list[0].NewPermissions, list[0].NewNetwork
+		return
+	}
+	if g := get(); !g.needs || len(g.perms) != 1 || len(g.sites) != 1 {
+		t.Fatalf("a new v2 plugin needs the user's OK: %+v", g)
+	}
+	if err := p.SetEnabled("net", true); err == nil {
+		t.Fatal("turned on without approval")
+	}
+	if _, err := p.Fetch("net", domain.PluginFetchRequest{URL: "https://api.example.com/"}); err == nil {
+		t.Fatal("fetch before approval")
+	}
+	if err := p.Approve("net"); err != nil {
+		t.Fatal(err)
+	}
+	if err := p.SetEnabled("net", true); err != nil {
+		t.Fatal(err)
+	}
+	if g := get(); g.needs {
+		t.Fatalf("approved: %+v", g)
+	}
+	if err := p.Notify("net", "x", "y"); err == nil || !strings.Contains(err.Error(), "notifications") {
+		t.Fatalf("a permission it didn't ask for: %v", err)
+	}
+	// an update asks for another site: it stops until the user says yes again
+	write("net/manifest.json", `{"id":"net","name":"Net","version":"1.1.0","apiVersion":2,"permissions":["network"],"network":["api.example.com","cdn.example.com"]}`)
+	if g := get(); !g.needs || len(g.sites) != 1 || g.sites[0] != "cdn.example.com" {
+		t.Fatalf("after the update: %+v", g)
+	}
+	if _, err := p.Fetch("net", domain.PluginFetchRequest{URL: "https://api.example.com/"}); err == nil || !strings.Contains(err.Error(), "new permissions") {
+		t.Fatalf("fetch while waiting for approval: %v", err)
 	}
 }

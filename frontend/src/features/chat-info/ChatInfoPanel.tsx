@@ -47,6 +47,8 @@ import { ListsDialog } from '../chat-list/ListsDialog';
 import { ExportDialog } from './ExportDialog';
 import { MembershipDialog } from './MembershipDialog';
 import { SharedMedia } from './SharedMedia';
+import { toPluginChat } from '../conversation/plugin-adapters';
+import { PluginSlot } from '../../plugin-core/slots';
 import './ChatInfoPanel.css';
 
 function QuickAction({
@@ -577,6 +579,12 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
                 </Section>
 
                 {!ready.noChat && <MediaSection jid={jid} info={ready} onOpenShared={setShared} />}
+
+                <PluginSlot
+                  name="chatInfo.sections"
+                  className="wz-info__plugins"
+                  props={{ chat: toPluginChat(chat) }}
+                />
 
                 {!ready.noChat && (
                   <Section title="Kept by WhatsZori">

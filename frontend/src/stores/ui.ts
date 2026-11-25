@@ -3,7 +3,8 @@ import type { JID, Message, MessagePK } from '../api';
 import { DEFAULT_SETTINGS } from '../api/defaults';
 import { useSettings } from './settings';
 
-export type View = 'chats' | 'settings' | 'changes' | 'status';
+// plugin: a plugin's own screen (plugin-core/registry.ts says which)
+export type View = 'chats' | 'settings' | 'changes' | 'status' | 'plugin';
 // what the rail layout's sidebar shows besides chats and settings
 export type RailPanel = 'chats' | 'calls' | 'status';
 export type SettingsSection =

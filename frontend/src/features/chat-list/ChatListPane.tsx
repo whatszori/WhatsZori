@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { backend } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
+import { ViewButtons } from '../../plugin-core/host';
 import { buildChatList } from '../../stores/chat-selectors';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
@@ -133,6 +134,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
                   else ui.openStatus();
                 }}
               />
+              <ViewButtons />
               <IconButton
                 label="Deleted & edited"
                 icon={<History size={18} />}

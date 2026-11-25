@@ -15,6 +15,7 @@ import {
 import type { Chat } from '../../api';
 import { formatLastSeen, pluralize } from '../../lib/format';
 import { PluginSlot } from '../../plugin-core/slots';
+import { PanelButtons } from '../../plugin-core/host';
 import { useChats } from '../../stores/chats';
 import { useSettings } from '../../stores/settings';
 import { useUI } from '../../stores/ui';
@@ -120,6 +121,7 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
       </button>
       <div className="wz-conv-header__actions">
         <PluginSlot name="chat.header.actions" props={{ chat: toPluginChat(chat) }} />
+        <PanelButtons chat={chat} />
         <IconButton
           label="Search in chat"
           hint="Ctrl F"

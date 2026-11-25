@@ -39,6 +39,7 @@ declare module "@wailsio/runtime" {
             "status:update": domain$0.StatusUpdateEvent;
             "sync:progress": domain$0.SyncProgressEvent;
             "toast": domain$0.ToastEvent;
+            "wz:plugin:changed": domain$0.PluginChangedEvent;
             "wz:settings:changed": domain$0.SettingsChangedEvent;
             "wz:systheme:changed": systheme$0.SystemPalette;
             "wz:theme:changed": themes$0.Changed;

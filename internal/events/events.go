@@ -16,6 +16,8 @@ const (
 	SettingsChanged = "wz:settings:changed"
 	ToastShow       = "wz:toast:show"
 	ToastWithdraw   = "wz:toast:withdraw"
+	// a file in a plugin's folder changed (the frontend restarts that plugin if it runs)
+	PluginChanged = "wz:plugin:changed"
 
 	AuthQR       = "auth:qr"
 	AuthState    = "auth:state"
@@ -42,7 +44,7 @@ const (
 
 // All lists every event name, for the sync test.
 var All = []string{
-	SystemThemeChanged, ThemeChanged, SettingsChanged, ToastShow, ToastWithdraw,
+	SystemThemeChanged, ThemeChanged, SettingsChanged, ToastShow, ToastWithdraw, PluginChanged,
 	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction, MsgRemoved,
 	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, NotifyOpen, Presence, ChatTyping, StatusUpdate, SyncProgress, Toast,
 }
@@ -54,6 +56,7 @@ func init() {
 	application.RegisterEvent[domain.SettingsChangedEvent](SettingsChanged)
 	application.RegisterEvent[domain.InAppToast](ToastShow)
 	application.RegisterEvent[domain.ChatRemovedEvent](ToastWithdraw)
+	application.RegisterEvent[domain.PluginChangedEvent](PluginChanged)
 	application.RegisterEvent[domain.QRPayload](AuthQR)
 	application.RegisterEvent[domain.AuthStatus](AuthState)
 	application.RegisterEvent[domain.AuthErrorEvent](AuthError)

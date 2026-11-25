@@ -27,6 +27,8 @@ import { toastError, useToasts } from '../../stores/toasts';
 import { useUI } from '../../stores/ui';
 import { Avatar, Spinner, Tooltip, useLayer } from '../../ui';
 import { VideoPlayer } from './VideoPlayer';
+import { toPluginMessage } from '../conversation/plugin-adapters';
+import { PluginSlot } from '../../plugin-core/slots';
 import './MediaViewer.css';
 
 const MIN_ZOOM = 1;
@@ -284,6 +286,7 @@ function Item({
           </div>
         </div>
         <div className="wz-viewer__actions">
+          <PluginSlot name="mediaViewer.actions" props={{ message: toPluginMessage(m) }} />
           {!isVideo && (
             <>
               <Action

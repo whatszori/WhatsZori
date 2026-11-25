@@ -1,6 +1,8 @@
 import type { Backend } from '../backend';
 import type {
   Attachment,
+  PluginFetchRequest,
+  PluginFetchResponse,
   Sticker,
   UserThemePackage,
   PluginInfo,
@@ -909,6 +911,29 @@ export class MockBackend implements Backend {
     },
     storageKeys: async (id: string): Promise<string[]> =>
       [...this.pluginKV.keys()].filter((k) => k.startsWith(`k:${id}:`)).map((k) => k.split(':')[2]),
+    permissionInfo: async (): Promise<Record<string, string>> => ({}),
+    approve: async (): Promise<void> => undefined,
+    // the browser preview has no proxy; the request goes straight out (and CORS applies)
+    fetch: async (_id: string, req: PluginFetchRequest): Promise<PluginFetchResponse> => {
+      const body = req.body ? Uint8Array.from(atob(req.body), (c) => c.charCodeAt(0)) : undefined;
+      const res = await fetch(req.url, { method: req.method || 'GET', headers: req.headers, body });
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      let bin = '';
+      for (const b of bytes) bin += String.fromCharCode(b);
+      return {
+        status: res.status,
+        statusText: res.statusText,
+        headers: Object.fromEntries(res.headers),
+        body: btoa(bin),
+        url: res.url,
+      };
+    },
+    notify: async (_id: string, title: string, body: string): Promise<void> => {
+      this.emit('toast', { kind: 'info', text: `${title}: ${body}` });
+    },
+    saveFile: async (): Promise<string | null> => {
+      throw new Error('Saving files works in the desktop app');
+    },
   };
 
   status = {

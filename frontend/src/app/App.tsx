@@ -5,6 +5,7 @@ import { MainLayout } from './MainLayout';
 import { Toasts } from './Toasts';
 import { MediaViewer } from '../features/media-viewer/MediaViewer';
 import { AppProviders } from './providers';
+import { PluginHost } from '../plugin-core/host';
 import './App.css';
 
 function Screens() {
@@ -25,6 +26,7 @@ export function App() {
     <AppProviders>
       <Screens />
       <MediaViewer />
+      <PluginHost />
       <Toasts />
     </AppProviders>
   );

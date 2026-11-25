@@ -114,6 +114,11 @@ export const SyncProgress = "sync:progress";
 export const Toast = "toast";
 
 /**
+ * Name of the custom event "wz:plugin:changed".
+ */
+export const WzPluginChanged = "wz:plugin:changed";
+
+/**
  * Name of the custom event "wz:settings:changed".
  */
 export const WzSettingsChanged = "wz:settings:changed";

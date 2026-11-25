@@ -28,6 +28,8 @@ import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
   Attachment,
+  PluginFetchRequest,
+  PluginFetchResponse,
   Sticker,
   UserThemePackage,
   PluginInfo,
@@ -249,7 +251,7 @@ export class WailsBackend implements Backend {
   };
 
   plugins = {
-    list: async (): Promise<PluginInfo[]> => (await Plugins.List()) ?? [],
+    list: async (): Promise<PluginInfo[]> => as<PluginInfo[]>((await Plugins.List()) ?? []),
     setEnabled: (id: string, on: boolean) => Plugins.SetEnabled(id, on),
     isSafeMode: () => Plugins.IsSafeMode(),
     url: (id: string, file: string) =>
@@ -263,6 +265,14 @@ export class WailsBackend implements Backend {
     storageSet: (id: string, key: string, value: string) => Plugins.StorageSet(id, key, value),
     storageDelete: (id: string, key: string) => Plugins.StorageDelete(id, key),
     storageKeys: async (id: string): Promise<string[]> => (await Plugins.StorageKeys(id)) ?? [],
+    permissionInfo: async (): Promise<Record<string, string>> =>
+      ((await Plugins.PermissionInfo()) ?? {}) as Record<string, string>,
+    approve: (id: string) => Plugins.Approve(id),
+    fetch: async (id: string, req: PluginFetchRequest): Promise<PluginFetchResponse> =>
+      as<PluginFetchResponse>(await Plugins.Fetch(id, as<Go.PluginFetchRequest>(req))),
+    notify: (id: string, title: string, body: string) => Plugins.Notify(id, title, body),
+    saveFile: async (id: string, token: string, name: string): Promise<string | null> =>
+      (await Plugins.SaveFile(id, token, name)) || null,
   };
 
   status = {

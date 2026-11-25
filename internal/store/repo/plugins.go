@@ -93,3 +93,29 @@ func PluginKeys(ctx context.Context, q DBTX, id string) ([]string, error) {
 	}
 	return keys, err
 }
+
+// PluginGrants returns what the user allowed each plugin (JSON, "" for nothing yet).
+func PluginGrants(ctx context.Context, q DBTX) (map[string]string, error) {
+	rows, err := q.QueryContext(ctx, `SELECT id, granted FROM extensions WHERE kind = 'plugin'`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]string{}
+	for rows.Next() {
+		var id, g string
+		if err := rows.Scan(&id, &g); err != nil {
+			return nil, err
+		}
+		out[id] = g
+	}
+	return out, rows.Err()
+}
+
+func SetPluginGrant(ctx context.Context, q DBTX, id, version, granted string) error {
+	_, err := q.ExecContext(ctx, `
+		INSERT INTO extensions (id, kind, version, enabled, installed_at, granted) VALUES (?, 'plugin', ?, 0, ?, ?)
+		ON CONFLICT (id) DO UPDATE SET granted = excluded.granted, version = excluded.version`,
+		id, version, time.Now().UnixMilli(), granted)
+	return err
+}

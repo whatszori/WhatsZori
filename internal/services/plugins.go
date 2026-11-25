@@ -1,50 +1,83 @@
 package services
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
-	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
+	"sync"
+	"time"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"github.com/whatszori/WhatsZori/internal/assets"
 	"github.com/whatszori/WhatsZori/internal/domain"
+	"github.com/whatszori/WhatsZori/internal/events"
+	"github.com/whatszori/WhatsZori/internal/plugins"
 	"github.com/whatszori/WhatsZori/internal/store/repo"
+	"github.com/whatszori/WhatsZori/internal/uploads"
 )
 
-// Plugins finds plugins in <config>/plugins/<id>/manifest.json and keeps their switches, settings
-// and storage. The code itself runs in the webview (served from /wz-plugins/); this side never
-// executes anything from those folders.
+// Plugins finds plugins in <config>/plugins/<id>/manifest.json and keeps their switches, what
+// the user allowed them, their settings and storage. The code runs in the webview (served from
+// /wz-plugins/); this side never executes anything from those folders. The parts of the plugin
+// API that leave the page (network, desktop notifications, saving files) come through here and
+// are checked against what the user allowed.
 type Plugins struct {
-	dir  string
-	db   *sql.DB
-	safe func() bool
+	dir     string
+	db      *sql.DB
+	safe    func() bool
+	opts    PluginOptions
+	fetcher *plugins.Fetcher
+
+	mu         sync.Mutex
+	lastNotify map[string]time.Time
 }
 
-func NewPlugins(dir string, db *sql.DB, safe func() bool) *Plugins {
-	return &Plugins{dir: dir, db: db, safe: safe}
+type PluginOptions struct {
+	AppVersion string
+	Emit       events.Emitter
+	Uploads    *uploads.Store
+	// native save dialog; "" when cancelled
+	PickSavePath func(title, name string) (string, error)
+	// a desktop notification
+	Notify func(title, body string) error
+}
+
+func NewPlugins(dir string, db *sql.DB, safe func() bool, opts PluginOptions) *Plugins {
+	return &Plugins{
+		dir: dir, db: db, safe: safe, opts: opts,
+		fetcher:    plugins.NewFetcher("WhatsZori/" + opts.AppVersion),
+		lastNotify: map[string]time.Time{},
+	}
 }
 
 const (
-	maxManifest     = 64 << 10
 	maxSettingValue = 64 << 10
 	maxStoredValue  = 1 << 20
 	maxKey          = 256
+	notifyGap       = 3 * time.Second
+	pluginDebounce  = 300 * time.Millisecond
 )
 
-var errBadKey = errors.New("keys are 1 to 256 characters")
+var (
+	errBadKey      = errors.New("keys are 1 to 256 characters")
+	errNotAllowed  = errors.New("the plugin isn't allowed to do that")
+	errNotRunning  = errors.New("the plugin isn't turned on")
+	errNeedsReview = errors.New("the plugin asks for new permissions; allow them in Settings → Plugins first")
+)
 
-type manifest struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	Description string `json:"description"`
-	Author      string `json:"author"`
-	Main        string `json:"main"`
+type grant struct {
+	Permissions []string `json:"permissions"`
+	Network     []string `json:"network"`
+	Key         string   `json:"key,omitempty"`
 }
 
 // List returns every plugin folder, broken ones too (with Error set) so the user sees why.
@@ -52,6 +85,10 @@ func (p *Plugins) List() ([]domain.PluginInfo, error) {
 	ctx, cancel := call()
 	defer cancel()
 	enabled, err := repo.PluginsEnabled(ctx, p.db)
+	if err != nil {
+		return nil, err
+	}
+	grants, err := repo.PluginGrants(ctx, p.db)
 	if err != nil {
 		return nil, err
 	}
@@ -64,69 +101,218 @@ func (p *Plugins) List() ([]domain.PluginInfo, error) {
 		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") {
 			continue
 		}
-		info := readPlugin(p.dir, e.Name())
-		info.Enabled = enabled[info.ID] && info.Error == ""
+		info, _ := p.read(e.Name(), enabled[e.Name()], grants[e.Name()])
 		out = append(out, info)
 	}
 	sort.Slice(out, func(i, j int) bool { return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name) })
 	return out, nil
 }
 
-func readPlugin(dir, folder string) domain.PluginInfo {
-	info := domain.PluginInfo{ID: folder, Name: folder}
+// read builds what the app shows about one plugin folder.
+func (p *Plugins) read(folder string, enabled bool, granted string) (domain.PluginInfo, plugins.Manifest) {
+	info := domain.PluginInfo{ID: folder, Name: folder, Permissions: []string{}, Network: []string{},
+		Settings: []domain.PluginSetting{}, NewPermissions: []string{}, NewNetwork: []string{},
+		Signature: domain.PluginSignature{State: "unsigned"}}
 	if !assets.ValidPluginID(folder) {
 		info.Error = "the folder name can only have letters, digits, dots, dashes and underscores"
-		return info
+		return info, plugins.Manifest{}
 	}
-	f, err := os.Open(filepath.Join(dir, folder, "manifest.json"))
+	m, err := plugins.Read(p.dir, folder)
 	if err != nil {
-		info.Error = "no manifest.json"
-		return info
+		info.Error = err.Error()
+		return info, m
 	}
-	defer f.Close()
-	var m manifest
-	dec := json.NewDecoder(&limitedReader{f, maxManifest})
-	if err := dec.Decode(&m); err != nil {
-		info.Error = "manifest.json isn't valid JSON: " + err.Error()
-		return info
+	info.Name = firstNonEmpty(m.Name, folder)
+	info.Version, info.Description, info.Author, info.Homepage = m.Version, m.Description, m.Author, m.Homepage
+	info.Main, info.Icon, info.APIVersion, info.Sandbox = m.Main, m.Icon, m.APIVersion, m.Sandbox
+	info.Permissions = slices.Clone(m.Requested())
+	if m.Network != nil {
+		info.Network = m.Network
 	}
-	if m.Main == "" {
-		m.Main = "index.js"
-	}
-	info.Name, info.Version, info.Description, info.Author, info.Main = firstNonEmpty(m.Name, folder), m.Version, m.Description, m.Author, m.Main
-	switch {
-	case m.ID != folder:
-		info.Error = fmt.Sprintf("the manifest id %q must match the folder name", m.ID)
-	case !validMain(m.Main):
-		info.Error = "main must be a .js or .mjs file inside the plugin folder"
-	default:
-		if st, err := os.Stat(filepath.Join(dir, folder, filepath.FromSlash(m.Main))); err != nil || st.IsDir() {
-			info.Error = m.Main + " is missing"
+	for _, s := range m.Settings {
+		ds := domain.PluginSetting{Key: s.Key, Type: s.Type, Label: s.Label, Description: s.Description,
+			Placeholder: s.Placeholder, Default: s.Default, Min: s.Min, Max: s.Max}
+		for _, o := range s.Options {
+			ds.Options = append(ds.Options, domain.PluginOption{Value: o.Value, Label: o.Label})
 		}
+		info.Settings = append(info.Settings, ds)
 	}
-	return info
+	sig := plugins.Verify(filepath.Join(p.dir, folder))
+	info.Signature = domain.PluginSignature{State: sig.State, Key: sig.Key, Publisher: sig.Publisher, Reason: sig.Reason}
+
+	if problems := m.Problems(folder, p.opts.AppVersion); len(problems) > 0 {
+		info.Error = strings.Join(problems, "; ")
+	} else if st, err := os.Stat(filepath.Join(p.dir, folder, filepath.FromSlash(m.Main))); err != nil || st.IsDir() {
+		info.Error = m.Main + " is missing"
+	} else if sig.State == "invalid" {
+		info.Error = "the signature doesn't check out: " + sig.Reason
+	}
+
+	// v1 plugins had their access without asking, so there's nothing to approve for them
+	if m.APIVersion >= 2 {
+		var g grant
+		_ = json.Unmarshal([]byte(granted), &g)
+		for _, perm := range info.Permissions {
+			if !slices.Contains(g.Permissions, perm) {
+				info.NewPermissions = append(info.NewPermissions, perm)
+			}
+		}
+		for _, d := range info.Network {
+			if !slices.Contains(g.Network, d) {
+				info.NewNetwork = append(info.NewNetwork, d)
+			}
+		}
+		info.KeyChanged = g.Key != "" && g.Key != sig.Key
+		info.NeedsApproval = granted == "" || len(info.NewPermissions) > 0 || len(info.NewNetwork) > 0 || info.KeyChanged
+	}
+	info.Enabled = enabled && info.Error == ""
+	return info, m
 }
 
-func validMain(main string) bool {
-	if _, err := assets.SafeRel(main); err != nil {
-		return false
+func (p *Plugins) one(id string) (domain.PluginInfo, plugins.Manifest, error) {
+	if !assets.ValidPluginID(id) {
+		return domain.PluginInfo{}, plugins.Manifest{}, errors.New("bad plugin id")
 	}
-	ext := strings.ToLower(path.Ext(main))
-	return ext == ".js" || ext == ".mjs"
+	ctx, cancel := call()
+	defer cancel()
+	enabled, err := repo.PluginsEnabled(ctx, p.db)
+	if err != nil {
+		return domain.PluginInfo{}, plugins.Manifest{}, err
+	}
+	grants, err := repo.PluginGrants(ctx, p.db)
+	if err != nil {
+		return domain.PluginInfo{}, plugins.Manifest{}, err
+	}
+	info, m := p.read(id, enabled[id], grants[id])
+	return info, m, nil
+}
+
+// PermissionInfo describes each permission, for the approval dialog.
+func (p *Plugins) PermissionInfo() map[string]string { return plugins.Permissions }
+
+// Approve stores what the plugin asks for right now (permissions, sites, signing key) as allowed.
+func (p *Plugins) Approve(id string) error {
+	info, _, err := p.one(id)
+	if err != nil {
+		return err
+	}
+	if info.Error != "" {
+		return errors.New(info.Error)
+	}
+	data, _ := json.Marshal(grant{Permissions: info.Permissions, Network: info.Network, Key: info.Signature.Key})
+	ctx, cancel := call()
+	defer cancel()
+	return repo.SetPluginGrant(ctx, p.db, id, info.Version, string(data))
 }
 
 // SetEnabled turns a plugin on or off. The frontend starts or stops it right away.
 func (p *Plugins) SetEnabled(id string, on bool) error {
-	ctx, cancel := call()
-	defer cancel()
-	if !assets.ValidPluginID(id) {
-		return errors.New("bad plugin id")
+	info, _, err := p.one(id)
+	if err != nil {
+		return err
 	}
-	info := readPlugin(p.dir, id)
 	if on && info.Error != "" {
 		return errors.New(info.Error)
 	}
+	if on && info.NeedsApproval {
+		return errNeedsReview
+	}
+	ctx, cancel := call()
+	defer cancel()
 	return repo.SetPluginEnabled(ctx, p.db, id, info.Version, on)
+}
+
+// allowed: the plugin is on, approved, and has perm
+func (p *Plugins) allowed(id, perm string) (domain.PluginInfo, error) {
+	info, _, err := p.one(id)
+	if err != nil {
+		return info, err
+	}
+	switch {
+	case !info.Enabled || p.IsSafeMode():
+		return info, errNotRunning
+	case info.NeedsApproval:
+		return info, errNeedsReview
+	case !slices.Contains(info.Permissions, perm):
+		return info, fmt.Errorf("%w: it needs the %q permission in its manifest", errNotAllowed, perm)
+	}
+	return info, nil
+}
+
+// Fetch makes a request for a plugin, only to the sites its manifest lists and the user allowed.
+func (p *Plugins) Fetch(id string, req domain.PluginFetchRequest) (domain.PluginFetchResponse, error) {
+	info, err := p.allowed(id, "network")
+	if err != nil {
+		return domain.PluginFetchResponse{}, err
+	}
+	res, err := p.fetcher.Do(context.Background(), id, info.Network, plugins.FetchRequest{
+		URL: req.URL, Method: req.Method, Headers: req.Headers, Body: req.Body, TimeoutMs: req.TimeoutMs,
+	})
+	if err != nil {
+		return domain.PluginFetchResponse{}, err
+	}
+	return domain.PluginFetchResponse{Status: res.Status, StatusText: res.StatusText, Headers: res.Headers,
+		Body: res.Body, URL: res.URL}, nil
+}
+
+// Notify shows a desktop notification for a plugin, at most one every few seconds.
+func (p *Plugins) Notify(id, title, body string) error {
+	info, err := p.allowed(id, "notifications")
+	if err != nil {
+		return err
+	}
+	if p.opts.Notify == nil {
+		return errors.New("notifications aren't available")
+	}
+	p.mu.Lock()
+	if time.Since(p.lastNotify[id]) < notifyGap {
+		p.mu.Unlock()
+		return errors.New("too many notifications, wait a few seconds")
+	}
+	p.lastNotify[id] = time.Now()
+	p.mu.Unlock()
+	title = clipRunes(strings.TrimSpace(title), 80)
+	if title == "" {
+		title = info.Name
+	}
+	return p.opts.Notify(title, clipRunes(strings.TrimSpace(body), 300))
+}
+
+// SaveFile asks where to save a file the plugin made (uploaded to /wz-upload/ first) and writes
+// it there. Returns the path, or "" when the user cancelled.
+func (p *Plugins) SaveFile(id, token, name string) (string, error) {
+	if _, err := p.allowed(id, "files"); err != nil {
+		return "", err
+	}
+	if p.opts.Uploads == nil || p.opts.PickSavePath == nil {
+		return "", errors.New("saving files isn't available")
+	}
+	_, data, err := p.opts.Uploads.Read(token)
+	if err != nil {
+		return "", err
+	}
+	defer p.opts.Uploads.Drop(token)
+	dest, err := p.opts.PickSavePath("Save file", filepath.Base(name))
+	if err != nil || dest == "" {
+		return "", err
+	}
+	return dest, os.WriteFile(dest, data, 0o644)
+}
+
+// ServiceStartup watches the plugins folder so the frontend can restart a plugin whose files
+// changed (wz-plugin dev).
+func (p *Plugins) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
+	if p.opts.Emit == nil {
+		return nil
+	}
+	_ = os.MkdirAll(p.dir, 0o755)
+	err := plugins.Watch(ctx, p.dir, pluginDebounce, func(id string) {
+		p.opts.Emit.Emit(events.PluginChanged, domain.PluginChangedEvent{ID: id})
+	})
+	if err != nil {
+		slog.Warn("plugin watcher not running", "error", err)
+	}
+	return nil
 }
 
 // IsSafeMode is here too so the loader needs one service.
@@ -218,21 +404,11 @@ func (p *Plugins) StorageKeys(id string) ([]string, error) {
 	return repo.PluginKeys(ctx, p.db, id)
 }
 
-type limitedReader struct {
-	f interface{ Read([]byte) (int, error) }
-	n int64
-}
-
-func (l *limitedReader) Read(b []byte) (int, error) {
-	if l.n <= 0 {
-		return 0, errors.New("manifest.json is too big")
+func clipRunes(s string, n int) string {
+	if r := []rune(s); len(r) > n {
+		return string(r[:n-1]) + "…"
 	}
-	if int64(len(b)) > l.n {
-		b = b[:l.n]
-	}
-	n, err := l.f.Read(b)
-	l.n -= int64(n)
-	return n, err
+	return s
 }
 
 func firstNonEmpty(s ...string) string {

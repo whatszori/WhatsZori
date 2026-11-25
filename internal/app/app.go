@@ -142,7 +142,13 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewContacts(wa)),
 			application.NewService(services.NewStatus(wa)),
 			application.NewService(services.NewStickers(wa, cfg.Paths.Stickers)),
-			application.NewService(services.NewPlugins(cfg.Paths.Plugins, wa.DB, a.boot.SafeMode)),
+			application.NewService(services.NewPlugins(cfg.Paths.Plugins, wa.DB, a.boot.SafeMode, services.PluginOptions{
+				AppVersion:   Version,
+				Emit:         events.Wails{},
+				Uploads:      up,
+				PickSavePath: desktop{a}.PickSavePath,
+				Notify:       wa.PluginNotification,
+			})),
 			application.NewService(services.NewMedia(wa, desktop{a})),
 			application.NewService(services.NewExport(wa, desktop{a})),
 			application.NewService(services.NewNotifications(wa)),
@@ -160,6 +166,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 				Avatars:     wa.Avatars.Handler(assets.AvatarPrefix),
 				Uploads:     up.Handler(assets.UploadsPrefix),
 				HTMLAttrs:   a.htmlAttrs,
+				CSP:         pageCSP(),
 			}),
 		},
 		SingleInstance: &application.SingleInstanceOptions{
@@ -493,3 +500,11 @@ func (a *App) trayNotice() {
 
 // SetUnread implements services.ThemeTarget: the frontend reports unread chats.
 func (a *App) SetUnread(n int) { a.tray.setUnread(max(n, 0)) }
+
+// pageCSP is off under `wails3 dev`: Vite's dev page needs inline scripts and its websocket.
+func pageCSP() string {
+	if os.Getenv("FRONTEND_DEVSERVER_URL") != "" {
+		return ""
+	}
+	return assets.PageCSP
+}

@@ -8,6 +8,7 @@ import { useSettings } from '../stores/settings';
 import { clampSidebar, useUI } from '../stores/ui';
 import { nativeTheme } from '../theme/theme-manager';
 import { registerDemoPlugins } from '../plugin-core/demo';
+import { registerAppCommands } from '../plugin-core/app-commands';
 import { loadPlugins } from '../plugin-core/loader';
 import { useUserThemes } from '../themes/user-themes';
 import { useAppearance } from './useAppearance';
@@ -28,6 +29,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       bindBackendEvents(backend),
       backend.on('wz:systheme:changed', (p) => useSettings.getState().setSystem(p)),
       backend.on('wz:theme:changed', (c) => useUserThemes.getState().fileChanged(c)),
+      registerAppCommands(),
     ];
     void useSettings
       .getState()

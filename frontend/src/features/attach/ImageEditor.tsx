@@ -26,6 +26,8 @@ import {
   X,
 } from 'lucide-react';
 import { Spinner, useLayer } from '../../ui';
+import { PluginIcon } from '../../plugin-core/host';
+import { editorTools, useRegistry } from '../../plugin-core/registry';
 import {
   ASPECTS,
   COLORS,
@@ -147,6 +149,7 @@ function Editor({
   const [saving, setSaving] = useState(false);
   const [stage, setStage] = useState({ w: 0, h: 0 });
 
+  const tools = useRegistry(editorTools);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drag = useRef<{ id: number; x: number; y: number } | null>(null);
@@ -615,6 +618,19 @@ function Editor({
           <ToolButton label="Rotate" onClick={rotate}>
             <RotateCw size={19} />
           </ToolButton>
+          {tools.length > 0 && <span className="wz-editor__sep" />}
+          {tools.map((t) => (
+            <ToolButton
+              key={t.key}
+              label={t.value.label}
+              onClick={() => {
+                commitText();
+                push({ ...doc, ops: [...doc.ops, { t: 'filter', tool: t.key }] });
+              }}
+            >
+              <PluginIcon icon={t.value.icon} size={19} />
+            </ToolButton>
+          ))}
         </div>
       </footer>
     </>

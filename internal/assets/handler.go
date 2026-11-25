@@ -38,7 +38,25 @@ type Options struct {
 	// HTMLAttrs is added to the index page's <html> tag, so data-theme is right before any CSS
 	// or script runs and a dark window doesn't flash light.
 	HTMLAttrs func() map[string]string
+	// Content-Security-Policy for the page; empty sends none (the Vite dev server needs inline
+	// scripts and its own websocket)
+	CSP string
 }
+
+// PageCSP keeps the page, plugins included, from talking to the internet on its own: fetch, XHR,
+// websockets and beacons only reach the app's own address. Plugins go through ctx.net.fetch,
+// which Go checks against the sites the user allowed. Pictures and fonts may still come from
+// https (user themes use them), and plugin sandboxes run from blob: modules in a frame.
+const PageCSP = "default-src 'self'; " +
+	"script-src 'self' blob:; " +
+	"style-src 'self' 'unsafe-inline' https:; " +
+	"font-src 'self' data: https:; " +
+	"img-src 'self' data: blob: https:; " +
+	"media-src 'self' data: blob:; " +
+	"connect-src 'self'; " +
+	"frame-src 'self' blob:; " +
+	"worker-src 'self' blob:; " +
+	"object-src 'none'; base-uri 'self'; form-action 'none'"
 
 // Middleware serves the /wz-* paths from the config folder and passes everything else on to the
 // embedded frontend (or the Vite proxy in dev).
@@ -82,8 +100,12 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 				// leaving a 404 in the console on every start
 				w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
 				w.WriteHeader(http.StatusOK)
-			case o.HTMLAttrs != nil && r.Method == http.MethodGet && (p == "/" || p == "/index.html"):
-				serveIndex(w, r, next, o.HTMLAttrs())
+			case (o.HTMLAttrs != nil || o.CSP != "") && r.Method == http.MethodGet && (p == "/" || p == "/index.html"):
+				var attrs map[string]string
+				if o.HTMLAttrs != nil {
+					attrs = o.HTMLAttrs()
+				}
+				serveIndex(w, r, next, attrs, o.CSP)
 			default:
 				next.ServeHTTP(w, r)
 			}
@@ -213,8 +235,8 @@ func ContentType(name string) string {
 
 var htmlTagRe = regexp.MustCompile(`(?i)<html\b`)
 
-func serveIndex(w http.ResponseWriter, r *http.Request, next http.Handler, attrs map[string]string) {
-	if len(attrs) == 0 {
+func serveIndex(w http.ResponseWriter, r *http.Request, next http.Handler, attrs map[string]string, csp string) {
+	if len(attrs) == 0 && csp == "" {
 		next.ServeHTTP(w, r)
 		return
 	}
@@ -230,7 +252,7 @@ func serveIndex(w http.ResponseWriter, r *http.Request, next http.Handler, attrs
 	body := rec.body.Bytes()
 	ct := rec.header.Get("Content-Type")
 	if rec.status == http.StatusOK && (ct == "" || strings.HasPrefix(ct, "text/html")) && rec.header.Get("Content-Encoding") == "" {
-		if loc := htmlTagRe.FindIndex(body); loc != nil {
+		if loc := htmlTagRe.FindIndex(body); loc != nil && len(attrs) > 0 {
 			var b bytes.Buffer
 			b.Write(body[:loc[1]])
 			b.WriteString(renderAttrs(attrs))
@@ -246,6 +268,9 @@ func serveIndex(w http.ResponseWriter, r *http.Request, next http.Handler, attrs
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.Header().Del("ETag")
 	w.Header().Set("Cache-Control", "no-cache")
+	if csp != "" {
+		w.Header().Set("Content-Security-Policy", csp)
+	}
 	w.WriteHeader(rec.status)
 	if r.Method != http.MethodHead {
 		_, _ = w.Write(body)

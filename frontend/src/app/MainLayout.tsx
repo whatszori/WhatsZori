@@ -18,6 +18,7 @@ import { useChats } from '../stores/chats';
 import { SIDEBAR_MAX, SIDEBAR_MIN, useUI } from '../stores/ui';
 import { ConnectionBanner } from './ConnectionBanner';
 import { SafeModeBanner } from './SafeModeBanner';
+import { PluginViewHost } from '../plugin-core/host';
 import './MainLayout.css';
 
 function Resizer() {
@@ -141,6 +142,8 @@ export function MainLayout() {
           <main className="wz-main">
             {view === 'changes' ? (
               <ChangesView />
+            ) : view === 'plugin' ? (
+              <PluginViewHost />
             ) : view === 'status' ? (
               <StatusView />
             ) : (
@@ -167,6 +170,8 @@ export function MainLayout() {
             <SettingsView />
           ) : view === 'changes' ? (
             <ChangesView />
+          ) : view === 'plugin' ? (
+            <PluginViewHost />
           ) : view === 'status' ? (
             <StatusView />
           ) : (

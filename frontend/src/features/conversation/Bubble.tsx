@@ -1,9 +1,11 @@
-import { memo, type MouseEvent } from 'react';
+import { memo, type MouseEvent, type ReactNode } from 'react';
 import { Ban, Check, Forward, MoreHorizontal, Trash2 } from 'lucide-react';
 import type { JID, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
 import { PluginSlot } from '../../plugin-core/slots';
+import { ErrorBoundary } from '../../plugin-core/ErrorBoundary';
+import { formatters, useRegistry } from '../../plugin-core/registry';
 import type { PopoverAnchor } from '../../ui';
 import { Marked } from '../search/MessageHits';
 import { MediaBlock } from './Media';
@@ -48,6 +50,30 @@ function Text({ text, chat }: { text: string; chat: JID }) {
       )}
     </>
   );
+}
+
+// a plugin's formatter may draw the text; the first one that returns something wins, and a
+// crashing one falls back to the plain text
+function FormattedText({ m }: { m: Message }) {
+  const list = useRegistry(formatters);
+  const plain = <Text text={m.text} chat={m.chatJid} />;
+  if (list.length === 0) return plain;
+  const pm = toPluginMessage(m);
+  for (const f of list) {
+    let out: ReactNode = null;
+    try {
+      out = f.value(m.text, pm);
+    } catch (err) {
+      console.error(`[plugin ${f.pluginId}] text formatter failed`, err);
+    }
+    if (out != null && out !== false)
+      return (
+        <ErrorBoundary label={`plugin "${f.pluginId}" text formatter`} fallback={plain}>
+          {out}
+        </ErrorBoundary>
+      );
+  }
+  return plain;
 }
 
 function Meta({
@@ -200,7 +226,7 @@ export const Bubble = memo(function Bubble({
               ) : (
                 m.text && (
                   <p className="wz-bubble__text wz-selectable" dir="auto">
-                    <Text text={m.text} chat={m.chatJid} />
+                    <FormattedText m={m} />
                     <span className="wz-bubble__meta-spacer" aria-hidden="true">
                       <Meta m={m} />
                     </span>

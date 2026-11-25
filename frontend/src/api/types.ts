@@ -289,11 +289,66 @@ export interface PluginInfo {
   version: string;
   description: string;
   author: string;
+  homepage?: string;
   // the module to load, relative to the plugin folder
   main: string;
+  // the icon's file in the plugin folder
+  icon?: string;
+  apiVersion: number;
+  // runs in an isolated frame with a declarative UI
+  sandbox: boolean;
+  // what it asks for (a v1 plugin: what the first API gave every plugin)
+  permissions: string[];
+  network: string[];
+  settings: PluginSettingField[];
+  signature: PluginSignature;
   enabled: boolean;
-  // why it can't load (bad manifest, missing file)
+  // asks for something not allowed yet; doesn't run until the user says yes
+  needsApproval: boolean;
+  newPermissions: string[];
+  newNetwork: string[];
+  keyChanged: boolean;
+  // why it can't load (bad manifest, missing file, broken signature)
   error?: string;
+}
+
+export interface PluginSettingField {
+  key: string;
+  type: 'text' | 'password' | 'textarea' | 'toggle' | 'select' | 'number' | (string & {});
+  label: string;
+  description?: string;
+  placeholder?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- whatever the manifest says
+  default?: any;
+  options?: { value: string; label: string }[];
+  min?: number;
+  max?: number;
+}
+
+export interface PluginSignature {
+  state: 'unsigned' | 'signed' | 'invalid' | (string & {});
+  // short fingerprint of the signing key
+  key?: string;
+  publisher?: string;
+  reason?: string;
+}
+
+export interface PluginFetchRequest {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  // base64
+  body: string;
+  timeoutMs: number;
+}
+
+export interface PluginFetchResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  // base64
+  body: string;
+  url: string;
 }
 
 // a theme folder from <config>/themes, the same shape as the built-in themes

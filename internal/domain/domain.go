@@ -292,11 +292,79 @@ type PluginInfo struct {
 	Version     string `json:"version"`
 	Description string `json:"description"`
 	Author      string `json:"author"`
+	Homepage    string `json:"homepage,omitempty"`
 	// the module to load, relative to the plugin folder
-	Main    string `json:"main"`
-	Enabled bool   `json:"enabled"`
-	// why it can't be loaded (bad manifest, missing file); empty when fine
+	Main string `json:"main"`
+	// the icon's file, relative to the plugin folder; empty for none
+	Icon       string `json:"icon,omitempty"`
+	APIVersion int    `json:"apiVersion"`
+	// runs in an isolated frame with a declarative UI
+	Sandbox bool `json:"sandbox"`
+	// what it asks for (a v1 plugin: what the first API gave every plugin)
+	Permissions []string        `json:"permissions"`
+	Network     []string        `json:"network"`
+	Settings    []PluginSetting `json:"settings"`
+	Signature   PluginSignature `json:"signature"`
+	Enabled     bool            `json:"enabled"`
+	// it asks for something the user hasn't allowed yet (new permissions or sites, another
+	// signing key); it doesn't run until they do
+	NeedsApproval  bool     `json:"needsApproval"`
+	NewPermissions []string `json:"newPermissions"`
+	NewNetwork     []string `json:"newNetwork"`
+	KeyChanged     bool     `json:"keyChanged"`
+	// why it can't be loaded (bad manifest, missing file, broken signature); empty when fine
 	Error string `json:"error,omitempty"`
+}
+
+// one field of the settings form WhatsZori draws for a plugin
+type PluginSetting struct {
+	Key string `json:"key"`
+	// text | password | textarea | toggle | select | number
+	Type        string         `json:"type"`
+	Label       string         `json:"label"`
+	Description string         `json:"description,omitempty"`
+	Placeholder string         `json:"placeholder,omitempty"`
+	Default     any            `json:"default,omitempty"`
+	Options     []PluginOption `json:"options,omitempty"`
+	Min         *float64       `json:"min,omitempty"`
+	Max         *float64       `json:"max,omitempty"`
+}
+
+type PluginOption struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
+type PluginSignature struct {
+	// unsigned | signed | invalid
+	State     string `json:"state"`
+	Key       string `json:"key,omitempty"`
+	Publisher string `json:"publisher,omitempty"`
+	Reason    string `json:"reason,omitempty"`
+}
+
+// a request a plugin makes through ctx.net.fetch
+type PluginFetchRequest struct {
+	URL     string            `json:"url"`
+	Method  string            `json:"method"`
+	Headers map[string]string `json:"headers"`
+	// base64
+	Body      string `json:"body"`
+	TimeoutMs int    `json:"timeoutMs"`
+}
+
+type PluginFetchResponse struct {
+	Status     int               `json:"status"`
+	StatusText string            `json:"statusText"`
+	Headers    map[string]string `json:"headers"`
+	// base64
+	Body string `json:"body"`
+	URL  string `json:"url"`
+}
+
+// a file in a plugin's folder changed
+type PluginChangedEvent struct {
+	ID string `json:"id"`
 }
 
 // a sticker in the picker: id is a file in the stickers folder, or "pk:<n>" for one seen in a chat

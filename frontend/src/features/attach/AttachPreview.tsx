@@ -7,6 +7,7 @@ import { useChats } from '../../stores/chats';
 import { toastError } from '../../stores/toasts';
 import { Button, Dialog, IconButton, Spinner } from '../../ui';
 import { ImageEditor } from './ImageEditor';
+import { PluginSlot } from '../../plugin-core/slots';
 import './Attach.css';
 
 // pictures the editor can open; GIFs would lose their animation
@@ -91,6 +92,22 @@ function Body() {
           <FileCard item={item} />
         )}
         <div className="wz-attach__actions">
+          {!busy && (
+            <PluginSlot
+              name="attach.preview.actions"
+              props={{
+                file: {
+                  name: item.name,
+                  mime: item.mime,
+                  size: item.size,
+                  kind: item.kind,
+                  url: item.url,
+                },
+                replace: (blob, name) => st.replace(item.token, blob, name),
+                remove: () => st.remove(item.token),
+              }}
+            />
+          )}
           {editable && (
             <IconButton
               label="Edit"
