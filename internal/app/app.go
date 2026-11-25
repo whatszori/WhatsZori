@@ -22,6 +22,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/config"
 	"github.com/whatszori/WhatsZori/internal/core"
 	"github.com/whatszori/WhatsZori/internal/events"
+	"github.com/whatszori/WhatsZori/internal/market"
 	"github.com/whatszori/WhatsZori/internal/notify"
 	"github.com/whatszori/WhatsZori/internal/services"
 	"github.com/whatszori/WhatsZori/internal/settings"
@@ -106,6 +107,13 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 		return nil, err
 	}
 	a.uploads = up
+	pluginSvc := services.NewPlugins(cfg.Paths.Plugins, wa.DB, a.boot.SafeMode, services.PluginOptions{
+		AppVersion:   Version,
+		Emit:         events.Wails{},
+		Uploads:      up,
+		PickSavePath: desktop{a}.PickSavePath,
+		Notify:       wa.PluginNotification,
+	})
 	a.toasts = newToastWindow(a)
 	a.tray = newTray(a)
 	// Windows (and macOS) go through Wails' toast service; Linux talks the freedesktop spec
@@ -142,13 +150,8 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewContacts(wa)),
 			application.NewService(services.NewStatus(wa)),
 			application.NewService(services.NewStickers(wa, cfg.Paths.Stickers)),
-			application.NewService(services.NewPlugins(cfg.Paths.Plugins, wa.DB, a.boot.SafeMode, services.PluginOptions{
-				AppVersion:   Version,
-				Emit:         events.Wails{},
-				Uploads:      up,
-				PickSavePath: desktop{a}.PickSavePath,
-				Notify:       wa.PluginNotification,
-			})),
+			application.NewService(pluginSvc),
+			application.NewService(services.NewMarketplace(market.New(cfg.Paths.Plugins, cfg.Paths.Themes, Version), pluginSvc)),
 			application.NewService(services.NewMedia(wa, desktop{a})),
 			application.NewService(services.NewExport(wa, desktop{a})),
 			application.NewService(services.NewNotifications(wa)),

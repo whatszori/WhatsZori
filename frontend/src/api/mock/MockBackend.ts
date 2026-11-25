@@ -1,6 +1,7 @@
 import type { Backend } from '../backend';
 import type {
   Attachment,
+  MarketEntry,
   PluginFetchRequest,
   PluginFetchResponse,
   Sticker,
@@ -935,6 +936,79 @@ export class MockBackend implements Backend {
     saveFile: async (): Promise<string | null> => {
       throw new Error('Saving files works in the desktop app');
     },
+  };
+
+  // the browser preview shows a fixed marketplace; installing needs the desktop app
+  marketplace = {
+    list: async (): Promise<MarketEntry[]> => {
+      await this.wait();
+      const item = (
+        p: Partial<MarketEntry['item']> & { id: string; name: string },
+      ): MarketEntry['item'] => ({
+        kind: 'plugin',
+        version: '1.0.0',
+        description: '',
+        author: 'WhatsZori',
+        tags: [],
+        screenshots: [],
+        permissions: [],
+        network: [],
+        dir: '',
+        files: [],
+        ...p,
+      });
+      return [
+        {
+          item: item({
+            id: 'chat-insights',
+            name: 'Chat Insights',
+            version: '2.0.0',
+            description:
+              'Stats for any chat: who writes most, when, top words and emoji. Bookmarks, highlighted words and a grayscale tool for the photo editor.',
+            tags: ['stats', 'bookmarks'],
+            apiVersion: 2,
+            permissions: ['messages', 'notifications', 'clipboard'],
+            key: '9f0a eff5 cfc2 9b5c',
+          }),
+          installed: '',
+          update: false,
+          publisher: 'WhatsZori',
+        },
+        {
+          item: item({
+            id: 'weather',
+            name: 'Weather',
+            description:
+              'The weather for your city in a panel, and a command that puts it into the message box. Runs sandboxed.',
+            tags: ['weather'],
+            apiVersion: 2,
+            sandbox: true,
+            permissions: ['network', 'composer'],
+            network: ['api.open-meteo.com', 'geocoding-api.open-meteo.com'],
+            key: '9f0a eff5 cfc2 9b5c',
+          }),
+          installed: '',
+          update: false,
+          publisher: 'WhatsZori',
+        },
+        {
+          item: item({
+            kind: 'theme',
+            id: 'ocean',
+            name: 'Ocean',
+            description: 'Deep blue accent with a wave pattern behind messages.',
+            tags: ['blue'],
+          }),
+          installed: '',
+          update: false,
+          publisher: '',
+        },
+      ];
+    },
+    install: async (): Promise<void> => {
+      throw new Error('Installing works in the desktop app');
+    },
+    uninstall: async (): Promise<void> => undefined,
   };
 
   status = {

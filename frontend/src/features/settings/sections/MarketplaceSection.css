@@ -1,0 +1,230 @@
+.wz-market__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+  margin-bottom: var(--wz-space-4);
+}
+
+.wz-market__bar .wz-input {
+  flex: 1;
+}
+
+.wz-market__updates {
+  margin: 0 0 var(--wz-space-3);
+  color: var(--wz-accent-text);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 600;
+}
+
+.wz-market__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-3);
+  padding: var(--wz-space-8) 0;
+  color: var(--wz-text-secondary);
+  text-align: center;
+}
+
+.wz-market__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--wz-space-3);
+}
+
+.wz-market__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-3);
+  padding: var(--wz-space-4);
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-lg);
+  background: var(--wz-bg-primary);
+  transition: border-color var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-market__card:hover {
+  border-color: var(--wz-border-strong);
+}
+
+.wz-market__card-main {
+  display: flex;
+  gap: var(--wz-space-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wz-market__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-secondary);
+  color: var(--wz-text-muted);
+}
+
+.wz-market__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.wz-market__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wz-market__name {
+  font-weight: 600;
+}
+
+.wz-market__by {
+  margin: 0;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-market__desc {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.wz-market__card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wz-space-2);
+  margin-top: auto;
+}
+
+.wz-market__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.wz-market__level--high {
+  background: var(--wz-danger-soft);
+  color: var(--wz-danger);
+}
+
+.wz-market__level--some {
+  background: var(--wz-warning-soft);
+  color: var(--wz-warning);
+}
+
+.wz-market__submit {
+  margin-top: var(--wz-space-6);
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+}
+
+/* details */
+
+.wz-market__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-4);
+}
+
+.wz-market__dhead {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-3);
+}
+
+.wz-market__dhead > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wz-market__dtext {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.wz-market__shots {
+  display: flex;
+  gap: var(--wz-space-2);
+  overflow-x: auto;
+}
+
+.wz-market__shots img {
+  height: 180px;
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+}
+
+.wz-market__perms h3 {
+  margin: 0 0 var(--wz-space-2);
+  font-size: var(--wz-font-size-md);
+}
+
+.wz-market__perms p {
+  margin: 0;
+}
+
+.wz-market__note {
+  margin-top: var(--wz-space-2) !important;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-market__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px var(--wz-space-4);
+  margin: 0;
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-market__facts dt {
+  color: var(--wz-text-secondary);
+}
+
+.wz-market__facts dd {
+  margin: 0;
+}
+
+.wz-market__facts code {
+  font-family: var(--wz-font-mono);
+}
+
+.wz-market__links {
+  display: flex;
+  gap: var(--wz-space-4);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-market__links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wz-market__dfoot {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  gap: var(--wz-space-2);
+}
+
+.wz-market__dfoot-right {
+  display: flex;
+  gap: var(--wz-space-2);
+}

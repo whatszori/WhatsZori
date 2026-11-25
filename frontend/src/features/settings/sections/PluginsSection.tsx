@@ -33,6 +33,7 @@ import { useSettings } from '../../../stores/settings';
 import { toastError } from '../../../stores/toasts';
 import { Button, Dialog, Input, Toggle } from '../../../ui';
 import { Group, Page, Row } from './common';
+import { accessLevel, andList, LEVEL, READS, RISK, VERB, type Level } from './access';
 import './PluginsSection.css';
 
 let version = 0;
@@ -308,45 +309,6 @@ function PluginRow({
   );
 }
 
-// how much a permission lets a plugin learn or do; the dialog leads with the riskiest
-const RISK: Record<string, 2 | 1 | 0> = {
-  messages: 2,
-  contacts: 2,
-  presence: 2,
-  network: 2,
-  media: 1,
-  composer: 1,
-  'chats.manage': 1,
-  files: 1,
-  notifications: 0,
-  clipboard: 0,
-};
-// what the Allow button names, so pressing it means saying it
-const VERB: Record<string, string> = {
-  messages: 'your messages',
-  contacts: 'contacts',
-  presence: 'online status',
-  network: 'internet',
-};
-const READS: Record<string, string> = {
-  messages: 'your messages',
-  contacts: 'your contacts',
-  presence: 'who’s online',
-};
-
-const andList = (xs: string[]) =>
-  xs.length < 2 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
-
-type Level = 'high' | 'some' | 'little';
-const LEVEL: Record<Level, { title: string; text: string }> = {
-  high: {
-    title: 'High access',
-    text: 'It can read private things and send them out of WhatsZori. Allow it only if you know who made it and why it needs this.',
-  },
-  some: { title: 'Some access', text: 'It can see or change some of your data, as listed below.' },
-  little: { title: 'Little access', text: 'It only adds things to the app.' },
-};
-
 const HOLD_MS = 1100;
 
 // For high access a click isn't enough: Allow has to be held down (or Space / Enter held) for
@@ -476,8 +438,7 @@ function ApprovalDialog({
       ? 'Allow and turn on'
       : 'Allow';
   // reading plus a way out, or most of the sensitive list: that's high
-  const level: Level =
-    leaks || risky.length >= 3 ? 'high' : p.permissions.length > 0 ? 'some' : 'little';
+  const level: Level = accessLevel(p.permissions, p.network);
   return (
     <Dialog
       open

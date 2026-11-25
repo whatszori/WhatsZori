@@ -333,6 +333,46 @@ export interface PluginSignature {
   reason?: string;
 }
 
+export interface MarketFile {
+  path: string;
+  size: number;
+  sha256: string;
+}
+
+// a plugin or theme in the marketplace
+export interface MarketItem {
+  kind: 'plugin' | 'theme' | (string & {});
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  homepage?: string;
+  repo?: string;
+  tags: string[];
+  minAppVersion?: string;
+  icon?: string;
+  screenshots: string[];
+  apiVersion?: number;
+  sandbox?: boolean;
+  permissions: string[];
+  network: string[];
+  // fingerprint of the plugin's signing key
+  key?: string;
+  dir: string;
+  files: MarketFile[];
+  updated?: string;
+}
+
+export interface MarketEntry {
+  item: MarketItem;
+  // the installed version, '' when it isn't installed
+  installed: string;
+  update: boolean;
+  // a publisher WhatsZori vouches for; '' for everyone else
+  publisher: string;
+}
+
 export interface PluginFetchRequest {
   url: string;
   method: string;

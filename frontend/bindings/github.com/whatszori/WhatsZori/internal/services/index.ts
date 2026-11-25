@@ -5,6 +5,7 @@ import * as Auth from "./auth.js";
 import * as Chats from "./chats.js";
 import * as Contacts from "./contacts.js";
 import * as Export from "./export.js";
+import * as Marketplace from "./marketplace.js";
 import * as Media from "./media.js";
 import * as Messages from "./messages.js";
 import * as Notifications from "./notifications.js";
@@ -23,6 +24,7 @@ export {
     Chats,
     Contacts,
     Export,
+    Marketplace,
     Media,
     Messages,
     Notifications,
@@ -37,3 +39,7 @@ export {
     Themes,
     Window
 };
+
+export type {
+    MarketEntry
+} from "./models.js";

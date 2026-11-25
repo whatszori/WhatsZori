@@ -1,5 +1,6 @@
 import type {
   Attachment,
+  MarketEntry,
   PluginFetchRequest,
   PluginFetchResponse,
   Sticker,
@@ -163,6 +164,15 @@ export interface PluginService {
   saveFile(id: string, token: string, name: string): Promise<string | null>;
 }
 
+export interface MarketplaceService {
+  // from GitHub; cached for a few minutes unless refresh
+  list(refresh?: boolean): Promise<MarketEntry[]>;
+  // installs or updates; a plugin stays off until the user turns it on
+  install(kind: string, id: string): Promise<void>;
+  // a plugin is also turned off and its permissions forgotten
+  uninstall(kind: string, id: string): Promise<void>;
+}
+
 export interface StickerService {
   // the user's own, newest first
   mine(): Promise<Sticker[]>;
@@ -262,6 +272,7 @@ export interface Backend {
   contacts: ContactService;
   status: StatusService;
   plugins: PluginService;
+  marketplace: MarketplaceService;
   stickers: StickerService;
   media: MediaService;
   export: ExportService;

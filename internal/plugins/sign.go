@@ -50,8 +50,11 @@ type Signature struct {
 	Reason string `json:"reason,omitempty"`
 }
 
-// Keys of publishers WhatsZori vouches for, by fingerprint. Empty until there's a marketplace.
-var TrustedPublishers = map[string]string{}
+// Keys of publishers WhatsZori vouches for, by fingerprint: the plugins WhatsZori itself publishes
+// in the marketplace.
+var TrustedPublishers = map[string]string{
+	"9f0a eff5 cfc2 9b5c": "WhatsZori",
+}
 
 // Digest is the signed text: a header, then "sha256  path" per file, sorted by path.
 func Digest(folder string) ([]byte, error) {

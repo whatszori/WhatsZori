@@ -249,6 +249,14 @@ Ctrl+,, Ctrl+F, Ctrl+Shift+P, Alt+↑/↓, the editing keys); registering one of
 A component that throws is hidden (and logged); the rest of the app keeps working. A plugin whose
 `start` throws shows the error in Settings → Plugins.
 
+## Marketplace
+
+Settings → Marketplace lists plugins and themes from
+[whatszori/marketplace](https://github.com/whatszori/marketplace). The index there is signed with
+a key built into WhatsZori, every downloaded file is checked against the size and SHA-256 it
+lists, and a plugin is installed only if its signature matches the key the index names. Installed
+plugins are off until the user turns them on. See that repository's README to submit one.
+
 ## Development
 
 `wz-plugin dev` (from the SDK) rebuilds into the plugins folder on every save. WhatsZori watches

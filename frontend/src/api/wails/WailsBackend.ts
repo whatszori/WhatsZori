@@ -5,6 +5,7 @@ import {
   Chats,
   Contacts,
   Export,
+  Marketplace,
   Media,
   Messages,
   Notifications,
@@ -28,6 +29,7 @@ import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
   Attachment,
+  MarketEntry,
   PluginFetchRequest,
   PluginFetchResponse,
   Sticker,
@@ -274,6 +276,23 @@ export class WailsBackend implements Backend {
     notify: (id: string, title: string, body: string) => Plugins.Notify(id, title, body),
     saveFile: async (id: string, token: string, name: string): Promise<string | null> =>
       (await Plugins.SaveFile(id, token, name)) || null,
+  };
+
+  marketplace = {
+    list: async (refresh = false): Promise<MarketEntry[]> =>
+      as<MarketEntry[]>((await Marketplace.List(refresh)) ?? []).map((e) => ({
+        ...e,
+        item: {
+          ...e.item,
+          tags: e.item.tags ?? [],
+          screenshots: e.item.screenshots ?? [],
+          permissions: e.item.permissions ?? [],
+          network: e.item.network ?? [],
+          files: e.item.files ?? [],
+        },
+      })),
+    install: (kind: string, id: string) => Marketplace.Install(kind, id),
+    uninstall: (kind: string, id: string) => Marketplace.Uninstall(kind, id),
   };
 
   status = {

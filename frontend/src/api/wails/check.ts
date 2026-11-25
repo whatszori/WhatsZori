@@ -9,6 +9,8 @@ import type {
   Manifest as GoThemeManifest,
   Package as GoThemePackage,
 } from '../../../bindings/github.com/whatszori/WhatsZori/internal/themes/models';
+import type { MarketEntry as GoMarketEntry } from '../../../bindings/github.com/whatszori/WhatsZori/internal/services/models';
+import type { Item as GoMarketItem } from '../../../bindings/github.com/whatszori/WhatsZori/internal/market/models';
 import type { Item as GoAttachment } from '../../../bindings/github.com/whatszori/WhatsZori/internal/uploads/models';
 import type { InAppToast, SystemPalette, ThemeFileChanged, WaEventName } from '../events';
 import { WA_EVENTS, WZ_EVENTS } from '../events';
@@ -33,6 +35,8 @@ export type Checks = [
   // DTOs
   Assert<SameKeys<T.Message, Go.Message>>,
   Assert<SameKeys<T.Attachment, GoAttachment>>,
+  Assert<SameKeys<T.MarketEntry, GoMarketEntry>>,
+  Assert<SameKeys<T.MarketItem, GoMarketItem>>,
   Assert<SameKeys<T.MediaInfo, Go.MediaInfo>>,
   Assert<SameKeys<T.ReplyRef, Go.ReplyRef>>,
   Assert<SameKeys<T.Reaction, Go.Reaction>>,
