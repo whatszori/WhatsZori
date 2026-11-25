@@ -268,6 +268,7 @@ export class WailsBackend implements Backend {
     permissionInfo: async (): Promise<Record<string, string>> =>
       ((await Plugins.PermissionInfo()) ?? {}) as Record<string, string>,
     approve: (id: string) => Plugins.Approve(id),
+    revoke: (id: string) => Plugins.Revoke(id),
     fetch: async (id: string, req: PluginFetchRequest): Promise<PluginFetchResponse> =>
       as<PluginFetchResponse>(await Plugins.Fetch(id, as<Go.PluginFetchRequest>(req))),
     notify: (id: string, title: string, body: string) => Plugins.Notify(id, title, body),

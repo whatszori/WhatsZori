@@ -262,3 +262,18 @@
 .wz-approve__hold-text {
   position: relative;
 }
+
+.wz-plugin-row__revoke {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--wz-danger);
+  font: inherit;
+  font-size: var(--wz-font-size-xs);
+  cursor: pointer;
+}
+
+.wz-plugin-row__revoke:hover {
+  text-decoration: underline;
+}

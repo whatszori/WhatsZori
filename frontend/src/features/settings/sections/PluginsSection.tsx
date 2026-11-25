@@ -110,6 +110,16 @@ export function PluginsSection() {
     }
   };
 
+  const revoke = async (p: PluginInfo) => {
+    try {
+      stopPlugin(p.id);
+      await backend.plugins.revoke(p.id);
+      load();
+    } catch (err) {
+      toastError(err);
+    }
+  };
+
   const withSettings = (list ?? []).filter((p) => p.settings.length > 0 && !p.error);
   const desktop = backend.kind === 'wails';
   return (
@@ -138,6 +148,7 @@ export function PluginsSection() {
               p={p}
               safeMode={safeMode}
               onToggle={(on) => void toggle(p, on)}
+              onRevoke={() => void revoke(p)}
               onReview={() => setAsking({ p, turnOn: false })}
             />
           ))}
@@ -211,11 +222,13 @@ function PluginRow({
   safeMode,
   onToggle,
   onReview,
+  onRevoke,
 }: {
   p: PluginInfo;
   safeMode: boolean;
   onToggle: (on: boolean) => void;
   onReview: () => void;
+  onRevoke: () => void;
 }) {
   const failed = p.error || pluginError(p.id);
   const [iconBroken, setIconBroken] = useState(false);
@@ -264,6 +277,16 @@ function PluginRow({
             </span>
           )}
           {asks.length > 0 && <span className="wz-plugin-row__asks">Can: {asks.join(' · ')}</span>}
+          {p.apiVersion >= 2 && !p.needsApproval && !p.error && (
+            <button
+              type="button"
+              className="wz-plugin-row__revoke"
+              title="Turn it off and forget what you allowed; turning it on asks again"
+              onClick={onRevoke}
+            >
+              Revoke
+            </button>
+          )}
         </div>
         {failed && <p className="wz-plugin-row__error">Can’t load: {failed}</p>}
         {!failed && p.enabled && p.needsApproval && (

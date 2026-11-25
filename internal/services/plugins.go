@@ -205,6 +205,19 @@ func (p *Plugins) Approve(id string) error {
 	return repo.SetPluginGrant(ctx, p.db, id, info.Version, string(data))
 }
 
+// Revoke turns a plugin off and forgets what the user allowed it; turning it on asks again.
+func (p *Plugins) Revoke(id string) error {
+	if !assets.ValidPluginID(id) {
+		return errors.New("bad plugin id")
+	}
+	ctx, cancel := call()
+	defer cancel()
+	if err := repo.SetPluginEnabled(ctx, p.db, id, "", false); err != nil {
+		return err
+	}
+	return repo.SetPluginGrant(ctx, p.db, id, "", "")
+}
+
 // SetEnabled turns a plugin on or off. The frontend starts or stops it right away.
 func (p *Plugins) SetEnabled(id string, on bool) error {
 	info, _, err := p.one(id)

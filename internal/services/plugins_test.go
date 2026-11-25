@@ -140,6 +140,18 @@ func TestPluginApproval(t *testing.T) {
 	if err := p.Notify("net", "x", "y"); err == nil || !strings.Contains(err.Error(), "notifications") {
 		t.Fatalf("a permission it didn't ask for: %v", err)
 	}
+	// revoking turns it off and makes it ask again
+	if err := p.Revoke("net"); err != nil {
+		t.Fatal(err)
+	}
+	if g := get(); !g.needs {
+		t.Fatal("revoked, but still approved")
+	}
+	if err := p.SetEnabled("net", true); err == nil {
+		t.Fatal("turned on again without asking")
+	}
+	p.Approve("net")
+	p.SetEnabled("net", true)
 	// an update asks for another site: it stops until the user says yes again
 	write("net/manifest.json", `{"id":"net","name":"Net","version":"1.1.0","apiVersion":2,"permissions":["network"],"network":["api.example.com","cdn.example.com"]}`)
 	if g := get(); !g.needs || len(g.sites) != 1 || g.sites[0] != "cdn.example.com" {

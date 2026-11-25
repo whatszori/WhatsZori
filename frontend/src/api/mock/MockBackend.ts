@@ -913,6 +913,7 @@ export class MockBackend implements Backend {
       [...this.pluginKV.keys()].filter((k) => k.startsWith(`k:${id}:`)).map((k) => k.split(':')[2]),
     permissionInfo: async (): Promise<Record<string, string>> => ({}),
     approve: async (): Promise<void> => undefined,
+    revoke: async (): Promise<void> => undefined,
     // the browser preview has no proxy; the request goes straight out (and CORS applies)
     fetch: async (_id: string, req: PluginFetchRequest): Promise<PluginFetchResponse> => {
       const body = req.body ? Uint8Array.from(atob(req.body), (c) => c.charCodeAt(0)) : undefined;

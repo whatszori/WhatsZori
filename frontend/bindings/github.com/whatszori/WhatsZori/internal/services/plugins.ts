@@ -65,6 +65,13 @@ export function PermissionInfo(): $CancellablePromise<{ [_ in string]?: string }
 }
 
 /**
+ * Revoke turns a plugin off and forgets what the user allowed it; turning it on asks again.
+ */
+export function Revoke(id: string): $CancellablePromise<void> {
+    return $Call.ByID(2251446038, id);
+}
+
+/**
  * SaveFile asks where to save a file the plugin made (uploaded to /wz-upload/ first) and writes
  * it there. Returns the path, or "" when the user cancelled.
  */

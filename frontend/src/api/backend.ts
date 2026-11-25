@@ -154,6 +154,8 @@ export interface PluginService {
   permissionInfo(): Promise<Record<string, string>>;
   // allow what the plugin asks for right now (permissions, sites, signing key)
   approve(id: string): Promise<void>;
+  // turn off and forget what the user allowed; turning it on asks again
+  revoke(id: string): Promise<void>;
   // the plugin's network requests, only to the sites it lists and the user allowed
   fetch(id: string, req: PluginFetchRequest): Promise<PluginFetchResponse>;
   notify(id: string, title: string, body: string): Promise<void>;

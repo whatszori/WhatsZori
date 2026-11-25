@@ -31,7 +31,8 @@ func PluginsEnabled(ctx context.Context, q DBTX) (map[string]bool, error) {
 func SetPluginEnabled(ctx context.Context, q DBTX, id, version string, on bool) error {
 	_, err := q.ExecContext(ctx, `
 		INSERT INTO extensions (id, kind, version, enabled, installed_at) VALUES (?, 'plugin', ?, ?, ?)
-		ON CONFLICT (id) DO UPDATE SET enabled = excluded.enabled, version = excluded.version`,
+		ON CONFLICT (id) DO UPDATE SET enabled = excluded.enabled,
+			version = CASE WHEN excluded.version = '' THEN extensions.version ELSE excluded.version END`,
 		id, version, b2i(on), time.Now().UnixMilli())
 	return err
 }
@@ -115,7 +116,8 @@ func PluginGrants(ctx context.Context, q DBTX) (map[string]string, error) {
 func SetPluginGrant(ctx context.Context, q DBTX, id, version, granted string) error {
 	_, err := q.ExecContext(ctx, `
 		INSERT INTO extensions (id, kind, version, enabled, installed_at, granted) VALUES (?, 'plugin', ?, 0, ?, ?)
-		ON CONFLICT (id) DO UPDATE SET granted = excluded.granted, version = excluded.version`,
+		ON CONFLICT (id) DO UPDATE SET granted = excluded.granted,
+			version = CASE WHEN excluded.version = '' THEN extensions.version ELSE excluded.version END`,
 		id, version, time.Now().UnixMilli(), granted)
 	return err
 }
