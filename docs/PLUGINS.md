@@ -80,7 +80,10 @@ Everything else (slots, commands, panels, views, the chat list, settings, storag
 no permission.
 
 When the user turns a plugin on, WhatsZori shows these sentences, the sites from `network`, and
-whether the plugin is signed. What they allow is stored with the plugin. A later version that
+whether the plugin is signed. Sensitive permissions (messages, contacts, presence, network) come first;
+reading plus `network` is spelled out ("it can send your messages to api.example.com"); the
+Allow button names what it allows and unlocks after the list has been on screen for a few
+seconds. What they allow is stored with the plugin. A later version that
 asks for a permission or a site they haven't allowed, or that is signed with a different key,
 stays off ("This version asks for more") until they look at it again.
 

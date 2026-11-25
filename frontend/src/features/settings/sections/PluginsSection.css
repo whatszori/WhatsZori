@@ -180,3 +180,38 @@
 .wz-plugin-form__textarea {
   resize: vertical;
 }
+
+/* sensitive permissions lead and stand out */
+.wz-approve__list li.wz-approve__risky {
+  font-weight: 500;
+}
+
+.wz-approve__list li.wz-approve__risky svg {
+  color: var(--wz-warning);
+}
+
+.wz-approve__together {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--wz-space-2);
+  padding: var(--wz-space-3);
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-warning-soft);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-approve__together svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--wz-warning);
+}
+
+.wz-approve__wait {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.wz-dialog__footer:has(.wz-approve__wait),
+.wz-dialog:has(.wz-approve) .wz-dialog__footer {
+  flex-wrap: wrap;
+}

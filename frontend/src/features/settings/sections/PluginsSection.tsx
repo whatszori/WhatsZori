@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   AlertTriangle,
   BadgeCheck,
   Box,
+  Eye,
   FolderOpen,
   Globe,
   KeyRound,
@@ -277,6 +278,67 @@ function PluginRow({
   );
 }
 
+// how much a permission lets a plugin learn or do; the dialog leads with the riskiest
+const RISK: Record<string, 2 | 1 | 0> = {
+  messages: 2,
+  contacts: 2,
+  presence: 2,
+  network: 2,
+  media: 1,
+  composer: 1,
+  'chats.manage': 1,
+  files: 1,
+  notifications: 0,
+  clipboard: 0,
+};
+// what the Allow button names, so pressing it means saying it
+const VERB: Record<string, string> = {
+  messages: 'your messages',
+  contacts: 'contacts',
+  presence: 'online status',
+  network: 'internet',
+};
+const READS: Record<string, string> = {
+  messages: 'your messages',
+  contacts: 'your contacts',
+  presence: 'who’s online',
+};
+
+const andList = (xs: string[]) =>
+  xs.length < 2 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
+
+// Allow waits until the end of the list has been on screen with the window in front, a moment
+// longer for every risky permission. Nobody has to tick boxes, but clicking through without
+// looking takes longer than reading.
+function useReadGate(asks: number, risky: number) {
+  const end = useRef<HTMLDivElement>(null);
+  const need = asks === 0 ? 0 : Math.min(4000, 1200 + risky * 900);
+  const [left, setLeft] = useState(need);
+  const seen = useRef(false);
+  useEffect(() => {
+    const el = end.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) seen.current = true;
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (need === 0) return;
+    let last = performance.now();
+    const t = window.setInterval(() => {
+      const now = performance.now();
+      // only time spent looking counts
+      if (seen.current && document.hasFocus() && document.visibilityState === 'visible')
+        setLeft((l) => Math.max(0, l - (now - last)));
+      last = now;
+    }, 100);
+    return () => window.clearInterval(t);
+  }, [need]);
+  return { end, left };
+}
+
 function ApprovalDialog({
   p,
   turnOn,
@@ -292,22 +354,40 @@ function ApprovalDialog({
   useEffect(() => {
     void describe().then(setText);
   }, []);
-  const perms = p.permissions.filter((x) => x !== 'network');
+  const perms = p.permissions
+    .filter((x) => x !== 'network')
+    .sort((a, b) => (RISK[b] ?? 1) - (RISK[a] ?? 1));
+  const risky = p.permissions.filter((x) => RISK[x] === 2);
   const isNew = (x: string) => p.enabled && p.newPermissions.includes(x);
+  const reads = p.permissions.filter((x) => READS[x]);
+  const leaks = reads.length > 0 && p.network.length > 0;
   const s = p.signature;
+  const { end, left } = useReadGate(p.permissions.length, risky.length);
+  const verbs = risky.map((x) => VERB[x]).filter(Boolean);
+  const allowLabel = verbs.length
+    ? `Allow: ${verbs.join(', ')}`
+    : turnOn
+      ? 'Allow and turn on'
+      : 'Allow';
   return (
     <Dialog
       open
       title={`Allow ${p.name}?`}
-      width={460}
+      width={480}
       onClose={onCancel}
       footer={
         <>
-          <Button variant="ghost" onClick={onCancel}>
+          <Button variant="ghost" autoFocus onClick={onCancel}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onAllow}>
-            {turnOn ? 'Allow and turn on' : 'Allow'}
+          <Button
+            variant="primary"
+            disabled={left > 0}
+            title={left > 0 ? 'Read the list first' : undefined}
+            onClick={onAllow}
+          >
+            {allowLabel}
+            {left > 0 && <span className="wz-approve__wait"> ({Math.ceil(left / 1000)})</span>}
           </Button>
         </>
       }
@@ -321,8 +401,12 @@ function ApprovalDialog({
         {perms.length > 0 && (
           <ul className="wz-approve__list">
             {perms.map((x) => (
-              <li key={x}>
-                <ShieldCheck size={16} aria-hidden="true" />
+              <li key={x} className={RISK[x] === 2 ? 'wz-approve__risky' : undefined}>
+                {RISK[x] === 2 ? (
+                  <Eye size={16} aria-label="Sensitive" />
+                ) : (
+                  <ShieldCheck size={16} aria-hidden="true" />
+                )}
                 <span>
                   {text[x] ?? x}
                   {isNew(x) && <span className="wz-plugin-chip wz-plugin-chip--new">new</span>}
@@ -336,7 +420,7 @@ function ApprovalDialog({
             <p>Connect to these sites, and only these:</p>
             <ul className="wz-approve__list wz-approve__sites">
               {p.network.map((d) => (
-                <li key={d}>
+                <li key={d} className="wz-approve__risky">
                   <Globe size={16} aria-hidden="true" />
                   <code>{d}</code>
                   {p.enabled && p.newNetwork.includes(d) && (
@@ -346,6 +430,15 @@ function ApprovalDialog({
               ))}
             </ul>
           </>
+        )}
+        {leaks && (
+          <p className="wz-approve__together">
+            <AlertTriangle size={16} aria-hidden="true" />
+            <span>
+              Together, this means it can send {andList(reads.map((x) => READS[x]))} to{' '}
+              {p.network.length === 1 ? p.network[0] : `${p.network.length} sites`}.
+            </span>
+          </p>
         )}
         <div
           className={`wz-approve__sig${s.state === 'signed' && !p.keyChanged ? '' : ' wz-approve__sig--warn'}`}
@@ -385,6 +478,8 @@ function ApprovalDialog({
             misbehave could get around that, so this list is a promise more than a wall.
           </p>
         )}
+        {/* the end of the list: Allow starts counting once this has been on screen */}
+        <div ref={end} aria-hidden="true" />
       </div>
     </Dialog>
   );
