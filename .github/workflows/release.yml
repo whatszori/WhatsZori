@@ -133,6 +133,9 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the whole history and tags, to list the commits since the last release
+          fetch-depth: 0
 
       - uses: actions/download-artifact@v4
         with:
@@ -147,7 +150,24 @@ jobs:
       - name: Release
         run: |
           notes="docs/releases/v$VERSION.md"
-          if [ -f "$notes" ]; then how=(--notes-file "$notes"); else how=(--generate-notes); fi
+          if [ ! -f "$notes" ]; then
+            # no hand-written notes: the commits since the previous release
+            prev=$(git tag --list 'v*' --sort=-v:refname | grep -vx "v$VERSION" | head -n1)
+            notes=$(mktemp)
+            {
+              if [ -n "$prev" ]; then
+                echo "Changes since $prev:"
+                echo
+                git log --no-merges --pretty='- %s' "$prev..$GITHUB_SHA"
+                echo
+                echo "**Full list:** https://github.com/$GITHUB_REPOSITORY/compare/$prev...v$VERSION"
+              else
+                git log --no-merges --pretty='- %s' "$GITHUB_SHA"
+              fi
+            } > "$notes"
+            cat "$notes"
+          fi
+          how=(--notes-file "$notes")
           gh release create "v$VERSION" out/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
