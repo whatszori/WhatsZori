@@ -83,8 +83,13 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
 
   useEffect(() => {
     if (nonce === 0) return;
-    searchRef.current?.focus();
-    searchRef.current?.select();
+    // a frame later: coming back from another view mounts the chat too, and its message box
+    // takes the focus in the same commit
+    const id = requestAnimationFrame(() => {
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    });
+    return () => cancelAnimationFrame(id);
   }, [nonce]);
 
   return (

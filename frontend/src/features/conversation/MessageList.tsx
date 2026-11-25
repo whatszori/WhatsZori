@@ -161,6 +161,8 @@ export function MessageList({ chat }: { chat: Chat }) {
         if (i < 0) return;
         virtualizer.scrollToIndex(i, { align: 'center' });
         setHighlight(focus.pk);
+        // done: a chat mounted again later (back from another view) shouldn't jump here again
+        if (useUI.getState().focusMessage === focus) useUI.setState({ focusMessage: null });
         window.setTimeout(() => setHighlight((h) => (h === focus.pk ? null : h)), 1700);
       });
     })();

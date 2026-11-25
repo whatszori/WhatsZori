@@ -191,6 +191,8 @@ export class MockBackend implements Backend {
   private completeLogin(): void {
     window.clearInterval(this.qrTimer);
     window.clearTimeout(this.loginTimer);
+    // a timer left from a QR started again after the click must not log in a second time
+    if (this.auth_.state !== 'qr' && this.auth_.state !== 'pairing') return;
     this.setAuth({ state: 'logging-in', me: null });
     this.setConn('connecting');
     window.setTimeout(() => {
@@ -201,7 +203,7 @@ export class MockBackend implements Backend {
 
   readonly dev: DevControls = {
     simulateScan: () => {
-      if (this.auth_.state === 'qr' || this.auth_.state === 'pairing') this.completeLogin();
+      this.completeLogin();
     },
     setDemo: (on) => (on ? this.simulator.start() : this.simulator.stop()),
     isDemo: () => this.simulator.running,
@@ -216,6 +218,8 @@ export class MockBackend implements Backend {
     getConnState: async (): Promise<ConnState> => this.conn_,
     startQRLogin: async (): Promise<void> => {
       await this.wait();
+      // already logging in (the code was clicked while this call waited): nothing to start
+      if (this.auth_.state === 'logging-in' || this.auth_.state === 'logged-in') return;
       window.clearInterval(this.qrTimer);
       this.setAuth({ state: 'qr', me: null });
       this.emitQR();
