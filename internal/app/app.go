@@ -31,7 +31,7 @@ import (
 )
 
 // Version is overridden at build time with -ldflags "-X .../internal/app.Version=...".
-var Version = "0.2.0"
+var Version = "0.2.1"
 
 const (
 	appID = "io.github.whatszori.whatszori"

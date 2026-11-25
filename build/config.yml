@@ -10,7 +10,7 @@ info:
   description: "WhatsZori client (Whatsapp unofficial client)"
   copyright: "(c) 2026, obzori"
   comments: "Unofficial client, not affiliated with WhatsApp or Meta"
-  version: "0.2.0"
+  version: "0.2.1"
 
 # `wails3 dev`: builds the Go side, starts Vite, runs the app, and rebuilds on Go changes.
 # The frontend has its own HMR through Vite, so it's ignored here.
