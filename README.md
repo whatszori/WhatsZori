@@ -42,6 +42,12 @@ messages live in a local SQLite database on your computer, so nothing is lost wh
 
 It's built in the spirit of AyuGram for privacy, and Vencord for themes and plugins.
 
+<p align="center">
+  <img src="docs/media/demo.gif" alt="A tour of WhatsZori: a message Anna deletes stays visible and marked as deleted, the Deleted &amp; edited list with a message's earlier versions, ghost mode for one chat, Ctrl+K search across chats, a pasted photo marked up with an arrow and a blurred phone number, and a switch to the light theme with a plum accent" width="100%">
+  <br>
+  <sub><a href="docs/media/demo.mp4">Watch it as a video (MP4)</a></sub>
+</p>
+
 ## Features
 
 ### Nothing disappears

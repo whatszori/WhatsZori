@@ -5,27 +5,33 @@ import type {
   MediaRef,
   EditVersion,
   JID,
-  MediaInfo,
   Me,
   Message,
-  MessageKind,
   Reaction,
+  ReplyRef,
 } from '../types';
 import { createRng, type Rng } from '../../lib/rng';
-import { EN, FILES, JA, LINK_TEXT, LONG_TEXT, MULTILINE, REACTIONS, RU } from './texts';
-
-type Lang = 'en' | 'ru' | 'ja';
+import {
+  FILES,
+  LINK_TEXT,
+  LONG_TEXT,
+  MULTILINE,
+  REACTIONS,
+  SNIPPETS,
+  SWAPPABLE,
+  type Topic,
+} from './texts';
 
 interface ChatSeed {
   name: string;
   group?: string[];
-  lang?: Lang;
+  topic: Topic;
   count: number;
   pinned?: boolean;
   archived?: boolean;
   muted?: boolean;
   unread?: number;
-  // minutes since last activity
+  // minutes since last activity (chats with a hand-written tail end where the tail ends)
   ago: number;
   online?: boolean;
   lastSeenAgo?: number | null;
@@ -33,143 +39,139 @@ interface ChatSeed {
 
 export const ME: Me = { jid: '491701234567@s.whatsapp.net', name: 'You', phone: '+49 170 1234567' };
 
+const WORK_CREW = ['Mark Ellison', 'Sophie Laurent', 'Priya Raman', 'Jonas Weber'];
+
 const SEEDS: ChatSeed[] = [
-  { name: 'Anna Petrova', count: 260, pinned: true, ago: 62, online: true },
+  { name: 'Anna Petrova', topic: 'friend', count: 140, pinned: true, ago: 2, online: true },
+  {
+    name: 'Семья',
+    group: ['Мама', 'Папа', 'Оля', 'Дядя Миша'],
+    topic: 'ru-family',
+    count: 90,
+    pinned: true,
+    ago: 55,
+  },
   {
     name: 'Design team',
-    group: [
-      'Mark Ellison',
-      'Sophie Laurent',
-      'Priya Raman',
-      'Jonas Weber',
-      'Kenji Watanabe',
-      'Emma Lindqvist',
-    ],
-    count: 340,
+    group: [...WORK_CREW, 'Kenji Watanabe', 'Emma Lindqvist'],
+    topic: 'team',
+    count: 180,
     pinned: true,
-    ago: 34,
+    ago: 8,
   },
-  { name: 'Дмитрий Соколов', lang: 'ru', count: 180, pinned: true, ago: 42, lastSeenAgo: 35 },
-  { name: 'Mark Ellison', count: 60, ago: 75, lastSeenAgo: 70 },
+  { name: 'Дмитрий Соколов', topic: 'ru-friend', count: 90, ago: 40, lastSeenAgo: 35 },
   {
     name: 'Product launch',
     group: [
       'Mark Ellison',
-      'Anna Petrova',
       'Ryan Patel',
       'Grace Kim',
       'Oliver Hughes',
       'Mia Rossi',
       'Liam O’Connor',
+      'Priya Raman',
     ],
-    count: 300,
+    topic: 'team',
+    count: 160,
     unread: 37,
     ago: 18,
   },
-  { name: '山田太郎', lang: 'ja', count: 40, unread: 1, ago: 130, lastSeenAgo: null },
-  {
-    name: 'Семья',
-    lang: 'ru',
-    group: ['Мама', 'Папа', 'Ольга Иванова', 'Алексей Морозов'],
-    count: 120,
-    unread: 5,
-    ago: 55,
-  },
-  {
-    name: '東京オフィス',
-    lang: 'ja',
-    group: ['山田太郎', '佐藤 花子', '鈴木一郎', 'Kenji Watanabe'],
-    count: 150,
-    ago: 200,
-  },
-  { name: 'Sophie Laurent', count: 30, ago: 300, lastSeenAgo: 280 },
-  { name: 'Jonas Weber', count: 12, ago: 600, lastSeenAgo: 590 },
+  { name: 'Mark Ellison', topic: 'work', count: 60, ago: 75, lastSeenAgo: 70 },
+  { name: '山田太郎', topic: 'ja-work', count: 24, unread: 1, ago: 130, lastSeenAgo: null },
+  { name: 'Мама', topic: 'mum', count: 50, ago: 160, lastSeenAgo: 150 },
+  { name: 'Sophie Laurent', topic: 'work', count: 30, ago: 300, lastSeenAgo: 280 },
   {
     name: 'Weekend hiking',
     group: ['Liam O’Connor', 'Hannah Fischer', 'Noah Brooks', 'Chloe Martin'],
-    count: 45,
+    topic: 'hike',
+    count: 60,
     unread: 3,
     ago: 380,
   },
-  { name: 'Ольга Иванова', lang: 'ru', count: 25, ago: 900, lastSeenAgo: 800 },
+  { name: 'Jonas Weber', topic: 'friend', count: 20, ago: 600, lastSeenAgo: 590 },
+  { name: 'Оля', topic: 'ru-friend', count: 30, ago: 900, lastSeenAgo: 800 },
   {
     name: 'Book club',
     group: ['Emma Lindqvist', 'Ines Moreau', 'Grace Kim'],
+    topic: 'books',
     count: 30,
     muted: true,
     unread: 8,
     ago: 1000,
   },
-  { name: 'Priya Raman', count: 20, ago: 1300, lastSeenAgo: 1250 },
-  { name: '佐藤 花子', lang: 'ja', count: 15, ago: 1500, lastSeenAgo: null },
-  { name: 'Tomás García', count: 10, ago: 2000, online: true },
+  { name: 'Priya Raman', topic: 'work', count: 20, ago: 1300, lastSeenAgo: 1250 },
+  { name: 'Tomás García', topic: 'friend', count: 14, ago: 2000, online: true },
   {
     name: 'Apartment 4B',
     group: ['Noah Brooks', 'Mia Rossi', 'Oliver Hughes'],
-    count: 25,
+    topic: 'house',
+    count: 40,
     muted: true,
     unread: 2,
     ago: 2300,
   },
-  { name: 'Мама', lang: 'ru', count: 40, ago: 2600, lastSeenAgo: 2500 },
-  { name: 'Kenji Watanabe', count: 18, ago: 3000, lastSeenAgo: 2900 },
-  { name: 'Emma Lindqvist', count: 8, ago: 3500, lastSeenAgo: 3400 },
+  { name: 'Kenji Watanabe', topic: 'work', count: 18, ago: 3000, lastSeenAgo: 2900 },
+  { name: 'Emma Lindqvist', topic: 'friend', count: 10, ago: 3500, lastSeenAgo: 3400 },
   {
-    name: 'Football Sundays',
+    name: 'Sunday football',
     group: ['Ryan Patel', 'Liam O’Connor', 'Tomás García', 'Noah Brooks', 'Oliver Hughes'],
-    count: 35,
+    topic: 'football',
+    count: 25,
     ago: 4200,
   },
-  { name: 'Noah Brooks', count: 6, ago: 5000, lastSeenAgo: 4900 },
-  { name: 'Алексей Морозов', lang: 'ru', count: 14, ago: 5600, lastSeenAgo: 5500 },
+  { name: 'Noah Brooks', topic: 'friend', count: 8, ago: 5000, lastSeenAgo: 4900 },
+  { name: 'Алексей Морозов', topic: 'ru-friend', count: 14, ago: 5600, lastSeenAgo: 5500 },
   {
-    name: 'Release notes',
-    group: ['Mark Ellison', 'Anna Petrova'],
-    count: 20,
+    name: 'Company announcements',
+    group: ['Grace Kim', 'Mark Ellison'],
+    topic: 'announce',
+    count: 30,
     muted: true,
     unread: 120,
     ago: 6000,
   },
-  { name: 'Hannah Fischer', count: 9, ago: 7000, lastSeenAgo: 6900 },
+  { name: 'Hannah Fischer', topic: 'friend', count: 9, ago: 7000, lastSeenAgo: 6900 },
   {
-    name: 'Курсы японского',
-    lang: 'ru',
-    group: ['Сергей Кузнецов', 'Ольга Иванова', '鈴木一郎'],
+    name: 'Курсы испанского',
+    group: ['Марина Белова', 'Сергей Кузнецов', 'Ирина Лебедева'],
+    topic: 'ru-course',
     count: 22,
     ago: 8000,
   },
-  { name: '鈴木一郎', lang: 'ja', count: 7, ago: 9000, lastSeenAgo: 8900 },
-  { name: 'Chloe Martin', count: 11, ago: 10000, lastSeenAgo: 9000 },
-  { name: 'Ryan Patel', count: 5, ago: 12000, lastSeenAgo: 11000 },
+  { name: 'Chloe Martin', topic: 'friend', count: 11, ago: 10000, lastSeenAgo: 9000 },
+  { name: 'Ryan Patel', topic: 'work', count: 5, ago: 12000, lastSeenAgo: 11000 },
   {
     name: 'Neighbours',
     group: ['Hannah Fischer', 'Ines Moreau', 'Chloe Martin', 'Сергей Кузнецов'],
+    topic: 'house',
     count: 18,
     muted: true,
     ago: 14000,
   },
-  { name: 'Ines Moreau', count: 6, ago: 16000, lastSeenAgo: null },
-  { name: 'Сергей Кузнецов', lang: 'ru', count: 9, ago: 18000, lastSeenAgo: 17000 },
-  { name: 'Grace Kim', count: 4, ago: 21000, lastSeenAgo: 20000 },
+  { name: 'Ines Moreau', topic: 'friend', count: 6, ago: 16000, lastSeenAgo: null },
+  { name: 'Сергей Кузнецов', topic: 'ru-friend', count: 9, ago: 18000, lastSeenAgo: 17000 },
+  { name: 'Grace Kim', topic: 'work', count: 4, ago: 21000, lastSeenAgo: 20000 },
   {
-    name: 'Photography',
+    name: 'Photo walks',
     group: ['Mia Rossi', 'Kenji Watanabe', 'Emma Lindqvist'],
+    topic: 'photo',
     count: 14,
     ago: 25000,
   },
-  { name: 'Oliver Hughes', count: 3, ago: 30000, lastSeenAgo: 29000 },
-  { name: 'Liam O’Connor', count: 7, ago: 33000, lastSeenAgo: 32000 },
+  { name: 'Oliver Hughes', topic: 'friend', count: 3, ago: 30000, lastSeenAgo: 29000 },
+  { name: 'Liam O’Connor', topic: 'friend', count: 7, ago: 33000, lastSeenAgo: 32000 },
   {
     name: 'Climbing gym',
     group: ['Hannah Fischer', 'Jonas Weber'],
+    topic: 'climb',
     count: 20,
     archived: true,
     ago: 40000,
   },
   {
-    name: 'Old school friends',
-    lang: 'ru',
+    name: 'Одноклассники',
     group: ['Алексей Морозов', 'Сергей Кузнецов', 'Дмитрий Соколов'],
+    topic: 'ru-oldfriends',
     count: 30,
     archived: true,
     muted: true,
@@ -177,13 +179,14 @@ const SEEDS: ChatSeed[] = [
     ago: 45000,
   },
   {
-    name: 'Conference 2025',
+    name: 'Conference trip',
     group: ['Grace Kim', 'Ryan Patel', 'Priya Raman'],
+    topic: 'team',
     count: 25,
     archived: true,
     ago: 60000,
   },
-  { name: 'Mia Rossi', count: 5, archived: true, ago: 70000, lastSeenAgo: 69000 },
+  { name: 'Mia Rossi', topic: 'friend', count: 5, archived: true, ago: 70000, lastSeenAgo: 69000 },
 ];
 
 const slug = (s: string) =>
@@ -205,62 +208,112 @@ export interface MockDB {
   nextPk: number;
 }
 
-const MIN = 60_000;
+type Person = { jid: JID; name: string };
 
-function textFor(lang: Lang, rng: Rng): string {
-  if (lang === 'ru') return rng.chance(0.85) ? rng.pick(RU) : rng.pick(EN);
-  if (lang === 'ja') return rng.chance(0.85) ? rng.pick(JA) : rng.pick(EN);
-  return rng.pick(EN);
+const MIN = 60_000;
+const MEP: Person = { jid: ME.jid, name: ME.name };
+
+function waveform(rng: Rng): number[] {
+  // a voice rises and falls in phrases, not white noise
+  return Array.from({ length: 40 }, (_, i) => {
+    const phrase = 0.55 + 0.4 * Math.sin(i / 2.3 + rng.next());
+    return Math.round(Math.min(1, Math.max(0.12, phrase * (0.6 + rng.next() * 0.5))) * 100) / 100;
+  });
 }
 
-function randomMedia(rng: Rng): { kind: MessageKind; media: MediaInfo; text: string } {
-  const r = rng.next();
-  if (r < 0.4) {
+// "[photo] caption", "[video]", "[voice]", "[doc name.ext] caption"
+function parseMedia(text: string, rng: Rng): Partial<Message> | null {
+  const m = /^\[(photo|video|voice|doc)(?: ([^\]]+))?\]\s*(.*)$/.exec(text);
+  if (!m) return null;
+  const [, kind, arg, caption] = m;
+  if (kind === 'photo') {
     const landscape = rng.chance(0.6);
     return {
       kind: 'image',
+      text: caption,
       media: {
         width: landscape ? 1600 : 1080,
         height: landscape ? 1067 : 1440,
-        size: rng.int(200, 3000) * 1000,
+        size: rng.int(400, 3200) * 1000,
       },
-      text: rng.chance(0.4)
-        ? rng.pick(['From yesterday', 'Look at this', 'The view from the office'])
-        : '',
     };
   }
-  if (r < 0.55) {
+  if (kind === 'video') {
+    const portrait = rng.chance(0.6);
     return {
       kind: 'video',
+      text: caption,
       media: {
-        width: 1920,
-        height: 1080,
-        duration: rng.int(5, 140),
-        size: rng.int(2000, 40000) * 1000,
+        width: portrait ? 1080 : 1920,
+        height: portrait ? 1920 : 1080,
+        duration: rng.int(6, 48),
+        size: rng.int(3000, 30000) * 1000,
       },
-      text: '',
     };
   }
-  if (r < 0.75) {
-    return { kind: 'document', media: { ...rng.pick(FILES) }, text: '' };
-  }
-  const duration = rng.int(3, 95);
-  return {
-    kind: 'voice',
-    media: { duration, waveform: Array.from({ length: 40 }, () => 0.15 + rng.next() * 0.85) },
-    text: '',
+  if (kind === 'voice')
+    return {
+      kind: 'voice',
+      text: '',
+      media: { duration: rng.int(5, 74), waveform: waveform(rng) },
+    };
+  const file = FILES.find((f) => f.fileName === arg) ?? {
+    fileName: arg,
+    size: rng.int(50, 4000) * 1000,
+    mime: 'application/octet-stream',
   };
+  return { kind: 'document', text: caption, media: { ...file } };
 }
 
-function randomReactions(rng: Rng): Reaction[] {
-  const n = rng.int(1, 3);
+// a believable slip of the thumb: two neighbouring letters swapped in a longer word
+function typo(text: string, rng: Rng): string | null {
+  const words = text.split(' ');
+  const idx = words.map((w, i) => (/^\p{L}{5,}$/u.test(w) ? i : -1)).filter((i) => i >= 0);
+  if (!idx.length) return null;
+  const i = rng.pick(idx);
+  const w = Array.from(words[i]);
+  const j = rng.int(1, w.length - 2);
+  [w[j], w[j + 1]] = [w[j + 1], w[j]];
+  words[i] = w.join('');
+  const out = words.join(' ');
+  return out === text ? null : out;
+}
+
+function randomReactions(rng: Rng, group: boolean): Reaction[] {
+  const n = group ? rng.int(1, 3) : 1;
   const out: Reaction[] = [];
   for (let i = 0; i < n; i++) {
     const emoji = rng.pick(REACTIONS);
     if (out.some((r) => r.emoji === emoji)) continue;
-    out.push({ emoji, count: rng.int(1, 4), mine: rng.chance(0.3) });
+    out.push({ emoji, count: group ? rng.int(1, 4) : 1, mine: rng.chance(0.3) });
   }
   return out;
+}
+
+function shuffled(n: number, rng: Rng): number[] {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = rng.int(0, i);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// people mostly don't chat between 1 and 8 in the morning; push those to the evening before
+function daytime(t: number, rng: Rng): number {
+  const evening = rng.int(0, 150);
+  const d = new Date(t);
+  if (d.getHours() >= 8) return t;
+  d.setDate(d.getDate() - 1);
+  d.setHours(21, 0, 0, 0);
+  return d.getTime() + evening * MIN;
+}
+
+function gap(rng: Rng): number {
+  const r = rng.next();
+  if (r < 0.45) return rng.int(40, 300) * MIN;
+  if (r < 0.85) return rng.int(6 * 60, 30 * 60) * MIN;
+  return rng.int(30 * 60, 4 * 24 * 60) * MIN;
 }
 
 export function preview(m: Message): string {
@@ -282,6 +335,14 @@ export function preview(m: Message): string {
   }
 }
 
+const quote = (m: Message): ReplyRef => ({
+  pk: m.pk,
+  senderName: m.senderName,
+  fromMe: m.fromMe,
+  kind: m.kind,
+  text: preview(m),
+});
+
 export function createMockDB(now = Date.now(), seed = 7): MockDB {
   const rng = createRng(seed);
   const db: MockDB = {
@@ -297,67 +358,22 @@ export function createMockDB(now = Date.now(), seed = 7): MockDB {
   for (const s of SEEDS) {
     const isGroup = !!s.group;
     const jid = jidFor(s.name, isGroup);
-    const lang = s.lang ?? 'en';
-    const people = isGroup
+    const people: Person[] = isGroup
       ? s.group!.map((n) => ({ jid: jidFor(n, false), name: n }))
       : [{ jid, name: s.name }];
     db.members.set(jid, people);
 
-    // walk backwards from the last activity, in bursts
-    const times: number[] = [];
-    let t = now - s.ago * MIN;
-    for (let i = 0; i < s.count; i++) {
-      times.push(t);
-      t -= rng.chance(0.12) ? rng.int(60, 900) * MIN : rng.int(10, 240) * 1000;
-    }
-    times.reverse();
-
-    const unread = Math.min(s.unread ?? 0, s.count);
-    const list: Message[] = [];
-    let lastSender = '';
-    for (let i = 0; i < times.length; i++) {
-      const forcedIncoming = i >= times.length - unread;
-      // keep runs of the same sender so grouping shows up
-      const fromMe = forcedIncoming ? false : rng.chance(lastSender === 'me' ? 0.6 : 0.35);
-      const who = fromMe ? null : rng.pick(people);
-      lastSender = fromMe ? 'me' : who!.jid;
-
-      const m: Message = {
-        pk: pk(),
-        id: `3EB0${(db.nextPk * 7919).toString(16).toUpperCase()}`,
-        chatJid: jid,
-        senderJid: fromMe ? ME.jid : who!.jid,
-        senderName: fromMe ? ME.name : who!.name,
-        fromMe,
-        timestamp: times[i],
-        kind: 'text',
-        text: textFor(lang, rng),
-        reactions: [],
-      };
-      const roll = rng.next();
-      if (roll < 0.06) Object.assign(m, randomMedia(rng));
-      else if (roll < 0.09) m.text = LONG_TEXT;
-      else if (roll < 0.12) m.text = MULTILINE;
-      else if (roll < 0.14) m.text = LINK_TEXT;
-      if (rng.chance(0.07)) m.reactions = randomReactions(rng);
-      if (list.length > 5 && rng.chance(0.06)) {
-        const target = list[list.length - rng.int(1, Math.min(12, list.length))];
-        m.replyTo = {
-          pk: target.pk,
-          senderName: target.senderName,
-          fromMe: target.fromMe,
-          kind: target.kind,
-          text: preview(target),
-        };
-      }
-      if (fromMe) m.status = 'read';
-      list.push(m);
-    }
-
+    const tail = TAILS[s.name];
+    const historyEnd = tail
+      ? daytime(now - (tail.from * MIN + rng.int(90, 600) * MIN), rng)
+      : now - s.ago * MIN;
+    const historyUnread = tail ? (tail.historyUnread ?? 0) : (s.unread ?? 0);
+    const list = generateHistory(db, s, jid, people, historyEnd, historyUnread, rng);
     const last = list[list.length - 1];
     if (last?.fromMe) last.status = s.online ? 'read' : 'delivered';
-
     db.messages.set(jid, list);
+    if (tail) tail.build(tailKit(db, jid, list, now, pk, rng));
+
     db.chats.set(jid, {
       jid,
       name: s.name,
@@ -366,19 +382,115 @@ export function createMockDB(now = Date.now(), seed = 7): MockDB {
       pinned: !!s.pinned,
       archived: !!s.archived,
       muted: !!s.muted,
-      unread: s.unread ?? 0,
+      unread: tail ? tail.unread : (s.unread ?? 0),
       lastMessage: null,
-      lastActivity: last?.timestamp ?? now - s.ago * MIN,
+      lastActivity: list[list.length - 1]?.timestamp ?? now - s.ago * MIN,
       lastSeen: isGroup ? undefined : s.lastSeenAgo == null ? null : now - s.lastSeenAgo * MIN,
       online: isGroup ? undefined : !!s.online,
     });
   }
 
-  addShowcase(db, now, pk);
   addMandarin(db, now, pk);
 
   for (const [jid, list] of db.messages) refreshChatPreview(db, jid, list);
   return db;
+}
+
+// Older history: whole short exchanges laid out in sessions over the past days and weeks.
+function generateHistory(
+  db: MockDB,
+  s: ChatSeed,
+  jid: JID,
+  people: Person[],
+  end: number,
+  unread: number,
+  rng: Rng,
+): Message[] {
+  const pool = SNIPPETS[s.topic];
+  const isGroup = !!s.group;
+  let deck: number[] = [];
+  const sessions: { who: Person[]; texts: string[]; times: number[] }[] = [];
+  let left = s.count;
+  while (left > 0) {
+    if (!deck.length) deck = shuffled(pool.length, rng);
+    let lines = pool[deck.pop()!].map((l) => ({ role: l[0], text: l.slice(3) }));
+    if (!isGroup && SWAPPABLE.has(s.topic) && rng.chance(0.4))
+      lines = lines.map((l) => ({ ...l, role: l.role === 'm' ? 'a' : 'm' }));
+    if (lines.length > left) lines = lines.slice(lines.length - left);
+    const cast = shuffled(people.length, rng).map((i) => people[i]);
+    const roleOf = (r: string): Person =>
+      r === 'm' ? MEP : cast[('abc'.indexOf(r) >>> 0) % cast.length];
+    const times: number[] = [];
+    let t = end;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      times[i] = t;
+      t -= rng.chance(0.15) ? rng.int(4, 25) * MIN : rng.int(15, 200) * 1000;
+    }
+    sessions.unshift({
+      who: lines.map((l) => roleOf(l.role)),
+      texts: lines.map((l) => l.text),
+      times,
+    });
+    left -= lines.length;
+    end = daytime(times[0] - gap(rng), rng);
+  }
+
+  const list: Message[] = [];
+  const total = s.count;
+  for (const ses of sessions) {
+    const start = list.length;
+    ses.texts.forEach((text, i) => {
+      let who = ses.who[i];
+      // unread history has to be incoming; in a group someone else says it
+      if (who === MEP && list.length >= total - unread) who = rng.pick(people);
+      const fromMe = who === MEP;
+      const m: Message = {
+        pk: String(db.nextPk++),
+        id: `3EB0${(db.nextPk * 7919).toString(16).toUpperCase()}`,
+        chatJid: jid,
+        senderJid: who.jid,
+        senderName: who.name,
+        fromMe,
+        timestamp: ses.times[i],
+        kind: 'text',
+        text,
+        reactions: [],
+        status: fromMe ? 'read' : undefined,
+      };
+      const media = parseMedia(text, rng);
+      if (media) Object.assign(m, media);
+
+      const roll = rng.next();
+      if (rng.chance(0.06)) m.reactions = randomReactions(rng, isGroup);
+      if (m.kind === 'text' && roll < 0.03) {
+        const before = typo(m.text, rng);
+        if (before) {
+          const at = m.timestamp + rng.int(1, 3) * MIN;
+          m.editedAt = at;
+          m.editCount = 1;
+          db.history.set(m.pk, [
+            { text: before, at: m.timestamp },
+            { text: m.text, at },
+          ]);
+        }
+      } else if (!fromMe && roll < 0.045) {
+        m.deleted = { byJid: who.jid, byName: who.name, at: m.timestamp + rng.int(1, 20) * MIN };
+      } else if (isGroup && !fromMe && m.kind !== 'text' && roll < 0.2) {
+        // people forward photos and files between chats, rarely their own small talk
+        m.forwarded = rng.chance(0.2) ? 5 : 1;
+      }
+      // quote something said a moment ago by someone else in the same exchange
+      if (i >= 2 && rng.chance(0.08)) {
+        const target = list
+          .slice(start, list.length - 1)
+          .reverse()
+          .find((x) => x.fromMe !== fromMe || x.senderJid !== who.jid);
+        if (target) m.replyTo = quote(target);
+      }
+      list.push(m);
+    });
+  }
+  return list;
 }
 
 export function refreshChatPreview(db: MockDB, jid: JID, list = db.messages.get(jid) ?? []): void {
@@ -398,182 +510,270 @@ export function refreshChatPreview(db: MockDB, jid: JID, list = db.messages.get(
   };
 }
 
-// Hand-written messages at the end of the busiest chats so every bubble variant is on screen.
-function addShowcase(db: MockDB, now: number, pk: () => string): void {
-  const anna = jidFor('Anna Petrova', false);
-  const design = jidFor('Design team', true);
-  const mark = { jid: jidFor('Mark Ellison', false), name: 'Mark Ellison' };
-  const sophie = { jid: jidFor('Sophie Laurent', false), name: 'Sophie Laurent' };
-  const annaP = { jid: anna, name: 'Anna Petrova' };
-  const me = { jid: ME.jid, name: ME.name };
-
-  const mk = (
-    chatJid: JID,
-    who: { jid: JID; name: string },
-    minsAgo: number,
-    extra: Partial<Message>,
-  ): Message => ({
-    pk: pk(),
-    id: `3EB0SHOW${db.nextPk}`,
-    chatJid,
-    senderJid: who.jid,
-    senderName: who.name,
-    fromMe: who.jid === ME.jid,
-    timestamp: now - minsAgo * MIN,
-    kind: 'text',
-    text: '',
-    reactions: [],
-    status: who.jid === ME.jid ? 'read' : undefined,
-    ...extra,
-  });
-
-  const a: Message[] = [];
-  const plan = mk(anna, annaP, 58, { text: LINK_TEXT });
-  a.push(plan);
-  a.push(
-    mk(anna, me, 56, {
-      text: 'Looks solid. I left a couple of comments on the timeline section.',
-      replyTo: {
-        pk: plan.pk,
-        senderName: plan.senderName,
-        fromMe: false,
-        kind: 'text',
-        text: LINK_TEXT,
-      },
-    }),
-  );
-  const edited = mk(anna, annaP, 52, {
-    text: 'Dinner is at 19:30 at the place on Linden street, table under my name',
-    editedAt: now - 47 * MIN,
-    editCount: 2,
-    reactions: [{ emoji: '👍', count: 1, mine: true }],
-  });
-  db.history.set(edited.pk, [
-    { text: 'Dinner is at 19:00', at: now - 52 * MIN },
-    { text: 'Dinner is at 19:30 at the place on Linden street', at: now - 50 * MIN },
-    { text: edited.text, at: now - 47 * MIN },
-  ]);
-  a.push(edited);
-  a.push(
-    mk(anna, annaP, 46, {
-      text: 'Ugh, ignore what I said about Mark, that came out wrong',
-      deleted: { byJid: anna, byName: 'Anna Petrova', at: now - 44 * MIN },
-    }),
-  );
-  a.push(
-    mk(anna, annaP, 40, {
-      kind: 'image',
-      media: { width: 1600, height: 1067, size: 1_840_000 },
-      text: 'The terrace, for reference',
-    }),
-  );
-  a.push(
-    mk(anna, me, 38, {
-      kind: 'document',
-      media: { fileName: 'reservation-confirmation.pdf', size: 248_000, mime: 'application/pdf' },
-    }),
-  );
-  a.push(
-    mk(anna, annaP, 30, {
-      kind: 'voice',
-      media: {
-        duration: 23,
-        waveform: [
-          0.2, 0.4, 0.6, 0.5, 0.8, 0.9, 0.7, 0.4, 0.3, 0.5, 0.7, 0.9, 1, 0.8, 0.6, 0.4, 0.3, 0.5,
-          0.6, 0.8, 0.7, 0.5, 0.3, 0.2, 0.4, 0.6, 0.7, 0.5, 0.3, 0.2, 0.3, 0.5, 0.6, 0.4, 0.3, 0.2,
-          0.3, 0.2, 0.15, 0.1,
-        ],
-      },
-    }),
-  );
-  a.push(
-    mk(anna, annaP, 24, {
-      contentUnknown: true,
-      deleted: { byJid: anna, byName: 'Anna Petrova', at: now - 24 * MIN },
-    }),
-  );
-  a.push(
-    mk(anna, me, 20, {
-      text: 'Wait, what did you just delete?',
-      deleted: { byJid: ME.jid, byName: 'You', at: now - 19 * MIN },
-    }),
-  );
-  a.push(
-    mk(anna, me, 18, { text: MULTILINE, reactions: [{ emoji: '😂', count: 1, mine: false }] }),
-  );
-  a.push(
-    mk(anna, annaP, 5, {
-      kind: 'video',
-      media: { width: 1080, height: 1920, duration: 14, size: 8_400_000 },
-    }),
-  );
-  a.push(mk(anna, annaP, 3, { text: 'Nothing important. See you at 19:30!' }));
-  db.messages.get(anna)!.push(...a);
-
-  const d: Message[] = [];
-  d.push(
-    mk(design, mark, 30, {
-      text: LONG_TEXT,
-      reactions: [
-        { emoji: '🙏', count: 3, mine: true },
-        { emoji: '👍', count: 2, mine: false },
-      ],
-    }),
-  );
-  const own = mk(design, me, 26, {
-    text: 'I can take the release notes, draft by Tuesday',
-    editedAt: now - 25 * MIN,
-    editCount: 1,
-  });
-  db.history.set(own.pk, [
-    { text: 'I can take the release notes', at: now - 26 * MIN },
-    { text: own.text, at: now - 25 * MIN },
-  ]);
-  d.push(own);
-  d.push(
-    mk(design, sophie, 20, {
-      text: 'Dark mode screenshots attached, the hairlines still look too strong on the sidebar',
-      deleted: { byJid: sophie.jid, byName: 'Sophie Laurent', at: now - 15 * MIN },
-    }),
-  );
-  d.push(
-    mk(design, sophie, 19, { kind: 'image', media: { width: 1080, height: 1350, size: 920_000 } }),
-  );
-  d.push(mk(design, mark, 9, { text: 'Thanks all, I think we are in good shape' }));
-  d.push(
-    mk(design, mark, 8, {
-      kind: 'poll',
-      text: '📊 Retro on Friday or Monday?\n• Friday\n• Monday\n• Skip this week',
-      poll: {
-        name: 'Retro on Friday or Monday?',
-        selectable: 1,
-        totalVoters: 2,
-        options: [
-          { name: 'Friday', votes: 1, mine: false, voters: ['Mark Ellison'] },
-          { name: 'Monday', votes: 1, mine: false, voters: ['Sophie Laurent'] },
-          { name: 'Skip this week', votes: 0, mine: false, voters: [] },
-        ],
-      },
-    }),
-  );
-  db.messages.get(design)!.push(...d);
-  db.messages.get(anna)!.push(
-    mk(anna, annaP, 3, {
-      kind: 'image',
-      viewOnce: true,
-      media: { width: 1080, height: 1350, size: 640_000, mime: 'image/jpeg' },
-    }),
-    mk(anna, annaP, 2, {
-      kind: 'video',
-      viewOnce: true,
-      media: { size: 2_400_000, mime: 'video/mp4', unavailable: true },
-    }),
-  );
-
-  // generated history ends before the showcase, so these counts match the tail
-  db.chats.get(anna)!.unread = 2;
-  db.chats.get(design)!.unread = 3;
+interface TailKit {
+  me: Person;
+  p: (name: string) => Person;
+  add: (who: Person, minsAgo: number, extra?: Partial<Message>) => Message;
+  edits: (m: Message, versions: [string, number][]) => void;
+  deletedBy: (who: Person, minsAgo: number) => Message['deleted'];
+  photo: (w: number, h: number, caption?: string) => Partial<Message>;
+  voice: (duration: number) => Partial<Message>;
 }
+
+function tailKit(
+  db: MockDB,
+  chatJid: JID,
+  list: Message[],
+  now: number,
+  pk: () => string,
+  rng: Rng,
+): TailKit {
+  const at = (minsAgo: number) => now - Math.round(minsAgo * MIN);
+  return {
+    me: MEP,
+    p: (name) => ({ jid: jidFor(name, false), name }),
+    add: (who, minsAgo, extra = {}) => {
+      const fromMe = who.jid === ME.jid;
+      const m: Message = {
+        pk: pk(),
+        id: `3EB0SHOW${db.nextPk}`,
+        chatJid,
+        senderJid: who.jid,
+        senderName: who.name,
+        fromMe,
+        timestamp: at(minsAgo),
+        kind: 'text',
+        text: '',
+        reactions: [],
+        status: fromMe ? 'read' : undefined,
+        ...extra,
+      };
+      list.push(m);
+      return m;
+    },
+    edits: (m, versions) => {
+      db.history.set(
+        m.pk,
+        versions.map(([text, minsAgo]) => ({ text, at: at(minsAgo) })),
+      );
+      m.text = versions[versions.length - 1][0];
+      m.editedAt = at(versions[versions.length - 1][1]);
+      m.editCount = versions.length - 1;
+    },
+    deletedBy: (who, minsAgo) => ({ byJid: who.jid, byName: who.name, at: at(minsAgo) }),
+    photo: (width, height, caption = '') => ({
+      kind: 'image',
+      text: caption,
+      media: { width, height, size: rng.int(600, 3000) * 1000 },
+    }),
+    voice: (duration) => ({ kind: 'voice', media: { duration, waveform: waveform(rng) } }),
+  };
+}
+
+// Hand-written latest messages of the chats people look at first, so every bubble variant
+// (link, reply, edit, kept deletion, photo, file, voice, poll, view once...) is on screen.
+interface Tail {
+  // minutes ago of the tail's first message
+  from: number;
+  unread: number;
+  // unread messages before the tail, when the unread run starts in older history
+  historyUnread?: number;
+  build: (k: TailKit) => void;
+}
+
+const TAILS: Record<string, Tail> = {
+  'Product launch': {
+    from: 13,
+    unread: 37,
+    historyUnread: 33,
+    build: (k) => {
+      const grace = k.p('Grace Kim');
+      const oliver = k.p('Oliver Hughes');
+      const mia = k.p('Mia Rossi');
+      k.add(grace, 13, { text: 'Landing page copy is final 🎉 thanks for all the comments' });
+      k.add(oliver, 12, k.photo(1600, 1000, 'Hero banner, final version'));
+      k.add(mia, 11, { text: 'Love it. Can we make the button a bit bigger on mobile?' });
+      k.add(oliver, 10, { text: 'On it, new version in 10 min' });
+    },
+  },
+
+  'Anna Petrova': {
+    from: 58,
+    unread: 2,
+    build: (k) => {
+      const anna = k.p('Anna Petrova');
+      const plan = k.add(anna, 58, { text: LINK_TEXT });
+      k.add(k.me, 56, {
+        text: 'Oh that looks great. A heated terrace in November, fancy 😄',
+        replyTo: quote(plan),
+      });
+      k.add(anna, 54, { text: 'Right? I asked, they have blankets too' });
+      const booked = k.add(anna, 52, { reactions: [{ emoji: '👍', count: 1, mine: true }] });
+      k.edits(booked, [
+        ['Booked for 7', 52],
+        ['Booked for 7:30 at the Greek place', 50],
+        ["Booked for 7:30 at the Greek place on Linden St, the table's under my name", 47],
+      ]);
+      k.add(anna, 46, {
+        text: "Honestly let's not invite Mark, he'll spend the whole evening talking about his startup",
+        deleted: k.deletedBy(anna, 45.5),
+      });
+      k.add(k.me, 45, { text: 'I saw that 👀' });
+      k.add(anna, 44, { text: 'Of course you did 🙈 Forget it' });
+      k.add(anna, 40, k.photo(1600, 1067, 'The terrace, for reference'));
+      k.add(k.me, 38, {
+        kind: 'document',
+        media: { fileName: 'gift-ideas-lena.pdf', size: 248_000, mime: 'application/pdf' },
+        text: "Ideas for Lena's present, pick your favourite",
+      });
+      k.add(anna, 30, k.voice(23));
+      k.add(anna, 24, { contentUnknown: true, deleted: k.deletedBy(anna, 24) });
+      k.add(k.me, 20, {
+        text: 'Should we ask Mark to chip in for the present?',
+        deleted: k.deletedBy(k.me, 19),
+      });
+      k.add(k.me, 18, { text: MULTILINE, reactions: [{ emoji: '❤️', count: 1, mine: false }] });
+      k.add(anna, 5, {
+        kind: 'video',
+        media: { width: 1080, height: 1920, duration: 14, size: 8_400_000 },
+        text: 'Practising my birthday song 🎤',
+      });
+      k.add(anna, 4, { text: "The waiters sing too if you tell them it's a birthday 😂" });
+      k.add(anna, 3, {
+        kind: 'image',
+        viewOnce: true,
+        media: { width: 1080, height: 1350, size: 640_000, mime: 'image/jpeg' },
+      });
+      k.add(anna, 2, {
+        kind: 'video',
+        viewOnce: true,
+        media: { size: 2_400_000, mime: 'video/mp4', unavailable: true },
+      });
+    },
+  },
+
+  'Design team': {
+    from: 34,
+    unread: 3,
+    build: (k) => {
+      const mark = k.p('Mark Ellison');
+      const jonas = k.p('Jonas Weber');
+      const priya = k.p('Priya Raman');
+      const sophie = k.p('Sophie Laurent');
+      const summary = k.add(mark, 34, {
+        text: LONG_TEXT,
+        reactions: [
+          { emoji: '🙏', count: 3, mine: true },
+          { emoji: '👍', count: 2, mine: false },
+        ],
+      });
+      const dry = k.add(jonas, 31, {
+        text: 'One thing: can we do a dry run of the migration on staging first?',
+        replyTo: quote(summary),
+      });
+      k.add(mark, 30, { text: 'Good call. Thursday morning?', replyTo: quote(dry) });
+      k.add(jonas, 29, { text: 'Works 👍' });
+      const own = k.add(k.me, 26, {});
+      k.edits(own, [
+        ['I can take the release notes', 26],
+        ['I can take the release notes, draft by Tuesday', 25],
+      ]);
+      k.add(priya, 24, {
+        text: 'Thank you! Can you mention the export fix? People kept asking about it',
+        replyTo: quote(own),
+      });
+      k.add(k.me, 23, { text: 'Already on the list 🙂' });
+      k.add(sophie, 20, {
+        text: 'The sidebar hairlines in dark mode are still way too strong, who signed off on this 🙄',
+        deleted: k.deletedBy(sophie, 15),
+      });
+      k.add(sophie, 19, k.photo(1080, 1350, 'Dark mode: current vs. proposed'));
+      k.add(mark, 9, { text: "Thanks all, I think we're in good shape for the 14th" });
+      k.add(mark, 8, {
+        kind: 'poll',
+        text: '📊 Retro on Friday or Monday?\n• Friday\n• Monday\n• Skip this week',
+        poll: {
+          name: 'Retro on Friday or Monday?',
+          selectable: 1,
+          totalVoters: 3,
+          options: [
+            { name: 'Friday', votes: 2, mine: false, voters: ['Mark Ellison', 'Jonas Weber'] },
+            { name: 'Monday', votes: 1, mine: false, voters: ['Sophie Laurent'] },
+            { name: 'Skip this week', votes: 0, mine: false, voters: [] },
+          ],
+        },
+      });
+    },
+  },
+
+  Семья: {
+    from: 190,
+    unread: 4,
+    build: (k) => {
+      const mum = k.p('Мама');
+      const dad = k.p('Папа');
+      const olya = k.p('Оля');
+      const misha = k.p('Дядя Миша');
+      k.add(mum, 190, { text: 'Дети, в воскресенье обед у нас, к двум часам' });
+      k.add(dad, 186, { text: 'Я мясо замариную 🥩' });
+      k.add(olya, 180, { text: 'Мы будем, только чуть опоздаем, у Сони тренировка до часу' });
+      const ask = k.add(k.me, 172, { text: 'Я тоже приеду. Что-нибудь привезти?' });
+      k.add(mum, 170, { text: 'Хлеба и что-нибудь к чаю', replyTo: quote(ask) });
+      k.add(dad, 120, {
+        ...k.photo(1080, 1440, 'Первый снег на даче ❄️'),
+        reactions: [{ emoji: '❤️', count: 3, mine: true }],
+      });
+      k.add(olya, 118, { text: 'Красота какая!' });
+      k.add(misha, 95, {
+        kind: 'poll',
+        text: '📊 Что дарим бабушке на юбилей?\n• Тёплый плед\n• Сертификат в санаторий\n• Фотокнигу с нами',
+        poll: {
+          name: 'Что дарим бабушке на юбилей?',
+          selectable: 1,
+          totalVoters: 5,
+          options: [
+            { name: 'Тёплый плед', votes: 1, mine: false, voters: ['Дядя Миша'] },
+            { name: 'Сертификат в санаторий', votes: 1, mine: false, voters: ['Папа'] },
+            { name: 'Фотокнигу с нами', votes: 3, mine: true, voters: ['Мама', 'Оля', 'You'] },
+          ],
+        },
+      });
+      k.add(mum, 60, k.voice(41));
+      k.add(mum, 58, { text: 'Миша, плед у неё уже есть, давайте фотокнигу 😊' });
+      k.add(misha, 57, { text: 'Ок, тогда фотокнига. Оля, сделаешь макет?' });
+      k.add(olya, 55, { text: 'Сделаю, скидывайте фотки до пятницы' });
+    },
+  },
+
+  'Дмитрий Соколов': {
+    from: 150,
+    unread: 0,
+    build: (k) => {
+      const dima = k.p('Дмитрий Соколов');
+      k.add(dima, 150, { text: 'Смотри, где мы были в выходные' });
+      k.add(dima, 149.5, k.photo(1600, 1067));
+      const lake = k.add(dima, 149, k.photo(1600, 1067, 'Озеро в 7 утра, ни души'));
+      k.add(dima, 148.5, k.photo(1080, 1440));
+      k.add(dima, 148, k.photo(1600, 1067));
+      k.add(k.me, 140, { text: 'Вау, это где?', replyTo: quote(lake) });
+      k.add(dima, 138, { text: 'Под Выборгом, два часа на машине' });
+      k.add(dima, 137, { text: 'Прогноз на субботу: −5, солнечно, без осадков', forwarded: 1 });
+      k.add(dima, 135, { text: 'Поехали в следующие выходные? Возьмём палатку' });
+      k.add(k.me, 120, { text: 'Палатку в ноябре? 😅' });
+      k.add(dima, 119, {
+        kind: 'video',
+        media: { width: 640, height: 640, duration: 9, size: 1_300_000, round: true },
+      });
+      k.add(k.me, 100, { text: 'Ладно, уговорил. Только с ночёвкой в домике' });
+      k.add(dima, 98, { text: 'Договорились 🤝' });
+      k.add(dima, 40, {
+        kind: 'document',
+        media: { fileName: 'ozero-originals.zip', size: 84_200_000, mime: 'application/zip' },
+        text: 'Оригиналы, там качество лучше',
+      });
+    },
+  },
+};
 
 const ABOUT_EN = [
   'Available',
@@ -588,9 +788,12 @@ const ABOUT_JA = ['よろしくお願いします', '仕事中', '旅行中'];
 const GROUP_ABOUT: Record<string, string> = {
   'Design team':
     'Design reviews, screenshots and the occasional meme. Specs live in the shared drive.',
-  'Product launch': 'Coordination for the November launch. Decisions go in the pinned doc.',
-  Семья: 'Семейный чат',
+  'Product launch': 'Coordination for the December launch. Decisions go in the pinned doc.',
+  Семья: 'Семейный чат 🏡',
   'Weekend hiking': 'Routes, carpools and weather. Saturday mornings.',
+  'Book club': 'One book a month, Thursdays at someone’s place.',
+  'Apartment 4B': 'Bills, chores and who ate my yoghurt.',
+  'Company announcements': 'Only admins can post here.',
 };
 
 function pickBy<T>(seed: string, list: readonly T[]): T {
@@ -599,7 +802,8 @@ function pickBy<T>(seed: string, list: readonly T[]): T {
   return list[h % list.length];
 }
 
-// fake but stable numbers, with a country code that matches the name's script
+// stable numbers from the ranges set aside for fiction (555-01xx, 07700 900xxx...), with a
+// country code that matches the name's script
 export function phoneFor(name: string): string {
   let h = 7;
   for (const c of name) h = (Math.imul(h, 131) + c.codePointAt(0)!) >>> 0;
@@ -609,11 +813,13 @@ export function phoneFor(name: string): string {
     return (h >>> 8) % 10;
   };
   const d = (n: number) => Array.from({ length: n }, digit).join('');
-  if (/\p{Script=Cyrillic}/u.test(name)) return `+7 9${d(2)} ${d(3)}-${d(2)}-${d(2)}`;
+  if (/\p{Script=Cyrillic}/u.test(name)) return `+7 900 000-${d(2)}-${d(2)}`;
   if (/\p{Script=Han}|\p{Script=Hiragana}|\p{Script=Katakana}/u.test(name))
-    return `+81 90 ${d(4)} ${d(4)}`;
-  const cc = pickBy(name, ['+1', '+44', '+49', '+33']);
-  return `${cc} ${d(3)} ${d(3)} ${d(4)}`;
+    return `+81 90 0000 ${d(4)}`;
+  const region = pickBy(name, ['us', 'uk', 'de']);
+  if (region === 'us') return `+1 ${pickBy(name, ['202', '312', '415', '617'])} 555 01${d(2)}`;
+  if (region === 'uk') return `+44 7700 900${d(3)}`;
+  return `+49 170 000 ${d(4)}`;
 }
 
 function aboutFor(name: string): string {
@@ -706,13 +912,6 @@ function addMandarin(db: MockDB, now: number, pk: () => string): void {
     status: fromMe ? 'read' : undefined,
     reactions: [],
     ...extra,
-  });
-  const quote = (m: Message) => ({
-    pk: m.pk,
-    senderName: m.senderName,
-    fromMe: m.fromMe,
-    kind: m.kind,
-    text: m.text,
   });
   // stands in for a custom Telegram sticker reaction, which WhatsApp doesn't have
   const sticker = '🩵';

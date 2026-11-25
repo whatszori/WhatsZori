@@ -1,4 +1,4 @@
-import type { Backend } from '../backend';
+﻿import type { Backend } from '../backend';
 import type {
   Attachment,
   MarketEntry,
@@ -120,7 +120,7 @@ export class MockBackend implements Backend {
     this.settings_ = withDefaults(stored.settings);
     this.ghost_ = { ...DEFAULT_GHOST, ...stored.ghost };
     this.profile_ = {
-      name: 'Alex Morgan',
+      name: 'Alex Brandt',
       about: 'Available',
       phone: this.db.me.phone,
       ...stored.profile,
@@ -806,7 +806,7 @@ export class MockBackend implements Backend {
       const now = Date.now();
       const people = [...this.db.chats.values()].filter((c) => !c.isGroup).slice(0, 4);
       const texts = [
-        'Monday again ☕',
+        'Monday again в•',
         'Sunset from the roof',
         'New job, new city!',
         'Gym streak: 30 days',
