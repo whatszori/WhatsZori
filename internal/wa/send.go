@@ -365,12 +365,12 @@ func (s *Sender) React(ctx context.Context, pk int64, emoji string) ([]domain.Re
 }
 
 // SendFile sends a photo (jpeg/png) or, for anything else, a document.
-func (s *Sender) SendFile(ctx context.Context, chat, name string, data []byte, caption string) (domain.Message, error) {
+func (s *Sender) SendFile(ctx context.Context, chat, name string, data []byte, caption string, asDocument bool) (domain.Message, error) {
 	if len(data) == 0 {
 		return domain.Message{}, ErrEmpty
 	}
 	mimeType := http.DetectContentType(data)
-	isImage := mimeType == "image/jpeg" || mimeType == "image/png"
+	isImage := !asDocument && (mimeType == "image/jpeg" || mimeType == "image/png")
 	if isImage && len(data) > maxImageBytes {
 		isImage = false // too big for a photo, send it as a file instead
 	}

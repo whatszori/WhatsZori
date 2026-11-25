@@ -8,6 +8,9 @@ The first version that covers daily use.
 
 - Text, replies, reactions, edits, delete for everyone and delete for me
 - Photos, videos, video notes, GIFs, documents, stickers, locations, contacts
+- Send several photos and files at once from a preview, with a caption each; paste them with
+  Ctrl+V or drop them on the chat
+- Photo editor before sending: crop, rotate, draw, arrows and shapes, text, blur and pixelate
 - Voice notes: record and send, with a waveform
 - Polls: results, voters, voting
 - Forward to up to five chats; multi-select to copy, forward or delete

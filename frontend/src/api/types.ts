@@ -112,6 +112,16 @@ export interface QRPayload {
 
 export type ConnState = 'connected' | 'connecting' | 'reconnecting' | 'offline';
 
+// a file waiting in the attachment preview; the bytes stay in the backend, the page has a token
+export interface Attachment {
+  token: string;
+  name: string;
+  size: number;
+  mime: string;
+  // what the preview shows
+  kind: 'image' | 'video' | 'file';
+}
+
 export type MessageKind = 'text' | 'image' | 'video' | 'document' | 'voice' | 'sticker' | 'poll';
 
 export interface PollOption {

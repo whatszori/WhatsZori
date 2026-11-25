@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,6 +18,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/domain"
 	"github.com/whatszori/WhatsZori/internal/events"
 	"github.com/whatszori/WhatsZori/internal/store/repo"
+	"github.com/whatszori/WhatsZori/internal/uploads"
 	"github.com/whatszori/WhatsZori/internal/wa"
 )
 
@@ -212,12 +212,20 @@ type FilePicker interface {
 	PickFile(title string) (string, error)
 }
 
-type Messages struct {
-	c      *core.Core
-	picker FilePicker
+// FilesPicker is the dialog that lets the user pick several files at once.
+type FilesPicker interface {
+	PickFiles(title string) ([]string, error)
 }
 
-func NewMessages(c *core.Core, picker FilePicker) *Messages { return &Messages{c: c, picker: picker} }
+type Messages struct {
+	c       *core.Core
+	picker  FilesPicker
+	uploads *uploads.Store
+}
+
+func NewMessages(c *core.Core, picker FilesPicker, up *uploads.Store) *Messages {
+	return &Messages{c: c, picker: picker, uploads: up}
+}
 
 // GetMessages pages backwards from beforePk ("" for the newest).
 func (s *Messages) GetMessages(jid, beforePk string, limit int) (domain.MessagePage, error) {
@@ -322,38 +330,64 @@ func (s *Messages) Search(query, jid string) ([]domain.SearchHit, error) {
 
 var errNoPicker = errors.New("file picking isn't available")
 
-// AttachFile opens the system file dialog and sends what the user picked. It returns nil when
-// they cancelled.
-func (s *Messages) AttachFile(jid string) (*domain.Message, error) {
-	if _, err := s.c.Mgr.Ready(); err != nil {
-		return nil, err
-	}
-	if s.picker == nil {
+// PickAttachments opens the system file dialog. The picked files wait in the preview until
+// SendAttachment or DropAttachment; nil when the user cancelled. Files the store refuses (too big,
+// empty) come back as an error only when none of the picked files is usable.
+func (s *Messages) PickAttachments() ([]uploads.Item, error) {
+	if s.picker == nil || s.uploads == nil {
 		return nil, errNoPicker
 	}
-	path, err := s.picker.PickFile("Send a photo or file")
-	if err != nil || path == "" {
+	paths, err := s.picker.PickFiles("Send photos or files")
+	if err != nil || len(paths) == 0 {
 		return nil, err
 	}
-	st, err := os.Stat(path)
+	var items []uploads.Item
+	var first error
+	for _, p := range paths {
+		it, err := s.uploads.AddPath(p)
+		if err != nil {
+			if first == nil {
+				first = err
+			}
+			continue
+		}
+		items = append(items, it)
+	}
+	if len(items) == 0 {
+		return nil, first
+	}
+	return items, nil
+}
+
+// SendAttachment sends a file from the preview. asFile sends a photo as a document, uncompressed
+// and with its name.
+func (s *Messages) SendAttachment(jid, token, caption string, asFile bool) (domain.Message, error) {
+	if _, err := s.c.Mgr.Ready(); err != nil {
+		return domain.Message{}, err
+	}
+	if s.uploads == nil {
+		return domain.Message{}, errNoPicker
+	}
+	it, data, err := s.uploads.Read(token)
 	if err != nil {
-		return nil, err
-	}
-	if st.Size() > 100<<20 {
-		return nil, errors.New("files can be at most 100 MB")
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
+		return domain.Message{}, err
 	}
 	// uploads can take a while on a slow line
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
-	m, err := s.c.Sender.SendFile(ctx, jid, path, data, "")
+	m, err := s.c.Sender.SendFile(ctx, jid, it.Name, data, strings.TrimSpace(caption), asFile)
 	if err != nil {
-		return nil, err
+		return domain.Message{}, err
 	}
-	return &m, nil
+	s.uploads.Drop(token)
+	return m, nil
+}
+
+// DropAttachment forgets a file the user removed from the preview (or replaced by an edit).
+func (s *Messages) DropAttachment(token string) {
+	if s.uploads != nil {
+		s.uploads.Drop(token)
+	}
 }
 
 // SendVoice sends a voice note: data is the WebM/Opus recording, base64-encoded; waveform has

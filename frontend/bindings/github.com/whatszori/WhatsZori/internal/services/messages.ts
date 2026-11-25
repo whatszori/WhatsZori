@@ -8,14 +8,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as domain$0 from "../domain/models.js";
-
-/**
- * AttachFile opens the system file dialog and sends what the user picked. It returns nil when
- * they cancelled.
- */
-export function AttachFile(jid: string): $CancellablePromise<domain$0.Message | null> {
-    return $Call.ByID(2659421191, jid);
-}
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as uploads$0 from "../uploads/models.js";
 
 /**
  * Changes is the "Deleted & edited" feed. kind: "deleted", "edited" or "" for both; pass the last
@@ -30,6 +25,13 @@ export function Changes(kind: string, beforeAt: number, beforePk: string, limit:
  */
 export function DeleteLocal(jid: string, pks: string[] | null): $CancellablePromise<void> {
     return $Call.ByID(2501472614, jid, pks);
+}
+
+/**
+ * DropAttachment forgets a file the user removed from the preview (or replaced by an edit).
+ */
+export function DropAttachment(token: string): $CancellablePromise<void> {
+    return $Call.ByID(1513566732, token);
 }
 
 export function Edit(pk: string, text: string): $CancellablePromise<void> {
@@ -63,6 +65,15 @@ export function ListShared(jid: string, kind: string, beforePk: string, limit: n
 }
 
 /**
+ * PickAttachments opens the system file dialog. The picked files wait in the preview until
+ * SendAttachment or DropAttachment; nil when the user cancelled. Files the store refuses (too big,
+ * empty) come back as an error only when none of the picked files is usable.
+ */
+export function PickAttachments(): $CancellablePromise<uploads$0.Item[] | null> {
+    return $Call.ByID(2695740961);
+}
+
+/**
  * Played is the user starting an incoming voice note or video note: the "played" receipt, if the
  * ghost settings allow it. Once per message per run.
  */
@@ -84,6 +95,14 @@ export function Revoke(pk: string): $CancellablePromise<void> {
  */
 export function Search(query: string, jid: string): $CancellablePromise<domain$0.SearchHit[] | null> {
     return $Call.ByID(4055087344, query, jid);
+}
+
+/**
+ * SendAttachment sends a file from the preview. asFile sends a photo as a document, uncompressed
+ * and with its name.
+ */
+export function SendAttachment(jid: string, token: string, caption: string, asFile: boolean): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(2268397135, jid, token, caption, asFile);
 }
 
 export function SendText(jid: string, text: string, replyToPk: string): $CancellablePromise<domain$0.Message> {

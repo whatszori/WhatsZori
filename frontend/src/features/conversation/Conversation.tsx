@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
+import { Paperclip } from 'lucide-react';
 import type { JID } from '../../api';
+import { AttachPreview } from '../attach/AttachPreview';
+import { usePasteAndDrop } from '../attach/usePasteAndDrop';
 import { useChats } from '../../stores/chats';
 import { ChatSearch } from '../search/ChatSearch';
 import { ForwardDialog } from '../selection/ForwardDialog';
@@ -18,6 +21,7 @@ export function Conversation({ jid }: { jid: JID }) {
   const infoOpen = useUI((s) => s.chatInfoOpen);
   const searchOpen = useUI((s) => s.chatSearchOpen);
   const selecting = useUI((s) => s.selection?.jid === jid);
+  const dragging = usePasteAndDrop(jid);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -55,9 +59,16 @@ export function Conversation({ jid }: { jid: JID }) {
         )}
         <MessageList chat={chat} />
         {selecting ? <SelectionBar chat={chat} /> : <Composer chat={chat} />}
+        {dragging && (
+          <div className="wz-drop-hint" aria-hidden="true">
+            <Paperclip size={28} />
+            <span>Drop to send to {chat.name}</span>
+          </div>
+        )}
       </section>
       {infoOpen && <ChatInfoPanel chat={chat} />}
       <ForwardDialog />
+      <AttachPreview jid={jid} />
     </div>
   );
 }

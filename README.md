@@ -64,6 +64,8 @@ It's built in the spirit of AyuGram for privacy, and Vencord for themes and plug
 ### Everything else you'd expect
 
 - Chats, groups, replies, reactions, edits, deletes, photos, videos, video notes, GIFs, documents
+- Send photos and files from a preview: paste with **Ctrl+V**, drop them on the chat, and
+  **edit photos** first (crop, rotate, draw, arrows and shapes, text, blur)
 - Voice notes: record and send, with a real waveform
 - **Search** across all chats, and Ctrl+F inside one with highlighted matches
 - **Polls**: live results, voters, and your own vote

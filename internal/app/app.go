@@ -26,6 +26,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/services"
 	"github.com/whatszori/WhatsZori/internal/settings"
 	"github.com/whatszori/WhatsZori/internal/systheme"
+	"github.com/whatszori/WhatsZori/internal/uploads"
 )
 
 // Version is overridden at build time with -ldflags "-X .../internal/app.Version=...".
@@ -53,6 +54,7 @@ type App struct {
 	notifier notify.Desktop
 	toasts   *toastWindow
 	tray     *tray
+	uploads  *uploads.Store
 	quitting atomic.Bool
 	focused  atomic.Bool
 
@@ -98,6 +100,12 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 	}
 	wa.SetFolderOpener(func(dir string) error { return a.wails.Env.OpenFileManager(dir, false) })
 	a.core = wa
+	// files waiting in the attachment preview; emptied on start and on quit
+	up, err := uploads.New(filepath.Join(cfg.Paths.Root, "uploads"))
+	if err != nil {
+		return nil, err
+	}
+	a.uploads = up
 	a.toasts = newToastWindow(a)
 	a.tray = newTray(a)
 	// Windows (and macOS) go through Wails' toast service; Linux talks the freedesktop spec
@@ -128,7 +136,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 			application.NewService(services.NewWindow(a)),
 			application.NewService(services.NewAuth(wa)),
 			application.NewService(services.NewChats(wa)),
-			application.NewService(services.NewMessages(wa, filePicker{a})),
+			application.NewService(services.NewMessages(wa, filePicker{a}, up)),
 			application.NewService(services.NewProfile(wa)),
 			application.NewService(services.NewPrivacy(wa)),
 			application.NewService(services.NewContacts(wa)),
@@ -150,6 +158,7 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 				StickersDir: cfg.Paths.Stickers,
 				Media:       wa.Media.Handler(assets.MediaPrefix),
 				Avatars:     wa.Avatars.Handler(assets.AvatarPrefix),
+				Uploads:     up.Handler(assets.UploadsPrefix),
 				HTMLAttrs:   a.htmlAttrs,
 			}),
 		},
@@ -160,8 +169,11 @@ func New(cfg config.Config, frontend fs.FS) (*App, error) {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
-		Windows:    application.WindowsOptions{AdditionalBrowserArgs: debugBrowserArgs()},
-		OnShutdown: a.saveWindowState,
+		Windows: application.WindowsOptions{AdditionalBrowserArgs: debugBrowserArgs()},
+		OnShutdown: func() {
+			a.saveWindowState()
+			a.uploads.Close()
+		},
 	})
 
 	a.boot.Begin()
@@ -398,6 +410,10 @@ type filePicker struct{ a *App }
 
 func (p filePicker) PickFile(title string) (string, error) {
 	return p.a.wails.Dialog.OpenFile().SetTitle(title).AttachToWindow(p.a.window).PromptForSingleSelection()
+}
+
+func (p filePicker) PickFiles(title string) ([]string, error) {
+	return p.a.wails.Dialog.OpenFile().SetTitle(title).AttachToWindow(p.a.window).PromptForMultipleSelection()
 }
 
 type desktop struct{ a *App }

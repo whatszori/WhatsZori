@@ -9,6 +9,7 @@ import {
 import { Check, Mic, Paperclip, Pencil, Reply, SendHorizontal, Smile, X } from 'lucide-react';
 import { backend, type Chat, type JID } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
+import { useAttach } from '../../stores/attach';
 import { canEdit, useMessages } from '../../stores/messages';
 import { composerFor, useUI } from '../../stores/ui';
 import { IconButton, Popover, type PopoverAnchor } from '../../ui';
@@ -176,16 +177,12 @@ export function Composer({ chat }: { chat: Chat }) {
       ) : (
         <div className="wz-composer__row">
           <IconButton
-            label={
-              backend.media.canAttach
-                ? 'Attach a photo or file'
-                : 'Attachments work in the desktop app'
-            }
+            label="Attach photos or files"
+            hint="Ctrl+V"
             className="wz-composer__attach"
             icon={<Paperclip size={18} />}
             tooltipPlacement="top"
-            disabled={!backend.media.canAttach}
-            onClick={() => void useMessages.getState().attach(jid)}
+            onClick={() => void useAttach.getState().pick(jid)}
           />
           <textarea
             ref={ref}

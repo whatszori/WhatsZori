@@ -1,4 +1,5 @@
 import type {
+  Attachment,
   Sticker,
   UserThemePackage,
   PluginInfo,
@@ -113,8 +114,16 @@ export interface MessageService {
   played(pk: MessagePK): Promise<void>;
   // jid limits it to one chat
   search(query: string, jid?: JID): Promise<SearchHit[]>;
-  // opens the system file picker and sends the choice; null when cancelled
-  attachFile(jid: JID): Promise<Message | null>;
+  // the system file picker (several files); [] when cancelled
+  pickAttachments(): Promise<Attachment[]>;
+  // a pasted or dropped file, or a photo saved from the editor
+  uploadAttachment(file: Blob, name: string): Promise<Attachment>;
+  // where the preview loads a waiting attachment from
+  attachmentUrl(token: string): string;
+  // asFile: a photo goes as a document, uncompressed
+  sendAttachment(jid: JID, token: string, caption: string, asFile: boolean): Promise<Message>;
+  // removed from the preview before sending
+  dropAttachment(token: string): Promise<void>;
   // a voice note recorded in the page (WebM/Opus); waveform is 0..100 per bar
   sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<Message>;
   // a chat's photos and videos, documents, or messages with links, newest first
@@ -170,7 +179,7 @@ export interface MediaService {
   url(pk: MessagePK, thumb?: boolean): string;
   // profile picture or group photo; empty when there's none to load (mock). full = big version
   avatarUrl(jid: JID, full?: boolean): string;
-  // attachments can be sent, saved and copied (desktop app only)
+  // attachments can be saved and copied (desktop app only)
   canAttach: boolean;
   // native save dialog; resolves to the chosen path, or null when cancelled
   saveAs(pk: MessagePK): Promise<string | null>;

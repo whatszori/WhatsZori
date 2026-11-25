@@ -1,5 +1,6 @@
 import type { Backend } from '../backend';
 import type {
+  Attachment,
   Sticker,
   UserThemePackage,
   PluginInfo,
@@ -105,6 +106,9 @@ export class MockBackend implements Backend {
   private lists_: ChatList[] = [];
   private nextListId = 1;
   private blocked = new Set<JID>();
+  // the browser preview keeps attachments as blobs; sent photos stay viewable for the session
+  private uploads = new Map<string, { item: Attachment; blob: Blob; url: string }>();
+  private sentUrls = new Map<MessagePK, string>();
 
   constructor(private opts: MockOptions = {}) {
     this.db = createMockDB(opts.now);
@@ -433,9 +437,9 @@ export class MockBackend implements Backend {
     open: async (): Promise<void> => undefined,
   };
 
-  // mock media are placeholders, there's nothing to load or attach
+  // mock media are placeholders, except photos sent in this session
   media = {
-    url: (): string => '',
+    url: (pk: MessagePK): string => this.sentUrls.get(pk) ?? '',
     avatarUrl: (): string => '',
     saveAs: async (): Promise<string | null> => {
       throw new Error('Saving files works in the desktop app');
@@ -667,7 +671,83 @@ export class MockBackend implements Backend {
       hits.sort((a, b) => b.message.timestamp - a.message.timestamp);
       return clone(hits.slice(0, only ? 200 : 50));
     },
-    attachFile: async (): Promise<Message | null> => null,
+    // a hidden <input type=file>: the browser's own picker
+    pickAttachments: (): Promise<Attachment[]> =>
+      new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.addEventListener('cancel', () => resolve([]));
+        input.addEventListener('change', () => {
+          const files = [...(input.files ?? [])];
+          void Promise.all(files.map((f) => this.messages.uploadAttachment(f, f.name))).then(
+            resolve,
+            () => resolve([]),
+          );
+        });
+        input.click();
+      }),
+    uploadAttachment: async (file: Blob, name: string): Promise<Attachment> => {
+      if (file.size === 0) throw new Error('the file is empty');
+      if (file.size > 100 << 20) throw new Error('files can be at most 100 MB');
+      const mime = file.type || 'application/octet-stream';
+      const kind: Attachment['kind'] = /^image\/(jpeg|png|webp|gif|bmp)$/.test(mime)
+        ? 'image'
+        : mime.startsWith('video/')
+          ? 'video'
+          : 'file';
+      const token = `mock${Math.random().toString(36).slice(2)}`;
+      const item: Attachment = { token, name: name || 'file', size: file.size, mime, kind };
+      this.uploads.set(token, { item, blob: file, url: URL.createObjectURL(file) });
+      return { ...item };
+    },
+    attachmentUrl: (token: string): string => this.uploads.get(token)?.url ?? '',
+    sendAttachment: async (
+      jid: JID,
+      token: string,
+      caption: string,
+      asFile: boolean,
+    ): Promise<Message> => {
+      await this.wait();
+      const up = this.uploads.get(token);
+      if (!up) throw new Error('this attachment is gone, add it again');
+      const photo = !asFile && (up.item.mime === 'image/jpeg' || up.item.mime === 'image/png');
+      let width: number | undefined;
+      let height: number | undefined;
+      if (photo) {
+        const bmp = await createImageBitmap(up.blob).catch(() => null);
+        width = bmp?.width;
+        height = bmp?.height;
+        bmp?.close();
+      }
+      const m: Message = {
+        pk: String(this.db.nextPk++),
+        id: `3EB0FILE${this.db.nextPk}`,
+        chatJid: jid,
+        senderJid: this.db.me.jid,
+        senderName: this.db.me.name,
+        fromMe: true,
+        timestamp: Date.now(),
+        kind: photo ? 'image' : 'document',
+        text: caption.trim(),
+        status: 'pending',
+        reactions: [],
+        media: photo
+          ? { width, height, size: up.item.size, mime: up.item.mime }
+          : { fileName: up.item.name, size: up.item.size, mime: up.item.mime },
+      };
+      this.uploads.delete(token);
+      if (photo) this.sentUrls.set(m.pk, up.url);
+      else URL.revokeObjectURL(up.url);
+      this.insert(m);
+      this.progressStatus(m);
+      return clone(m);
+    },
+    dropAttachment: async (token: string): Promise<void> => {
+      const up = this.uploads.get(token);
+      if (up) URL.revokeObjectURL(up.url);
+      this.uploads.delete(token);
+    },
     // the browser preview keeps the voice note as a placeholder bubble; nothing is uploaded
     sendVoice: async (jid: JID, recording: Blob, waveform: number[]): Promise<Message> => {
       await this.wait();

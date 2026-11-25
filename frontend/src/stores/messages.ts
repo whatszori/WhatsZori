@@ -34,7 +34,8 @@ interface MessagesState {
   setReactions(jid: JID, pk: MessagePK, reactions: Reaction[]): void;
   // resolve to false when the backend refused (offline, rate limit); the error is already a toast
   send(jid: JID, text: string, replyToPk?: MessagePK): Promise<boolean>;
-  attach(jid: JID): Promise<void>;
+  // a message we sent some other way (an attachment from the preview)
+  addSent(jid: JID, m: Message): void;
   sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<void>;
   edit(jid: JID, pk: MessagePK, text: string): Promise<void>;
   revoke(jid: JID, pk: MessagePK): Promise<void>;
@@ -149,13 +150,8 @@ export const useMessages = create<MessagesState>((set, get) => {
       }
     },
 
-    async attach(jid) {
-      try {
-        const m = await backend.messages.attachFile(jid);
-        if (m) updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
-      } catch (err) {
-        toastError(err, 'Not sent');
-      }
+    addSent(jid, m) {
+      updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
     },
 
     async edit(jid, pk, text) {

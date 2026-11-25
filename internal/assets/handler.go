@@ -22,6 +22,7 @@ const (
 	MediaPrefix    = "/wz-media/"
 	AvatarPrefix   = "/wz-avatar/"
 	StickersPrefix = "/wz-stickers/"
+	UploadsPrefix  = "/wz-upload/"
 )
 
 type Options struct {
@@ -32,6 +33,8 @@ type Options struct {
 	Media http.Handler
 	// Avatars serves /wz-avatar/<jid>; nil answers 404
 	Avatars http.Handler
+	// Uploads takes files to send (POST /wz-upload/) and serves their previews; nil answers 404
+	Uploads http.Handler
 	// HTMLAttrs is added to the index page's <html> tag, so data-theme is right before any CSS
 	// or script runs and a dark window doesn't flash light.
 	HTMLAttrs func() map[string]string
@@ -62,6 +65,12 @@ func Middleware(o Options) func(http.Handler) http.Handler {
 					return
 				}
 				o.Avatars.ServeHTTP(w, r)
+			case strings.HasPrefix(p, UploadsPrefix):
+				if o.Uploads == nil {
+					http.NotFound(w, r)
+					return
+				}
+				o.Uploads.ServeHTTP(w, r)
 			case strings.HasPrefix(p, MediaPrefix):
 				if o.Media == nil {
 					http.NotFound(w, r)

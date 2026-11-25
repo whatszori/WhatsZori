@@ -27,6 +27,7 @@ import type { SystemPalette } from '../events';
 import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
+  Attachment,
   Sticker,
   UserThemePackage,
   PluginInfo,
@@ -194,10 +195,25 @@ export class WailsBackend implements Backend {
       });
       return message(await Messages.SendVoice(jid, b64, waveform));
     },
-    attachFile: async (jid: JID): Promise<Message | null> => {
-      const m = await Messages.AttachFile(jid);
-      return m ? message(m) : null;
+    pickAttachments: async (): Promise<Attachment[]> =>
+      ((await Messages.PickAttachments()) ?? []) as Attachment[],
+    // a plain POST to the asset server: the bytes don't go through a JSON binding as base64
+    uploadAttachment: async (file: Blob, name: string): Promise<Attachment> => {
+      const res = await fetch(`/wz-upload/?name=${encodeURIComponent(name)}`, {
+        method: 'POST',
+        body: file,
+      });
+      if (!res.ok) throw new Error((await res.text()).trim() || `upload failed (${res.status})`);
+      return (await res.json()) as Attachment;
     },
+    attachmentUrl: (token: string): string => `/wz-upload/${encodeURIComponent(token)}`,
+    sendAttachment: async (
+      jid: JID,
+      token: string,
+      caption: string,
+      asFile: boolean,
+    ): Promise<Message> => message(await Messages.SendAttachment(jid, token, caption, asFile)),
+    dropAttachment: (token: string): Promise<void> => Messages.DropAttachment(token),
   };
 
   profile = {

@@ -90,6 +90,12 @@ message text or full phone numbers. Keep an eye on that throughout.
       marked deleted by you.
 - [ ] Attach a photo (paperclip): it arrives on B's phone as a photo. Attach a PDF: it arrives as a
       document with the right name.
+- [ ] Take a screenshot (Win+Shift+S) and press Ctrl+V in a chat: the preview opens. Edit it
+      (crop, an arrow, blur something, text), add a caption, send: B gets the edited photo with
+      the caption.
+- [ ] Copy two files in Explorer, Ctrl+V in a chat: both are in the preview. Drag a file from
+      Explorer onto the chat: it joins the preview. Send: they arrive in order.
+- [ ] Tick "Send as a file" for a photo: B gets a document with the original name and quality.
 - [ ] Messages you send from phone A show up in WhatsZori too, with ticks.
 - [ ] Pin, archive and mute a chat in WhatsZori: phone A follows. Do the same on the phone:
       WhatsZori follows.

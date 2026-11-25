@@ -43,8 +43,8 @@ All seven priorities of the brief are in. The only cut: **voice note sending**.
   Hide online, hide typing, read receipts always / never / on-reply.
 - **Anti-spam** in front of every send, with toasts explaining a block.
 - **Sending**: text, replies with full context info, edit (whatsmeow's edit builder), delete for
-  everyone, reactions, typing (through the gate), photos and documents via the paperclip (native
-  file dialog). Failed sends turn red and show a toast.
+  everyone, reactions, typing (through the gate), photos and documents from the attachment preview
+  (paperclip, Ctrl+V or drag and drop; photo editor; see DECISIONS.md). Failed sends turn red and show a toast.
 - **Media**: auto-download of photos, voice notes and stickers up to 16 MB, everything else on
   demand. `/wz-media/<pk>` serves the file with Range support, downloads on demand, falls back to
   the thumbnail, and marks CDN 404/410 as expired. Content-hashed file names.
