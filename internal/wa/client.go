@@ -4,11 +4,13 @@ package wa
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waWeb"
 	waStore "go.mau.fi/whatsmeow/store"
@@ -179,8 +181,71 @@ func (m *Meow) SendAppState(ctx context.Context, patch appstate.PatchInfo) error
 func (m *Meow) SetPushName(ctx context.Context, name string) error {
 	return m.Cli.SendAppState(ctx, appstate.BuildSettingPushName(name))
 }
+
+// SetAbout changes the "About" line. WhatsApp has been moving it to a newer "text status", and
+// whatsmeow's mutation for that has been refused (400) with an expiry of 0, so this tries, in
+// order: the mutation with just the text, the old "status" IQ WhatsApp Web used for years, and
+// whatsmeow's own call. The first one the server accepts wins.
 func (m *Meow) SetAbout(ctx context.Context, about string) error {
-	return m.Cli.SetStatusMessage(ctx, types.SetStatusInput{Text: &about})
+	var errs []error
+	if _, err := m.Cli.DangerousInternals().SendMexIQ(ctx, mutationUpdateTextStatus, map[string]any{
+		"input": map[string]any{"text": about},
+	}); err == nil {
+		return nil
+	} else {
+		errs = append(errs, fmt.Errorf("text status: %w", err))
+	}
+	if err := m.setAboutIQ(ctx, about); err == nil {
+		return nil
+	} else {
+		errs = append(errs, fmt.Errorf("status: %w", err))
+	}
+	if err := m.Cli.SetStatusMessage(ctx, types.SetStatusInput{Text: &about}); err == nil {
+		return nil
+	} else {
+		errs = append(errs, fmt.Errorf("whatsmeow: %w", err))
+	}
+	return errors.Join(errs...)
+}
+
+// the mutation id whatsmeow uses for UpdateTextStatus
+const mutationUpdateTextStatus = "9152604461510864"
+
+// setAboutIQ is the classic <iq xmlns="status" type="set"><status>text</status></iq>.
+func (m *Meow) setAboutIQ(ctx context.Context, about string) error {
+	in := m.Cli.DangerousInternals()
+	id := in.GenerateRequestID()
+	wait := in.WaitResponse(id)
+	err := in.SendNode(ctx, waBinary.Node{
+		Tag: "iq",
+		Attrs: waBinary.Attrs{
+			"id":    id,
+			"to":    types.ServerJID,
+			"type":  "set",
+			"xmlns": "status",
+		},
+		Content: []waBinary.Node{{Tag: "status", Content: []byte(about)}},
+	})
+	if err != nil {
+		return err
+	}
+	select {
+	case res := <-wait:
+		if res == nil {
+			return errors.New("no answer")
+		}
+		if t, _ := res.Attrs["type"].(string); t != "result" {
+			if e, ok := res.GetOptionalChildByTag("error"); ok {
+				return fmt.Errorf("server said %v %v", e.Attrs["code"], e.Attrs["text"])
+			}
+			return fmt.Errorf("server answered %q", t)
+		}
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(20 * time.Second):
+		return errors.New("no answer in 20 s")
+	}
 }
 func (m *Meow) GetAbout(ctx context.Context, jid types.JID) (string, error) {
 	info, err := m.Cli.GetUserInfo(ctx, []types.JID{jid.ToNonAD()})
