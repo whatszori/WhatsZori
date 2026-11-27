@@ -776,6 +776,31 @@ const TAILS: Record<string, Tail> = {
         media: { fileName: 'ozero-originals.zip', size: 84_200_000, mime: 'application/zip' },
         text: 'Оригиналы, там качество лучше',
       });
+      k.add(dima, 30, {
+        kind: 'location',
+        text: '',
+        location: {
+          lat: 60.7096,
+          lon: 28.7489,
+          name: 'Домики у озера',
+          address: 'Выборгский район, Ленинградская область',
+          live: false,
+        },
+      });
+      k.add(dima, 4, {
+        kind: 'location',
+        text: 'Еду, буду через 20 минут',
+        location: {
+          lat: 59.9386,
+          lon: 30.3141,
+          live: true,
+          accuracy: 12,
+          speed: 11,
+          heading: 40,
+          sequence: 7,
+          updatedAt: Date.now() - 60_000,
+        },
+      });
     },
   },
 };

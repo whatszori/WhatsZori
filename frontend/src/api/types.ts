@@ -122,7 +122,27 @@ export interface Attachment {
   kind: 'image' | 'video' | 'file';
 }
 
-export type MessageKind = 'text' | 'image' | 'video' | 'document' | 'voice' | 'sticker' | 'poll';
+export type MessageKind =
+  'text' | 'image' | 'video' | 'document' | 'voice' | 'sticker' | 'poll' | 'location';
+
+// a pin or a live location
+export interface LocationInfo {
+  lat: number;
+  lon: number;
+  name?: string;
+  address?: string;
+  url?: string;
+  live: boolean;
+  // metres, 0 = unknown
+  accuracy?: number;
+  // live: metres per second, degrees from north, the update count, when it last moved (ms)
+  speed?: number;
+  heading?: number;
+  sequence?: number;
+  updatedAt?: number;
+  // the map picture the sender's phone made (data: URL)
+  thumb?: string;
+}
 
 export interface PollOption {
   name: string;
@@ -244,6 +264,8 @@ export interface Message {
   reactions: Reaction[];
   // people mentioned in the text
   mentions?: Mention[];
+  // a pin or a live location
+  location?: LocationInfo;
 }
 
 export type ChangeKind = '' | 'deleted' | 'edited';

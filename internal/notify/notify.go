@@ -315,6 +315,14 @@ func Preview(m domain.Message) string {
 		return "Message"
 	}
 	switch m.Kind {
+	case domain.KindLocation:
+		if m.Location != nil && m.Location.Live {
+			return with("📍 Live location")
+		}
+		if m.Location != nil && m.Location.Name != "" {
+			return with("📍 " + m.Location.Name)
+		}
+		return with("📍 Location")
 	case domain.KindImage:
 		return with("📷 Photo")
 	case domain.KindVideo:

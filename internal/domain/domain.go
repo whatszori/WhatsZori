@@ -57,6 +57,7 @@ const (
 	KindVoice    MessageKind = "voice"
 	KindSticker  MessageKind = "sticker"
 	KindPoll     MessageKind = "poll"
+	KindLocation MessageKind = "location"
 )
 
 type MessageStatus string
@@ -208,6 +209,25 @@ func MentionNames(text string, ms []Mention) string {
 	return text
 }
 
+// a pin or a live location
+type LocationInfo struct {
+	Lat     float64 `json:"lat"`
+	Lon     float64 `json:"lon"`
+	Name    string  `json:"name,omitempty"`
+	Address string  `json:"address,omitempty"`
+	URL     string  `json:"url,omitempty"`
+	Live    bool    `json:"live"`
+	// metres, 0 = unknown
+	Accuracy int `json:"accuracy,omitempty"`
+	// live: metres per second, degrees from north, the update count, when it last moved (ms)
+	Speed     float64 `json:"speed,omitempty"`
+	Heading   int     `json:"heading,omitempty"`
+	Sequence  int64   `json:"sequence,omitempty"`
+	UpdatedAt int64   `json:"updatedAt,omitempty"`
+	// the map picture the sender's phone made, as a data: URL; empty when there's none
+	Thumb string `json:"thumb,omitempty"`
+}
+
 type ReplyRef struct {
 	PK         string      `json:"pk"`
 	SenderName string      `json:"senderName"`
@@ -253,6 +273,8 @@ type Message struct {
 	Reactions []Reaction `json:"reactions"`
 	// people mentioned in the text
 	Mentions []Mention `json:"mentions,omitempty"`
+	// a pin or a live location
+	Location *LocationInfo `json:"location,omitempty"`
 }
 
 type PollOption struct {

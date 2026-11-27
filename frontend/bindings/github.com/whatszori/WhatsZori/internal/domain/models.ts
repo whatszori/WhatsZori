@@ -248,6 +248,36 @@ export interface InAppToast {
     "at": number;
 }
 
+/**
+ * a pin or a live location
+ */
+export interface LocationInfo {
+    "lat": number;
+    "lon": number;
+    "name"?: string;
+    "address"?: string;
+    "url"?: string;
+    "live": boolean;
+
+    /**
+     * metres, 0 = unknown
+     */
+    "accuracy"?: number;
+
+    /**
+     * live: metres per second, degrees from north, the update count, when it last moved (ms)
+     */
+    "speed"?: number;
+    "heading"?: number;
+    "sequence"?: number;
+    "updatedAt"?: number;
+
+    /**
+     * the map picture the sender's phone made, as a data: URL; empty when there's none
+     */
+    "thumb"?: string;
+}
+
 export interface Me {
     "jid": string;
     "name": string;
@@ -342,6 +372,11 @@ export interface Message {
      * people mentioned in the text
      */
     "mentions"?: Mention[] | null;
+
+    /**
+     * a pin or a live location
+     */
+    "location"?: LocationInfo | null;
 }
 
 /**
@@ -360,6 +395,7 @@ export enum MessageKind {
     KindVoice = "voice",
     KindSticker = "sticker",
     KindPoll = "poll",
+    KindLocation = "location",
 };
 
 export interface MessagePage {

@@ -460,6 +460,13 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		}
 	}
 
+	if ll := msg.GetLiveLocationMessage(); ll != nil && live {
+		done, err := in.liveLocationUpdate(ctx, tx, fx, row, ll)
+		if err != nil || done {
+			return err
+		}
+	}
+
 	pk, created, err := repo.InsertMessage(ctx, tx, row)
 	if err != nil {
 		return err
@@ -1061,4 +1068,38 @@ func (in *Ingester) notifyOne(ctx context.Context, v repo.View, m domain.Message
 		return
 	}
 	in.notify.Incoming(m, chat)
+}
+
+// liveWindow: a live location is shared for 8 hours at most
+const liveWindow = 8 * time.Hour
+
+// liveLocationUpdate folds a live location's new position into the message that started it:
+// the same message id again, or the sender's live location in this chat from the last hours.
+// It reports whether the update was taken (so nothing new is inserted).
+func (in *Ingester) liveLocationUpdate(ctx context.Context, tx *sql.Tx, fx *effects, row *repo.MessageRow, ll *waE2E.LiveLocationMessage) (bool, error) {
+	prev, err := repo.GetMessageByID(ctx, tx, row.ChatJID, row.MsgID)
+	found := err == nil
+	if errors.Is(err, repo.ErrNotFound) {
+		prev, found, err = repo.RecentLiveLocation(ctx, tx, row.ChatJID, row.SenderJID, row.TS-liveWindow.Milliseconds())
+	}
+	if err != nil && !errors.Is(err, repo.ErrNotFound) {
+		return false, err
+	}
+	if !found {
+		return false, nil
+	}
+	old, ok := repo.LiveLocationOf(prev.Raw)
+	if !ok {
+		return false, nil
+	}
+	// an older update arriving late doesn't move the pin back
+	if ll.GetSequenceNumber() != 0 && ll.GetSequenceNumber() < old.GetSequenceNumber() {
+		return true, nil
+	}
+	if err := repo.UpdateLiveLocation(ctx, tx, prev.PK, row.Body, row.Raw, row.TS); err != nil {
+		return false, err
+	}
+	fx.msgs = append(fx.msgs, prev.PK)
+	fx.chats[row.ChatJID] = true
+	return true, nil
 }

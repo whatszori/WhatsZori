@@ -31,6 +31,8 @@ type MessageRow struct {
 	IsViewOnce    bool
 	Raw           []byte
 	ForwardScore  int
+	// a live location: when it last moved (ms)
+	LocUpdatedAt int64
 }
 
 // Store kinds. Finer than what the UI shows; domain.UIKind maps them.
@@ -54,13 +56,13 @@ const (
 
 const msgCols = `pk, chat_jid, msg_id, sender_jid, from_me, push_name, ts, kind, body, quoted_id, quoted_sender,
 	status, read_sent, is_deleted, deleted_at, deleted_by, delete_kind, is_placeholder, edit_count, edited_at,
-	is_ephemeral, is_view_once, raw, forward_score`
+	is_ephemeral, is_view_once, raw, forward_score, loc_updated_at`
 
 func scanMessage(s interface{ Scan(...any) error }) (MessageRow, error) {
 	var m MessageRow
 	err := s.Scan(&m.PK, &m.ChatJID, &m.MsgID, &m.SenderJID, &m.FromMe, &m.PushName, &m.TS, &m.Kind, &m.Body,
 		&m.QuotedID, &m.QuotedSender, &m.Status, &m.ReadSent, &m.IsDeleted, &m.DeletedAt, &m.DeletedBy,
-		&m.DeleteKind, &m.IsPlaceholder, &m.EditCount, &m.EditedAt, &m.IsEphemeral, &m.IsViewOnce, &m.Raw, &m.ForwardScore)
+		&m.DeleteKind, &m.IsPlaceholder, &m.EditCount, &m.EditedAt, &m.IsEphemeral, &m.IsViewOnce, &m.Raw, &m.ForwardScore, &m.LocUpdatedAt)
 	return m, err
 }
 

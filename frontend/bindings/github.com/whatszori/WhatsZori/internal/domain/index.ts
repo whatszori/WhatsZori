@@ -30,6 +30,7 @@ export type {
     GroupEvent,
     GroupMember,
     InAppToast,
+    LocationInfo,
     Me,
     MediaInfo,
     MediaRef,

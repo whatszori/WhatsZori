@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 	"errors"
+	"go.mau.fi/whatsmeow/proto/waE2E"
+	"google.golang.org/protobuf/proto"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +26,8 @@ func UIKind(kind string) domain.MessageKind {
 		return domain.KindSticker
 	case KindPoll:
 		return domain.KindPoll
+	case KindLocation:
+		return domain.KindLocation
 	}
 	return domain.KindText
 }
@@ -193,6 +197,11 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			ViewOnce:       m.IsViewOnce,
 			Reactions:      []domain.Reaction{},
 			Mentions:       mentionsFor(m.PK),
+			Location:       locationInfo(m),
+		}
+		if dto.Location != nil && !m.IsDeleted {
+			// the bubble draws the place; the text is only what the sender wrote with it
+			dto.Text = locationCaption(m.Raw)
 		}
 		if m.FromMe {
 			dto.SenderName = "You"
@@ -396,4 +405,16 @@ func keys(m map[string]bool) []string {
 		}
 	}
 	return out
+}
+
+// what the sender wrote with a location: a pin's comment or a live location's caption
+func locationCaption(raw []byte) string {
+	var msg waE2E.Message
+	if proto.Unmarshal(raw, &msg) != nil {
+		return ""
+	}
+	if l := msg.GetLocationMessage(); l != nil {
+		return l.GetComment()
+	}
+	return msg.GetLiveLocationMessage().GetCaption()
 }

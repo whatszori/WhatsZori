@@ -1,0 +1,225 @@
+.wz-loc {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  max-width: 100%;
+  margin: -2px -2px 4px;
+  overflow: hidden;
+  border-radius: calc(var(--wz-radius-bubble) - 4px);
+  background: color-mix(in srgb, var(--wz-bg-primary) 55%, transparent);
+}
+
+.wz-loc__map {
+  position: relative;
+  display: block;
+  height: 150px;
+  overflow: hidden;
+  background: var(--wz-bg-secondary);
+}
+
+.wz-loc__map img,
+.wz-loc__drawn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* the drawn map: soft land, a little water, blocks and roads */
+.wz-loc__land {
+  fill: color-mix(in srgb, var(--wz-accent) 6%, var(--wz-bg-secondary));
+}
+
+.wz-loc__water {
+  fill: color-mix(in srgb, #4aa3ff 22%, var(--wz-bg-secondary));
+}
+
+.wz-loc__block {
+  fill: color-mix(in srgb, var(--wz-text-primary) 6%, transparent);
+}
+
+.wz-loc__road {
+  fill: none;
+  stroke: color-mix(in srgb, var(--wz-bg-primary) 85%, var(--wz-text-primary));
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.wz-loc__road--main {
+  stroke-width: 6;
+  stroke: color-mix(in srgb, #f5b860 35%, var(--wz-bg-primary));
+}
+
+.wz-loc__pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -88%);
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.3));
+}
+
+.wz-loc__pin-body {
+  fill: var(--wz-danger);
+}
+
+.wz-loc__pin--live .wz-loc__pin-body {
+  fill: var(--wz-accent);
+}
+
+.wz-loc__pin--live:not(.wz-loc__pin--active) .wz-loc__pin-body {
+  fill: var(--wz-text-muted);
+}
+
+.wz-loc__pulse {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 50%;
+  background: var(--wz-accent);
+  opacity: 0.35;
+  animation: wz-loc-pulse 1.8s ease-out infinite;
+}
+
+@keyframes wz-loc-pulse {
+  from {
+    transform: scale(0.4);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-loc__pulse,
+  .wz-loc__dot {
+    animation: none;
+  }
+}
+
+.wz-loc__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--wz-radius-full);
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  font-size: var(--wz-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+.wz-loc__badge--ended {
+  background: rgb(0 0 0 / 0.4);
+  color: rgb(255 255 255 / 0.8);
+}
+
+.wz-loc__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  animation: wz-loc-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes wz-loc-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.wz-loc__heading {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.5);
+  color: #fff;
+}
+
+.wz-loc__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 10px;
+}
+
+.wz-loc__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wz-loc__title {
+  overflow: hidden;
+  color: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+a.wz-loc__title:hover {
+  text-decoration: underline;
+}
+
+.wz-loc__sub,
+.wz-loc__acc {
+  overflow: hidden;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wz-loc__acc {
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-loc__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  /* room for the time in the corner */
+  padding-right: 52px;
+}
+
+.wz-loc__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: var(--wz-radius-full);
+  background: color-mix(in srgb, var(--wz-accent) 12%, transparent);
+  color: var(--wz-accent-text);
+  font: inherit;
+  font-size: var(--wz-font-size-xs);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wz-loc__action:hover {
+  background: color-mix(in srgb, var(--wz-accent) 20%, transparent);
+}
+
+.wz-loc--ended .wz-loc__map {
+  filter: grayscale(0.7);
+}
