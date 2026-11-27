@@ -278,7 +278,9 @@ func (s *Messages) GetEditHistory(pk string) ([]domain.EditVersion, error) {
 	return out, nil
 }
 
-func (s *Messages) SendText(jid, text, replyToPk string) (domain.Message, error) {
+// SendText sends a text message; mentions are the JIDs of group members it mentions ("@<number>"
+// is in the text for each).
+func (s *Messages) SendText(jid, text, replyToPk string, mentions []string) (domain.Message, error) {
 	ctx, cancel := call()
 	defer cancel()
 	var reply int64
@@ -288,7 +290,7 @@ func (s *Messages) SendText(jid, text, replyToPk string) (domain.Message, error)
 			return domain.Message{}, err
 		}
 	}
-	return s.c.Sender.SendText(ctx, jid, text, reply)
+	return s.c.Sender.SendText(ctx, jid, text, reply, mentions...)
 }
 
 func (s *Messages) Edit(pk, text string) error {

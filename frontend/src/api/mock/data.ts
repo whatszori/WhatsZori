@@ -318,7 +318,12 @@ function gap(rng: Rng): number {
 
 export function preview(m: Message): string {
   if (m.contentUnknown) return 'Deleted message';
-  if (m.text) return m.text.replace(/\s+/g, ' ');
+  if (m.text) {
+    // names in place of "@<number>", like the desktop app's previews
+    let t = m.text;
+    for (const x of m.mentions ?? []) if (x.name) t = t.split('@' + x.token).join('@' + x.name);
+    return t.replace(/\s+/g, ' ');
+  }
   switch (m.kind) {
     case 'image':
       return 'Photo';

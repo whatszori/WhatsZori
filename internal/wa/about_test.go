@@ -26,3 +26,22 @@ func TestPickAbout(t *testing.T) {
 		}
 	}
 }
+
+func TestMentionsIn(t *testing.T) {
+	group := "120363000000000001@g.us"
+	text := "@15550100001 and @88001 look"
+	got := mentionsIn(group, text, []string{
+		"15550100001@s.whatsapp.net",
+		"15550100001:5@s.whatsapp.net", // the same person from another device: once
+		"88001@lid",
+		"15550100003@s.whatsapp.net", // not in the text
+		"120363000000000002@g.us",    // not a person
+		"garbage",
+	})
+	if len(got) != 2 || got[0] != "15550100001@s.whatsapp.net" || got[1] != "88001@lid" {
+		t.Fatalf("got %v", got)
+	}
+	if mentionsIn("15550100001@s.whatsapp.net", text, []string{"15550100001@s.whatsapp.net"}) != nil {
+		t.Fatal("mentions only make sense in groups")
+	}
+}

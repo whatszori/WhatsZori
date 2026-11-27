@@ -587,3 +587,14 @@ button.wz-bubble__edited:hover {
   font-weight: 700;
   letter-spacing: 0.04em;
 }
+
+/* a mentioned person: the name instead of their number, like the phone shows it */
+.wz-mention {
+  color: var(--wz-accent-text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.wz-mention:hover {
+  text-decoration: underline;
+}

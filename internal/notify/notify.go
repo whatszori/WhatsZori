@@ -304,7 +304,7 @@ func (c *Center) messageToast(b *batch) Toast {
 
 // Preview is the one-line description of a message for notifications.
 func Preview(m domain.Message) string {
-	caption := strings.TrimSpace(m.Text)
+	caption := strings.TrimSpace(domain.MentionNames(m.Text, m.Mentions))
 	with := func(label string) string {
 		if caption != "" {
 			return label + " · " + caption

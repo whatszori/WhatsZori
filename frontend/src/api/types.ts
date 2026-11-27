@@ -190,6 +190,14 @@ export interface MediaInfo {
   unavailable?: boolean;
 }
 
+// a person mentioned in a message: the text has "@" + token where the app shows "@" + name
+export interface Mention {
+  jid: JID;
+  token: string;
+  // empty when nobody knows who it is
+  name: string;
+}
+
 export interface ReplyRef {
   pk: MessagePK;
   senderName: string;
@@ -234,6 +242,8 @@ export interface Message {
   // "view once" media; WhatsZori keeps it anyway
   viewOnce?: boolean;
   reactions: Reaction[];
+  // people mentioned in the text
+  mentions?: Mention[];
 }
 
 export type ChangeKind = '' | 'deleted' | 'edited';

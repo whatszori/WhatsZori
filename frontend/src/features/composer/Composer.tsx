@@ -16,6 +16,7 @@ import { IconButton, Popover, type PopoverAnchor } from '../../ui';
 import { toastError } from '../../stores/toasts';
 import { VoiceRecorder, canRecord } from './VoiceRecorder';
 import { EmojiPicker } from '../emoji/EmojiPicker';
+import { encodeMentions, useMentionPicker } from './mentions';
 import './Composer.css';
 
 const MAX_LINES = 8;
@@ -87,6 +88,18 @@ export function Composer({ chat }: { chat: Chat }) {
 
   const ui = useUI.getState();
 
+  const mentions = useMentionPicker(chat, ({ member, start, end }) => {
+    const label = '@' + member.name;
+    const next = text.slice(0, start) + label + ' ' + text.slice(end);
+    ui.setDraft(jid, next);
+    ui.addMention(jid, label, member.jid);
+    const caret = start + label.length + 1;
+    requestAnimationFrame(() => {
+      ref.current?.focus();
+      ref.current?.setSelectionRange(caret, caret);
+    });
+  });
+
   const submit = () => {
     const value = text.trim();
     if (!value) return;
@@ -97,15 +110,18 @@ export function Composer({ chat }: { chat: Chat }) {
     }
     typing.stop();
     const replyTo = state.replyTo ?? undefined;
+    const picked = state.mentions ?? {};
+    const out = encodeMentions(value, picked);
     ui.setDraft(jid, '');
     if (replyTo) ui.cancelComposerMode(jid);
     void useMessages
       .getState()
-      .send(jid, value, replyTo)
+      .send(jid, out.text, replyTo, out.jids)
       .then((ok) => {
         // refused (offline, rate limit): give the text back unless they started a new one
         if (!ok && !composerFor(useUI.getState(), jid).draft) {
           ui.setDraft(jid, value);
+          for (const [label, who] of Object.entries(picked)) ui.addMention(jid, label, who);
           if (replyTo) ui.startReply(jid, replyTo);
         }
       });
@@ -113,6 +129,7 @@ export function Composer({ chat }: { chat: Chat }) {
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.nativeEvent.isComposing) return;
+    if (mentions.onKeyDown(e)) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       submit();
@@ -159,6 +176,7 @@ export function Composer({ chat }: { chat: Chat }) {
 
   return (
     <div className="wz-composer">
+      {mentions.view}
       {bar}
       {recording ? (
         <div className="wz-composer__row">
@@ -193,10 +211,13 @@ export function Composer({ chat }: { chat: Chat }) {
             value={text}
             onChange={(e) => {
               ui.setDraft(jid, e.target.value);
+              mentions.update(e.target.value, e.target.selectionStart);
               if (e.target.value && !state.editing) typing.typed();
               else typing.stop();
             }}
             onKeyDown={onKeyDown}
+            onSelect={(e) => mentions.update(e.currentTarget.value, e.currentTarget.selectionStart)}
+            onBlur={() => mentions.update('', null)}
             spellCheck
           />
           <PluginSlot name="composer.actions" props={{ chatJid: jid, insertText: insert }} />

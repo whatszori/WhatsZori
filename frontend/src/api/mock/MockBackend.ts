@@ -538,9 +538,22 @@ export class MockBackend implements Backend {
       await this.wait();
       return clone(this.db.history.get(pk) ?? []);
     },
-    sendText: async (jid: JID, text: string, replyToPk?: MessagePK): Promise<Message> => {
+    sendText: async (
+      jid: JID,
+      text: string,
+      replyToPk?: MessagePK,
+      mentions?: JID[],
+    ): Promise<Message> => {
       await this.wait();
       const target = replyToPk ? this.byPk.get(replyToPk) : undefined;
+      const members = this.db.members.get(jid) ?? [];
+      const mentioned = (mentions ?? [])
+        .map((j) => ({
+          jid: j,
+          token: j.split('@')[0],
+          name: members.find((p) => p.jid === j)?.name ?? '',
+        }))
+        .filter((x) => text.includes('@' + x.token));
       const m: Message = {
         pk: String(this.db.nextPk++),
         id: `3EB0OUT${this.db.nextPk}`,
@@ -553,6 +566,7 @@ export class MockBackend implements Backend {
         text,
         status: 'pending',
         reactions: [],
+        mentions: mentioned.length ? mentioned : undefined,
         replyTo: target && {
           pk: target.pk,
           senderName: target.senderName,

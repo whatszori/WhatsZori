@@ -103,7 +103,8 @@ export interface MessageService {
     before: { at: number; pk: MessagePK } | null,
     limit: number,
   ): Promise<ChangePage>;
-  sendText(jid: JID, text: string, replyToPk?: MessagePK): Promise<Message>;
+  // mentions: JIDs of group members; the text has "@<number>" for each
+  sendText(jid: JID, text: string, replyToPk?: MessagePK, mentions?: JID[]): Promise<Message>;
   edit(pk: MessagePK, text: string): Promise<void>;
   revoke(pk: MessagePK): Promise<void>;
   // copies to up to 5 chats, oldest first; resolves to how many were sent

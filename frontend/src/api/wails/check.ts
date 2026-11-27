@@ -40,6 +40,7 @@ export type Checks = [
   Assert<SameKeys<T.MediaInfo, Go.MediaInfo>>,
   Assert<SameKeys<T.ReplyRef, Go.ReplyRef>>,
   Assert<SameKeys<T.Reaction, Go.Reaction>>,
+  Assert<SameKeys<T.Mention, Go.Mention>>,
   Assert<SameKeys<T.DeletedInfo, Go.DeletedInfo>>,
   Assert<SameKeys<T.Chat, Go.Chat>>,
   Assert<SameKeys<T.MessagePreview, Go.MessagePreview>>,

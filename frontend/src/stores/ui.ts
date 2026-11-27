@@ -25,6 +25,8 @@ export interface ComposerState {
   editing: MessagePK | null;
   // draft text from before editing started, restored on cancel
   stashed: string;
+  // people mentioned in the draft: the "@Name" text shown -> their JID
+  mentions: Record<string, JID>;
 }
 
 export const SIDEBAR_MIN = 260;
@@ -33,7 +35,13 @@ export const SIDEBAR_MAX = 480;
 export const clampSidebar = (w: number) =>
   Number.isFinite(w) ? Math.round(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, w))) : 340;
 
-const EMPTY_COMPOSER: ComposerState = { draft: '', replyTo: null, editing: null, stashed: '' };
+const EMPTY_COMPOSER: ComposerState = {
+  draft: '',
+  replyTo: null,
+  editing: null,
+  stashed: '',
+  mentions: {},
+};
 
 interface UIState {
   view: View;
@@ -88,6 +96,7 @@ interface UIState {
   closeViewer(): void;
   focusSearch(): void;
   setDraft(jid: JID, draft: string): void;
+  addMention(jid: JID, label: string, who: JID): void;
   startReply(jid: JID, pk: MessagePK): void;
   startEdit(jid: JID, pk: MessagePK, text: string): void;
   cancelComposerMode(jid: JID): void;
@@ -170,7 +179,18 @@ export const useUI = create<UIState>((set, get) => {
       })),
     closeViewer: () => set({ viewer: null }),
     focusSearch: () => set((s) => ({ view: 'chats', searchFocusNonce: s.searchFocusNonce + 1 })),
-    setDraft: (jid, draft) => patchComposer(jid, { draft }),
+    setDraft: (jid, draft) => {
+      // forget mentions whose "@Name" is gone from the text
+      const c = get().composer[jid] ?? EMPTY_COMPOSER;
+      const mentions = Object.fromEntries(
+        Object.entries(c.mentions ?? {}).filter(([label]) => draft.includes(label)),
+      );
+      patchComposer(jid, { draft, mentions });
+    },
+    addMention: (jid, label, who) => {
+      const c = get().composer[jid] ?? EMPTY_COMPOSER;
+      patchComposer(jid, { mentions: { ...(c.mentions ?? {}), [label]: who } });
+    },
     startReply: (jid, pk) => {
       const c = get().composer[jid] ?? EMPTY_COMPOSER;
       // replying while editing drops the edit and brings back the draft

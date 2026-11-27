@@ -33,7 +33,7 @@ interface MessagesState {
   applyDelete(jid: JID, pk: MessagePK, deleted: DeletedInfo, purged: boolean): void;
   setReactions(jid: JID, pk: MessagePK, reactions: Reaction[]): void;
   // resolve to false when the backend refused (offline, rate limit); the error is already a toast
-  send(jid: JID, text: string, replyToPk?: MessagePK): Promise<boolean>;
+  send(jid: JID, text: string, replyToPk?: MessagePK, mentions?: JID[]): Promise<boolean>;
   // a message we sent some other way (an attachment from the preview)
   addSent(jid: JID, m: Message): void;
   sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<void>;
@@ -130,9 +130,9 @@ export const useMessages = create<MessagesState>((set, get) => {
 
     setReactions: (jid, pk, reactions) => updateMessage(jid, pk, (m) => ({ ...m, reactions })),
 
-    async send(jid, text, replyToPk) {
+    async send(jid, text, replyToPk, mentions) {
       try {
-        const m = await backend.messages.sendText(jid, text, replyToPk);
+        const m = await backend.messages.sendText(jid, text, replyToPk, mentions);
         updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
         return true;
       } catch (err) {

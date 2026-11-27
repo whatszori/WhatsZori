@@ -33,6 +33,7 @@ export type {
     Me,
     MediaInfo,
     MediaRef,
+    Mention,
     Message,
     MessagePage,
     MessagePreview,

@@ -1,6 +1,6 @@
 import { memo, type MouseEvent, type ReactNode } from 'react';
 import { Ban, Check, Forward, MoreHorizontal, Trash2 } from 'lucide-react';
-import type { JID, Message, MessagePK } from '../../api';
+import type { JID, Mention, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
 import { PluginSlot } from '../../plugin-core/slots';
@@ -34,18 +34,63 @@ interface BubbleProps extends BubbleHandlers {
   selected?: boolean;
 }
 
-function Text({ text, chat }: { text: string; chat: JID }) {
+// "@<number>" tokens the message mentions, as pieces of text and people
+function splitMentions(text: string, mentions: Mention[] | undefined): (string | Mention)[] {
+  const ms = (mentions ?? []).filter((m) => m.token);
+  if (ms.length === 0) return [text];
+  const byToken = new Map(ms.map((m) => [m.token, m]));
+  // longest first, so "@123" doesn't match the start of "@12345"
+  const tokens = [...byToken.keys()].sort((a, b) => b.length - a.length);
+  const re = new RegExp(
+    `@(${tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    'g',
+  );
+  const out: (string | Mention)[] = [];
+  let last = 0;
+  for (const m of text.matchAll(re)) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    out.push(byToken.get(m[1])!);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+function Text({ text, chat, mentions }: { text: string; chat: JID; mentions?: Mention[] }) {
   // only this chat's bubbles re-render when its Ctrl+F query changes
   const query = useUI((s) => (s.searchHighlight?.jid === chat ? s.searchHighlight.query : ''));
   return (
     <>
-      {linkify(text).map((p, i) =>
-        p.type === 'link' ? (
-          <a key={i} href={p.href} target="_blank" rel="noreferrer noopener">
-            {p.value}
-          </a>
+      {splitMentions(text, mentions).map((part, j) =>
+        typeof part !== 'string' ? (
+          <span
+            key={`m${j}`}
+            role="button"
+            tabIndex={0}
+            className="wz-mention"
+            title={part.name ? undefined : 'Not in your contacts'}
+            onClick={(e) => {
+              e.stopPropagation();
+              useUI.getState().openInfo(part.jid);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') useUI.getState().openInfo(part.jid);
+            }}
+          >
+            @{part.name || part.token}
+          </span>
         ) : (
-          <span key={i}>{query ? <Marked text={p.value} query={query} /> : p.value}</span>
+          linkify(part).map((p, i) =>
+            p.type === 'link' ? (
+              <a key={`${j}-${i}`} href={p.href} target="_blank" rel="noreferrer noopener">
+                {p.value}
+              </a>
+            ) : (
+              <span key={`${j}-${i}`}>
+                {query ? <Marked text={p.value} query={query} /> : p.value}
+              </span>
+            ),
+          )
         ),
       )}
     </>
@@ -56,7 +101,7 @@ function Text({ text, chat }: { text: string; chat: JID }) {
 // crashing one falls back to the plain text
 function FormattedText({ m }: { m: Message }) {
   const list = useRegistry(formatters);
-  const plain = <Text text={m.text} chat={m.chatJid} />;
+  const plain = <Text text={m.text} chat={m.chatJid} mentions={m.mentions} />;
   if (list.length === 0) return plain;
   const pm = toPluginMessage(m);
   for (const f of list) {

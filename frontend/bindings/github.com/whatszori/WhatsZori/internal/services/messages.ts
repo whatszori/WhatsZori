@@ -105,8 +105,12 @@ export function SendAttachment(jid: string, token: string, caption: string, asFi
     return $Call.ByID(2268397135, jid, token, caption, asFile);
 }
 
-export function SendText(jid: string, text: string, replyToPk: string): $CancellablePromise<domain$0.Message> {
-    return $Call.ByID(2446577561, jid, text, replyToPk);
+/**
+ * SendText sends a text message; mentions are the JIDs of group members it mentions ("@<number>"
+ * is in the text for each).
+ */
+export function SendText(jid: string, text: string, replyToPk: string, mentions: string[] | null): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(2446577561, jid, text, replyToPk, mentions);
 }
 
 /**

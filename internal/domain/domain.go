@@ -2,6 +2,8 @@
 // frontend never gets protobufs or whatsmeow types.
 package domain
 
+import "strings"
+
 type AuthState string
 
 const (
@@ -186,6 +188,26 @@ type MediaInfo struct {
 	Unavailable bool `json:"unavailable,omitempty"`
 }
 
+// a person mentioned in a message: the text has "@" + Token where the app shows "@" + Name
+type Mention struct {
+	// canonical JID (the phone-number JID when we know it)
+	JID string `json:"jid"`
+	// what follows "@" in the text: the user part of the JID the sender used
+	Token string `json:"token"`
+	// empty when we don't know who it is
+	Name string `json:"name"`
+}
+
+// MentionNames writes names in place of "@<token>", for previews and notifications.
+func MentionNames(text string, ms []Mention) string {
+	for _, m := range ms {
+		if m.Token != "" && m.Name != "" {
+			text = strings.ReplaceAll(text, "@"+m.Token, "@"+m.Name)
+		}
+	}
+	return text
+}
+
 type ReplyRef struct {
 	PK         string      `json:"pk"`
 	SenderName string      `json:"senderName"`
@@ -229,6 +251,8 @@ type Message struct {
 	// a "view once" photo, video or voice note; WhatsZori keeps it anyway
 	ViewOnce  bool       `json:"viewOnce,omitempty"`
 	Reactions []Reaction `json:"reactions"`
+	// people mentioned in the text
+	Mentions []Mention `json:"mentions,omitempty"`
 }
 
 type PollOption struct {

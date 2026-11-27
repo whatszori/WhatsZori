@@ -106,6 +106,39 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 		}
 	}
 
+	// mentions: only messages whose text has an "@" can have any worth showing
+	mentionsOf := map[int64][]string{}
+	var mentioned []string
+	addMentions := func(m MessageRow) {
+		if _, done := mentionsOf[m.PK]; done || !strings.Contains(m.Body, "@") {
+			return
+		}
+		js := MentionedJIDs(m.Raw)
+		mentionsOf[m.PK] = js
+		mentioned = append(mentioned, js...)
+	}
+	for _, m := range rows {
+		addMentions(m)
+	}
+	for _, qm := range quotedRows {
+		addMentions(qm)
+	}
+	people, err := v.resolveMentions(ctx, q, mentioned)
+	if err != nil {
+		return nil, err
+	}
+	mentionsFor := func(pk int64) []domain.Mention {
+		js := mentionsOf[pk]
+		if len(js) == 0 {
+			return nil
+		}
+		out := make([]domain.Mention, 0, len(js))
+		for _, j := range js {
+			out = append(out, people[j])
+		}
+		return out
+	}
+
 	contacts, err := ContactsFor(ctx, q, keys(senders))
 	if err != nil {
 		return nil, err
@@ -159,6 +192,7 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			Forwarded:      m.ForwardScore,
 			ViewOnce:       m.IsViewOnce,
 			Reactions:      []domain.Reaction{},
+			Mentions:       mentionsFor(m.PK),
 		}
 		if m.FromMe {
 			dto.SenderName = "You"
@@ -179,7 +213,7 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 					SenderName: name(qm.SenderJID, qm.PushName),
 					FromMe:     qm.FromMe,
 					Kind:       UIKind(qm.Kind),
-					Text:       previewText(qm),
+					Text:       domain.MentionNames(previewText(qm), mentionsFor(qm.PK)),
 				}
 				if qm.FromMe {
 					dto.ReplyTo.SenderName = "You"
@@ -312,7 +346,7 @@ func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow, l
 		FromMe:     m.FromMe,
 		SenderName: m.SenderName,
 		Kind:       m.Kind,
-		Text:       previewText(last),
+		Text:       domain.MentionNames(previewText(last), m.Mentions),
 		Deleted:    m.Deleted != nil,
 		Status:     m.Status,
 	}

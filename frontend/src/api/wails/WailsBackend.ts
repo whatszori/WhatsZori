@@ -150,8 +150,13 @@ export class WailsBackend implements Backend {
     },
     getEditHistory: async (pk: MessagePK): Promise<EditVersion[]> =>
       (await Messages.GetEditHistory(pk)) ?? [],
-    sendText: async (jid: JID, text: string, replyToPk?: MessagePK): Promise<Message> =>
-      message(await Messages.SendText(jid, text, replyToPk ?? '')),
+    sendText: async (
+      jid: JID,
+      text: string,
+      replyToPk?: MessagePK,
+      mentions?: JID[],
+    ): Promise<Message> =>
+      message(await Messages.SendText(jid, text, replyToPk ?? '', mentions ?? [])),
     edit: (pk: MessagePK, text: string) => Messages.Edit(pk, text),
     revoke: (pk: MessagePK) => Messages.Revoke(pk),
     forward: (pks: MessagePK[], jids: JID[]): Promise<number> => Messages.Forward(pks, jids),

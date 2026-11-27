@@ -288,6 +288,26 @@ export interface MediaRef {
     "duration"?: number;
 }
 
+/**
+ * a person mentioned in a message: the text has "@" + Token where the app shows "@" + Name
+ */
+export interface Mention {
+    /**
+     * canonical JID (the phone-number JID when we know it)
+     */
+    "jid": string;
+
+    /**
+     * what follows "@" in the text: the user part of the JID the sender used
+     */
+    "token": string;
+
+    /**
+     * empty when we don't know who it is
+     */
+    "name": string;
+}
+
 export interface Message {
     "pk": string;
     "id": string;
@@ -317,6 +337,11 @@ export interface Message {
      */
     "viewOnce"?: boolean;
     "reactions": Reaction[] | null;
+
+    /**
+     * people mentioned in the text
+     */
+    "mentions"?: Mention[] | null;
 }
 
 /**

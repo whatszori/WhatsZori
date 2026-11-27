@@ -155,3 +155,57 @@
     transition: none;
   }
 }
+
+/* "@" in a group: members to mention, just above the message box */
+.wz-composer {
+  position: relative;
+}
+
+.wz-mentions {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: var(--wz-space-3);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: min(340px, calc(100% - 24px));
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--wz-space-1);
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-elevated);
+  box-shadow: var(--wz-shadow-popover);
+  animation: wz-fade-in var(--wz-duration-fast) var(--wz-ease);
+}
+
+.wz-mentions__item {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+  padding: 6px var(--wz-space-2);
+  border: 0;
+  border-radius: var(--wz-radius-sm);
+  background: transparent;
+  color: var(--wz-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wz-mentions__item[aria-selected='true'] {
+  background: var(--wz-bg-active);
+}
+
+.wz-mentions__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wz-mentions__phone {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+}

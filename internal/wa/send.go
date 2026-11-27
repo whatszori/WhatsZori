@@ -125,7 +125,9 @@ func (s *Sender) prepare(ctx context.Context, chat, text string) (Client, types.
 	return cli, jid, nil
 }
 
-func (s *Sender) SendText(ctx context.Context, chat, text string, replyToPK int64) (domain.Message, error) {
+// SendText sends text, optionally as a reply and with mentions: JIDs of group members whose
+// "@<user part>" is in the text (the app writes those tokens in place of the names it shows).
+func (s *Sender) SendText(ctx context.Context, chat, text string, replyToPK int64, mentions ...string) (domain.Message, error) {
 	text = strings.TrimRight(text, " \t\r\n")
 	if strings.TrimSpace(text) == "" {
 		return domain.Message{}, ErrEmpty
@@ -139,6 +141,13 @@ func (s *Sender) SendText(ctx context.Context, chat, text string, replyToPK int6
 	}
 	msg := &waE2E.Message{Conversation: proto.String(text)}
 	row := &repo.MessageRow{Kind: repo.KindText, Body: text}
+	mentioned := mentionsIn(chat, text, mentions)
+	if len(mentioned) > 0 {
+		msg = &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{
+			Text:        proto.String(text),
+			ContextInfo: &waE2E.ContextInfo{MentionedJID: mentioned},
+		}}
+	}
 	if replyToPK > 0 {
 		q, err := repo.GetMessage(ctx, s.DB, replyToPK)
 		if err != nil {
@@ -147,9 +156,11 @@ func (s *Sender) SendText(ctx context.Context, chat, text string, replyToPK int6
 		if q.ChatJID != chat {
 			return domain.Message{}, errors.New("reply target is in another chat")
 		}
+		ci := s.quote(ctx, cli, q)
+		ci.MentionedJID = mentioned
 		msg = &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{
 			Text:        proto.String(text),
-			ContextInfo: s.quote(ctx, cli, q),
+			ContextInfo: ci,
 		}}
 		row.QuotedID, row.QuotedSender = q.MsgID, q.SenderJID
 	}
@@ -476,3 +487,26 @@ var docMimes = map[string]string{
 }
 
 func docMime(name string) string { return docMimes[strings.ToLower(filepath.Ext(name))] }
+
+// mentionsIn keeps the mentions that make sense: in a group, a valid person JID, whose token is
+// in the text, each once. Anything else is dropped rather than sent as a broken mention.
+func mentionsIn(chat, text string, jids []string) []string {
+	if !strings.HasSuffix(chat, "@g.us") || len(jids) == 0 {
+		return nil
+	}
+	seen := map[string]bool{}
+	out := make([]string, 0, len(jids))
+	for _, j := range jids {
+		pj, err := types.ParseJID(j)
+		if err != nil || pj.User == "" || (pj.Server != types.DefaultUserServer && pj.Server != types.HiddenUserServer) {
+			continue
+		}
+		j = pj.ToNonAD().String()
+		if seen[j] || !strings.Contains(text, "@"+pj.User) {
+			continue
+		}
+		seen[j] = true
+		out = append(out, j)
+	}
+	return out
+}
