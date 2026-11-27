@@ -183,11 +183,32 @@ func (m *Meow) SetAbout(ctx context.Context, about string) error {
 	return m.Cli.SetStatusMessage(ctx, types.SetStatusInput{Text: &about})
 }
 func (m *Meow) GetAbout(ctx context.Context, jid types.JID) (string, error) {
-	info, err := m.Cli.GetUserInfo(ctx, []types.JID{jid})
+	info, err := m.Cli.GetUserInfo(ctx, []types.JID{jid.ToNonAD()})
 	if err != nil {
 		return "", err
 	}
-	return info[jid].Status, nil
+	return pickAbout(info, jid), nil
+}
+
+// pickAbout finds the answer for jid. WhatsApp may key it by the person's LID while we asked by
+// phone number (or the other way round), so an exact miss falls back to the entry that names jid
+// as its LID, and then to the only entry there is.
+func pickAbout(info map[types.JID]types.UserInfo, jid types.JID) string {
+	jid = jid.ToNonAD()
+	if u, ok := info[jid]; ok {
+		return u.Status
+	}
+	for k, u := range info {
+		if k.User == jid.User || u.LID.User == jid.User {
+			return u.Status
+		}
+	}
+	if len(info) == 1 {
+		for _, u := range info {
+			return u.Status
+		}
+	}
+	return ""
 }
 func (m *Meow) GetProfilePicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error) {
 	return m.Cli.GetProfilePictureInfo(ctx, jid, &whatsmeow.GetProfilePictureParams{Preview: preview, ExistingID: existingID})

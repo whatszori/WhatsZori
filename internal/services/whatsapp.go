@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
@@ -197,7 +198,11 @@ func (s *Chats) GetInfo(jid string) (domain.ChatInfo, error) {
 	if info.Members == nil && info.About == "" {
 		if cli, err := s.c.Mgr.Ready(); err == nil {
 			if j, err := types.ParseJID(jid); err == nil {
-				if about, err := cli.GetAbout(ctx, j); err == nil && about != "" {
+				about, err := cli.GetAbout(ctx, j)
+				switch {
+				case err != nil:
+					slog.Warn("couldn't read a contact's about", "error", err)
+				case about != "":
 					_ = repo.SetAbout(ctx, s.c.DB, jid, about, time.Now().UnixMilli())
 					info.About = about
 				}
@@ -427,7 +432,13 @@ func (p *Profile) Get() (domain.Profile, error) {
 	}
 	if cli, err := p.c.Mgr.Ready(); err == nil {
 		if j, err := types.ParseJID(me); err == nil {
-			if about, err := cli.GetAbout(ctx, j); err == nil {
+			// an empty answer doesn't wipe what we know: WhatsApp's newer "text status" (what
+			// SetAbout writes) doesn't always come back through this query
+			about, err := cli.GetAbout(ctx, j)
+			switch {
+			case err != nil:
+				slog.Warn("couldn't read your about", "error", err)
+			case about != "":
 				out.About = about
 				_ = repo.SetAbout(ctx, p.c.DB, me, about, time.Now().UnixMilli())
 			}
@@ -465,7 +476,8 @@ func (p *Profile) SetAbout(about string) error {
 	ctx, cancel := call()
 	defer cancel()
 	if err := cli.SetAbout(ctx, about); err != nil {
-		return err
+		slog.Warn("couldn't change your about", "error", err)
+		return fmt.Errorf("WhatsApp didn't accept the new about: %w", err)
 	}
 	return repo.SetAbout(ctx, p.c.DB, p.c.In.Me(ctx), about, time.Now().UnixMilli())
 }
