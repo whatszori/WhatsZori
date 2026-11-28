@@ -116,7 +116,7 @@ export function SharedMedia({ jid, initial }: { jid: JID; initial: SharedKind })
         />
       </div>
       {/* keyed so each tab and search starts from the top with its own list */}
-      <SharedList key={kind + '0000' + q} jid={jid} kind={kind} query={q} />
+      <SharedList key={kind + '|' + q} jid={jid} kind={kind} query={q} />
     </div>
   );
 }
