@@ -191,6 +191,10 @@ func (s *Sender) quote(ctx context.Context, cli Client, q repo.MessageRow) *waE2
 // send stores the message as pending, returns it, and does the network part in the background:
 // pending -> sent here, delivered/read later from receipts.
 func (s *Sender) send(ctx context.Context, cli Client, jid types.JID, chat string, msg *waE2E.Message, row *repo.MessageRow, media *repo.MediaRow) (domain.Message, error) {
+	if secs, at := repo.DisappearingOf(ctx, s.DB, chat); secs > 0 {
+		withExpiration(msg, secs, at)
+		row.IsEphemeral = true
+	}
 	raw, err := proto.Marshal(msg)
 	if err != nil {
 		return domain.Message{}, err

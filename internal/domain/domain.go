@@ -99,6 +99,8 @@ type Chat struct {
 	// presence comes through its own event; these stay empty in snapshots
 	LastSeen *int64 `json:"lastSeen,omitempty"`
 	Online   bool   `json:"online,omitempty"`
+	// disappearing messages timer in seconds, 0 = off (WhatsZori keeps the messages anyway)
+	Disappearing int `json:"disappearing,omitempty"`
 }
 
 type GroupMember struct {
@@ -372,8 +374,10 @@ type Message struct {
 	Forwarded int       `json:"forwarded,omitempty"`
 	Poll      *PollInfo `json:"poll,omitempty"`
 	// a "view once" photo, video or voice note; WhatsZori keeps it anyway
-	ViewOnce  bool       `json:"viewOnce,omitempty"`
-	Reactions []Reaction `json:"reactions"`
+	ViewOnce bool `json:"viewOnce,omitempty"`
+	// sent as a disappearing message (kept here anyway)
+	Disappearing bool       `json:"disappearing,omitempty"`
+	Reactions    []Reaction `json:"reactions"`
 	// people mentioned in the text
 	Mentions []Mention `json:"mentions,omitempty"`
 	// a pin or a live location

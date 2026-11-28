@@ -711,3 +711,9 @@ button.wz-bubble__edited:hover {
   font-size: 26px;
   font-weight: 600;
 }
+
+.wz-bubble__timer {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.8;
+}

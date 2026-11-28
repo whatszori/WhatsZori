@@ -65,6 +65,8 @@ export interface ChatService {
   delete(jid: JID): Promise<void>;
   setBlocked(jid: JID, blocked: boolean): Promise<void>;
   leave(jid: JID): Promise<void>;
+  // 0 (off), 86400, 604800 or 7776000 seconds, for everyone in the chat
+  setDisappearing(jid: JID, seconds: number): Promise<void>;
   removeMember(group: JID, member: JID): Promise<void>;
   groupEvents(jid: JID): Promise<GroupEvent[]>;
   lists(): Promise<ChatList[]>;

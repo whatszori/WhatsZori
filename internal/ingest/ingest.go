@@ -397,6 +397,12 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		switch pm.GetType() {
 		case waE2E.ProtocolMessage_REVOKE:
 			return in.revoke(ctx, tx, fx, chat, info.IsGroup, pm.GetKey(), sender, info.Edit, ts, me)
+		case waE2E.ProtocolMessage_EPHEMERAL_SETTING:
+			if err := repo.EnsureChat(ctx, tx, chat, info.IsGroup); err != nil {
+				return err
+			}
+			fx.chats[chat] = true
+			return repo.SetDisappearing(ctx, tx, chat, int(pm.GetEphemeralExpiration()), ts, false)
 		case waE2E.ProtocolMessage_MESSAGE_EDIT:
 			at := pm.GetTimestampMS()
 			if at == 0 {
@@ -431,7 +437,7 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 	}
 	row := &repo.MessageRow{
 		ChatJID: chat, MsgID: info.ID, SenderJID: sender, FromMe: info.IsFromMe, PushName: info.PushName, TS: ts,
-		Kind: c.kind, Body: c.body, IsEphemeral: e.IsEphemeral, IsViewOnce: e.IsViewOnce || isViewOnce(msg), Raw: raw,
+		Kind: c.kind, Body: c.body, IsEphemeral: e.IsEphemeral || c.expiration > 0, IsViewOnce: e.IsViewOnce || isViewOnce(msg), Raw: raw,
 		ForwardScore: c.forwardScore,
 		// history is old news: no read receipts for it later, whatever the ghost mode
 		ReadSent: !live || info.IsFromMe,
@@ -453,6 +459,16 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 
 	if err := in.ensureChat(ctx, tx, fx, chat, info.IsGroup); err != nil {
 		return err
+	}
+	if c.expiration > 0 && live {
+		// a disappearing message tells the chat's timer; history may be from an older setting
+		at := c.ephemeralAt * 1000
+		if at == 0 {
+			at = ts
+		}
+		if err := repo.SetDisappearing(ctx, tx, chat, c.expiration, at, false); err != nil {
+			return err
+		}
 	}
 	if !info.IsFromMe && info.PushName != "" {
 		if err := repo.SetPushName(ctx, tx, sender, info.PushName, ms(in.now())); err != nil {
@@ -937,6 +953,13 @@ func (in *Ingester) UpsertGroup(ctx context.Context, tx *sql.Tx, fx *effects, g 
 		}
 		ps = append(ps, repo.Participant{JID: in.jids.Key(ctx, p.JID), IsAdmin: p.IsAdmin, IsSuperAdmin: p.IsSuperAdmin})
 	}
+	timer := 0
+	if g.IsEphemeral {
+		timer = int(g.DisappearingTimer)
+	}
+	if err := repo.SetDisappearing(ctx, tx, jid, timer, ms(in.now()), true); err != nil {
+		return err
+	}
 	if len(ps) > 0 {
 		if err := repo.ReplaceParticipants(ctx, tx, jid, ps); err != nil {
 			return err
@@ -961,6 +984,15 @@ func (in *Ingester) groupChange(ctx context.Context, tx *sql.Tx, fx *effects, e 
 	}
 	if e.Topic != nil {
 		if err := repo.SetGroupDescription(ctx, tx, jid, e.Topic.Topic); err != nil {
+			return err
+		}
+	}
+	if e.Ephemeral != nil {
+		timer := 0
+		if e.Ephemeral.IsEphemeral {
+			timer = int(e.Ephemeral.DisappearingTimer)
+		}
+		if err := repo.SetDisappearing(ctx, tx, jid, timer, ms(e.Timestamp), false); err != nil {
 			return err
 		}
 	}

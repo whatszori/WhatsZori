@@ -144,6 +144,14 @@ func (s *Chats) SetBlocked(jid string, block bool) error {
 	return nil
 }
 
+// SetDisappearing sets the chat's disappearing messages timer: 0 (off), 86400, 604800 or 7776000
+// seconds. It applies to everyone in the chat; WhatsZori keeps its own copy regardless.
+func (s *Chats) SetDisappearing(jid string, seconds int) error {
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.SetDisappearing(ctx, jid, seconds)
+}
+
 // Leave leaves a group. The chat and its history stay, like on the phone.
 func (s *Chats) Leave(jid string) error {
 	ctx, cancel := call()

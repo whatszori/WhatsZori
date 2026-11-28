@@ -117,6 +117,7 @@ export class WailsBackend implements Backend {
     delete: (jid: JID) => Chats.Delete(jid),
     setBlocked: (jid: JID, blocked: boolean) => Chats.SetBlocked(jid, blocked),
     leave: (jid: JID) => Chats.Leave(jid),
+    setDisappearing: (jid: JID, seconds: number) => Chats.SetDisappearing(jid, seconds),
     removeMember: (group: JID, member: JID) => Chats.RemoveMember(group, member),
     groupEvents: async (jid: JID): Promise<GroupEvent[]> =>
       as<GroupEvent[]>((await Chats.GroupEvents(jid)) ?? []),

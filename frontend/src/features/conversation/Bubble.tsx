@@ -1,5 +1,5 @@
 import { memo, useMemo, type MouseEvent, type ReactNode } from 'react';
-import { Ban, Check, Forward, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Ban, Check, Forward, MoreHorizontal, Timer, Trash2 } from 'lucide-react';
 import type { JID, Mention, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
@@ -241,6 +241,14 @@ function Meta({
         ) : (
           <span className="wz-bubble__edited">edited</span>
         ))}
+      {m.disappearing && (
+        <span
+          className="wz-bubble__timer"
+          title="Disappearing message. It’s gone from their phones after a while; WhatsZori keeps it."
+        >
+          <Timer size={11} strokeWidth={2} aria-label="Disappearing message" />
+        </span>
+      )}
       <time dateTime={new Date(m.timestamp).toISOString()}>{formatTime(m.timestamp)}</time>
       {m.fromMe && m.status && <StatusTicks status={m.status} />}
     </>

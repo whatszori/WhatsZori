@@ -140,6 +140,11 @@ export interface Chat {
      */
     "lastSeen"?: number | null;
     "online"?: boolean;
+
+    /**
+     * disappearing messages timer in seconds, 0 = off (WhatsZori keeps the messages anyway)
+     */
+    "disappearing"?: number;
 }
 
 export interface ChatInfo {
@@ -487,6 +492,11 @@ export interface Message {
      * a "view once" photo, video or voice note; WhatsZori keeps it anyway
      */
     "viewOnce"?: boolean;
+
+    /**
+     * sent as a disappearing message (kept here anyway)
+     */
+    "disappearing"?: boolean;
     "reactions": Reaction[] | null;
 
     /**

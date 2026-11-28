@@ -20,18 +20,29 @@ type ChatRow struct {
 	CreatedBy   string
 	MemberCount int
 	Favorite    bool
+	// disappearing messages timer, seconds (0 = off)
+	Disappearing int
+	IsCommunity  bool
+	ParentJID    string
+	IsAnnounce   bool
+	// channels
+	Followers   int
+	Verified    bool
+	ChannelRole string
 }
 
 func (c ChatRow) Muted(nowMS int64) bool {
 	return c.MutedUntil == -1 || c.MutedUntil > nowMS
 }
 
-const chatCols = `jid, name, is_group, pinned, archived, muted_until, unread, last_ts, description, created_at, created_by, member_count, favorite`
+const chatCols = `jid, name, is_group, pinned, archived, muted_until, unread, last_ts, description, created_at, created_by, member_count, favorite,
+	disappearing, is_community, parent_jid, is_announce, followers, verified, channel_role`
 
 func scanChat(s interface{ Scan(...any) error }) (ChatRow, error) {
 	var c ChatRow
 	err := s.Scan(&c.JID, &c.Name, &c.IsGroup, &c.Pinned, &c.Archived, &c.MutedUntil, &c.Unread, &c.LastTS,
-		&c.Description, &c.CreatedAt, &c.CreatedBy, &c.MemberCount, &c.Favorite)
+		&c.Description, &c.CreatedAt, &c.CreatedBy, &c.MemberCount, &c.Favorite,
+		&c.Disappearing, &c.IsCommunity, &c.ParentJID, &c.IsAnnounce, &c.Followers, &c.Verified, &c.ChannelRole)
 	return c, err
 }
 
@@ -178,4 +189,20 @@ func MergeChat(ctx context.Context, q DBTX, from, to string) error {
 		}
 	}
 	return nil
+}
+
+// SetDisappearing sets a chat's disappearing messages timer, unless a newer setting is already in.
+// at is when it was set (ms); force skips the check (the group's own info is the truth).
+func SetDisappearing(ctx context.Context, q DBTX, jid string, seconds int, at int64, force bool) error {
+	_, err := q.ExecContext(ctx, `UPDATE chats SET disappearing = ?, disappearing_at = MAX(disappearing_at, ?)
+		WHERE jid = ? AND (? OR disappearing_at <= ?)`, seconds, at, jid, force, at)
+	return err
+}
+
+// DisappearingOf is a chat's timer (seconds) and when it was set (ms); zeros when off or unknown.
+func DisappearingOf(ctx context.Context, q DBTX, jid string) (int, int64) {
+	var secs int
+	var at int64
+	_ = q.QueryRowContext(ctx, `SELECT disappearing, disappearing_at FROM chats WHERE jid = ?`, jid).Scan(&secs, &at)
+	return secs, at
 }

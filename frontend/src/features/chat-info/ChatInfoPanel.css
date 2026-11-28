@@ -609,3 +609,18 @@ button.wz-info__member:hover {
     transition: none;
   }
 }
+
+/* ---- disappearing messages ---- */
+
+.wz-disappearing .wz-info__section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wz-disappearing__note {
+  margin: 8px 0 0;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+  line-height: 1.4;
+}

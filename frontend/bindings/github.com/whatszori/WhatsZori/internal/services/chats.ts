@@ -95,6 +95,14 @@ export function SetBlocked(jid: string, block: boolean): $CancellablePromise<voi
     return $Call.ByID(137482285, jid, block);
 }
 
+/**
+ * SetDisappearing sets the chat's disappearing messages timer: 0 (off), 86400, 604800 or 7776000
+ * seconds. It applies to everyone in the chat; WhatsZori keeps its own copy regardless.
+ */
+export function SetDisappearing(jid: string, seconds: number): $CancellablePromise<void> {
+    return $Call.ByID(2377739684, jid, seconds);
+}
+
 export function SetFavorite(jid: string, on: boolean): $CancellablePromise<void> {
     return $Call.ByID(3280949355, jid, on);
 }

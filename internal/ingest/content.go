@@ -17,6 +17,9 @@ type content struct {
 	quotedSender string
 	forwardScore int
 	media        *repo.MediaRow
+	// disappearing messages: the timer the message was sent with and when that was set (s)
+	expiration  int
+	ephemeralAt int64
 }
 
 type withContext interface {
@@ -217,6 +220,9 @@ func extract(msg *waE2E.Message) content {
 		}
 		if ci := ctx.GetContextInfo(); ci.GetIsForwarded() {
 			c.forwardScore = max(1, int(ci.GetForwardingScore()))
+		}
+		if ci := ctx.GetContextInfo(); ci.GetExpiration() > 0 {
+			c.expiration, c.ephemeralAt = int(ci.GetExpiration()), ci.GetEphemeralSettingTimestamp()
 		}
 	}
 	return c

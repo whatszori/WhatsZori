@@ -45,6 +45,7 @@ type fakeClient struct {
 	sent    []sent
 	sendErr error
 	votedOn *types.MessageInfo
+	timer   time.Duration
 	n       int
 
 	uploaded [][]byte

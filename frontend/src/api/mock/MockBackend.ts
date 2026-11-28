@@ -339,6 +339,13 @@ export class MockBackend implements Backend {
       if (blocked) this.blocked.add(jid);
       else this.blocked.delete(jid);
     },
+    setDisappearing: async (jid: JID, seconds: number): Promise<void> => {
+      await this.wait();
+      const chat = this.db.chats.get(jid);
+      if (!chat) return;
+      chat.disappearing = seconds || undefined;
+      this.emit('chat:update', { chat: clone(chat) });
+    },
     leave: async (jid: JID): Promise<void> => {
       await this.wait();
       const chat = this.db.chats.get(jid);
@@ -593,6 +600,7 @@ export class MockBackend implements Backend {
         kind: 'text',
         text,
         status: 'pending',
+        disappearing: this.db.chats.get(jid)?.disappearing ? true : undefined,
         reactions: [],
         mentions: mentioned.length ? mentioned : undefined,
         replyTo: target && {

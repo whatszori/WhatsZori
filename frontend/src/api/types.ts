@@ -280,6 +280,8 @@ export interface Chat {
   // 1:1 only; null = hidden by their privacy settings
   lastSeen?: number | null;
   online?: boolean;
+  // disappearing messages timer in seconds, 0/absent = off (WhatsZori keeps the messages)
+  disappearing?: number;
 }
 
 export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
@@ -374,6 +376,8 @@ export interface Message {
   mentions?: Mention[];
   // a pin or a live location
   location?: LocationInfo;
+  // sent as a disappearing message (kept here anyway)
+  disappearing?: boolean;
   // shared contacts
   contacts?: ContactCard[];
   event?: EventInfo;

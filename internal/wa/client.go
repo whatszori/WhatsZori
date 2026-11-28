@@ -69,6 +69,7 @@ type Client interface {
 	Blocked(ctx context.Context) ([]types.JID, error)
 	SetBlocked(ctx context.Context, jid types.JID, block bool) error
 	LeaveGroup(ctx context.Context, group types.JID) error
+	SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error
 	RemoveParticipants(ctx context.Context, group types.JID, members []types.JID) error
 }
 
@@ -337,6 +338,10 @@ func (m *Meow) SetBlocked(ctx context.Context, jid types.JID, block bool) error 
 	}
 	_, err = m.Cli.UpdateBlocklist(ctx, jid, action, bl.DHash)
 	return err
+}
+
+func (m *Meow) SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error {
+	return m.Cli.SetDisappearingTimer(ctx, chat, timer, settingTS)
 }
 
 func (m *Meow) LeaveGroup(ctx context.Context, group types.JID) error {

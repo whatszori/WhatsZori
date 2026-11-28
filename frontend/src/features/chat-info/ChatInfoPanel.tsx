@@ -47,6 +47,7 @@ import { ListsDialog } from '../chat-list/ListsDialog';
 import { ExportDialog } from './ExportDialog';
 import { MembershipDialog } from './MembershipDialog';
 import { SharedMedia } from './SharedMedia';
+import { DisappearingSection } from './Disappearing';
 import { toPluginChat } from '../conversation/plugin-adapters';
 import { PluginSlot } from '../../plugin-core/slots';
 import './ChatInfoPanel.css';
@@ -614,6 +615,8 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
                     </div>
                   </Section>
                 )}
+
+                {target && !ready.noChat && <DisappearingSection chat={target} />}
 
                 {target && (
                   <Section>

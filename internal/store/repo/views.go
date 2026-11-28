@@ -199,6 +199,7 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			ContentUnknown: contentUnknown(m),
 			Forwarded:      m.ForwardScore,
 			ViewOnce:       m.IsViewOnce,
+			Disappearing:   m.IsEphemeral,
 			Reactions:      []domain.Reaction{},
 			Mentions:       mentionsFor(m.PK),
 			Location:       locationInfo(m),
@@ -357,6 +358,7 @@ func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow, l
 		LastActivity: c.LastTS,
 		Favorite:     c.Favorite,
 		Lists:        lists[c.JID],
+		Disappearing: c.Disappearing,
 	}
 	if dto.Name == "" {
 		if c.JID == v.Me {

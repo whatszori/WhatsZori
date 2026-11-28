@@ -11,8 +11,10 @@ import {
   Pin,
   PinOff,
   Search,
+  Timer,
 } from 'lucide-react';
 import type { Chat } from '../../api';
+import { timerLabel } from '../chat-info/Disappearing';
 import { formatLastSeen, pluralize } from '../../lib/format';
 import { PluginSlot } from '../../plugin-core/slots';
 import { PanelButtons } from '../../plugin-core/host';
@@ -105,6 +107,14 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
         <span className="wz-conv-header__text">
           <span className="wz-conv-header__name">
             {chat.name}
+            {!!chat.disappearing && (
+              <span
+                className="wz-conv-header__ghost"
+                title={`Disappearing messages: ${timerLabel(chat.disappearing)}. WhatsZori keeps them.`}
+              >
+                <Timer size={14} aria-label="Disappearing messages on" />
+              </span>
+            )}
             {ghosted && (
               <span className="wz-conv-header__ghost" title="Ghost mode in this chat">
                 <Ghost size={14} aria-label="Ghost mode" />
