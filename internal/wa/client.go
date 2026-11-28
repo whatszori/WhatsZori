@@ -79,6 +79,7 @@ type Client interface {
 	NewsletterSubscribeLiveUpdates(ctx context.Context, jid types.JID) (time.Duration, error)
 	NewsletterSendReaction(ctx context.Context, jid types.JID, serverID types.MessageServerID, reaction string, messageID types.MessageID) error
 	GetNewsletterInfoWithInvite(ctx context.Context, key string) (*types.NewsletterMetadata, error)
+	GetNewsletterInfo(ctx context.Context, jid types.JID) (*types.NewsletterMetadata, error)
 	FollowNewsletter(ctx context.Context, jid types.JID) error
 	UnfollowNewsletter(ctx context.Context, jid types.JID) error
 	SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error
@@ -378,6 +379,10 @@ func (m *Meow) NewsletterSendReaction(ctx context.Context, jid types.JID, server
 
 func (m *Meow) GetNewsletterInfoWithInvite(ctx context.Context, key string) (*types.NewsletterMetadata, error) {
 	return m.Cli.GetNewsletterInfoWithInvite(ctx, key)
+}
+
+func (m *Meow) GetNewsletterInfo(ctx context.Context, jid types.JID) (*types.NewsletterMetadata, error) {
+	return m.Cli.GetNewsletterInfo(ctx, jid)
 }
 
 func (m *Meow) FollowNewsletter(ctx context.Context, jid types.JID) error {

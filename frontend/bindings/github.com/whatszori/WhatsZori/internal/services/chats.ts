@@ -16,6 +16,13 @@ export function Clear(jid: string): $CancellablePromise<void> {
     return $Call.ByID(2330310786, jid);
 }
 
+/**
+ * CommunityGroups lists a community's groups, the ones we're in and the ones we aren't.
+ */
+export function CommunityGroups(jid: string): $CancellablePromise<domain$0.CommunityGroup[] | null> {
+    return $Call.ByID(4228723670, jid);
+}
+
 export function CreateList(name: string): $CancellablePromise<domain$0.ChatList> {
     return $Call.ByID(3698982777, name);
 }
@@ -29,6 +36,13 @@ export function Delete(jid: string): $CancellablePromise<void> {
 
 export function DeleteList(id: number): $CancellablePromise<void> {
     return $Call.ByID(553542470, id);
+}
+
+/**
+ * FollowChannel follows a channel by its link (whatsapp.com/channel/…).
+ */
+export function FollowChannel(link: string): $CancellablePromise<domain$0.Chat> {
+    return $Call.ByID(1325133819, link);
 }
 
 export function GetInfo(jid: string): $CancellablePromise<domain$0.ChatInfo> {
@@ -67,6 +81,14 @@ export function MarkRead(jid: string): $CancellablePromise<void> {
  */
 export function Open(jid: string): $CancellablePromise<domain$0.Chat> {
     return $Call.ByID(474554025, jid);
+}
+
+/**
+ * RefreshChannel fetches a channel's newest posts (older: the page before the oldest we have)
+ * and listens for live updates while it's open. It says whether there were any.
+ */
+export function RefreshChannel(jid: string, older: boolean): $CancellablePromise<boolean> {
+    return $Call.ByID(3113717223, jid, older);
 }
 
 /**
@@ -124,4 +146,18 @@ export function SetPinned(jid: string, pinned: boolean): $CancellablePromise<voi
  */
 export function SetTyping(jid: string, typing: boolean): $CancellablePromise<void> {
     return $Call.ByID(597256668, jid, typing);
+}
+
+/**
+ * SyncChannels refreshes the channels we follow (at most every few minutes).
+ */
+export function SyncChannels(): $CancellablePromise<void> {
+    return $Call.ByID(2528160090);
+}
+
+/**
+ * UnfollowChannel stops following a channel; its posts stay here.
+ */
+export function UnfollowChannel(jid: string): $CancellablePromise<void> {
+    return $Call.ByID(3211988150, jid);
 }

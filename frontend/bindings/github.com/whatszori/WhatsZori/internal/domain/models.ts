@@ -117,6 +117,16 @@ export interface ChangePage {
     "hasMore": boolean;
 }
 
+export interface ChannelInfo {
+    "followers": number;
+    "verified": boolean;
+
+    /**
+     * subscriber, admin, owner, guest
+     */
+    "role"?: string;
+}
+
 export interface Chat {
     "jid": string;
     "name": string;
@@ -145,6 +155,22 @@ export interface Chat {
      * disappearing messages timer in seconds, 0 = off (WhatsZori keeps the messages anyway)
      */
     "disappearing"?: number;
+
+    /**
+     * a community (the parent of its groups; not a chat of its own)
+     */
+    "isCommunity"?: boolean;
+
+    /**
+     * a group in a community: which one, and whether it's the announcements group
+     */
+    "community"?: CommunityRef | null;
+    "isAnnounce"?: boolean;
+
+    /**
+     * a channel (WhatsApp's one-way broadcasts)
+     */
+    "channel"?: ChannelInfo | null;
 }
 
 export interface ChatInfo {
@@ -192,6 +218,21 @@ export interface ChatRemovedEvent {
 
 export interface ChatUpdateEvent {
     "chat": Chat;
+}
+
+/**
+ * a group of a community, joined or not
+ */
+export interface CommunityGroup {
+    "jid": string;
+    "name": string;
+    "isAnnounce": boolean;
+    "joined": boolean;
+}
+
+export interface CommunityRef {
+    "jid": string;
+    "name": string;
 }
 
 export enum ConnState {
@@ -519,6 +560,11 @@ export interface Message {
      * sent as a disappearing message (kept here anyway)
      */
     "disappearing"?: boolean;
+
+    /**
+     * a channel post: how many saw it
+     */
+    "views"?: number;
     "reactions": Reaction[] | null;
 
     /**

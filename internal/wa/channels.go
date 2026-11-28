@@ -137,13 +137,21 @@ func InviteKey(link string) (string, error) {
 
 // FollowChannel follows a channel by its link and fetches its posts; it returns the channel's JID.
 func FollowChannel(ctx context.Context, cli Client, in ChannelSync, link string) (string, error) {
-	key, err := InviteKey(link)
-	if err != nil {
-		return "", err
-	}
-	info, err := cli.GetNewsletterInfoWithInvite(ctx, key)
-	if err != nil {
-		return "", fmt.Errorf("couldn't find that channel: %w", err)
+	var info *types.NewsletterMetadata
+	if j, err := channelJID(link); err == nil {
+		// one we followed before
+		info, err = cli.GetNewsletterInfo(ctx, j)
+		if err != nil {
+			return "", fmt.Errorf("couldn't find that channel: %w", err)
+		}
+	} else {
+		key, err := InviteKey(link)
+		if err != nil {
+			return "", err
+		}
+		if info, err = cli.GetNewsletterInfoWithInvite(ctx, key); err != nil {
+			return "", fmt.Errorf("couldn't find that channel: %w", err)
+		}
 	}
 	if err := cli.FollowNewsletter(ctx, info.ID); err != nil {
 		return "", fmt.Errorf("couldn't follow: %w", err)

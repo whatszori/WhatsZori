@@ -191,6 +191,13 @@ func (s *Chats) GetInfo(jid string) (domain.ChatInfo, error) {
 	if err != nil {
 		return info, err
 	}
+	if repo.IsChannel(jid) {
+		// a channel's about is its description
+		if c, err := repo.GetChat(ctx, s.c.DB, jid); err == nil {
+			info.About = c.Description
+		}
+		return info, nil
+	}
 	if info.Members == nil && !strings.HasSuffix(jid, "@g.us") {
 		info.Blocked = s.isBlocked(ctx, jid)
 	}
