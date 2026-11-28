@@ -308,6 +308,57 @@ func (s *Messages) SendText(jid, text, replyToPk string, mentions []string) (dom
 	return s.c.Sender.SendText(ctx, jid, text, reply, mentions...)
 }
 
+// Schedule keeps a text message to send at sendAt (ms).
+func (s *Messages) Schedule(jid, text string, sendAt int64, replyToPk string, mentions []string) (domain.ScheduledMessage, error) {
+	ctx, cancel := call()
+	defer cancel()
+	var reply int64
+	if replyToPk != "" {
+		var err error
+		if reply, err = parsePK(replyToPk); err != nil {
+			return domain.ScheduledMessage{}, err
+		}
+	}
+	return s.c.Schedule.Schedule(ctx, jid, text, sendAt, reply, mentions)
+}
+
+// Scheduled lists a chat's scheduled messages ("" for all chats).
+func (s *Messages) Scheduled(jid string) ([]domain.ScheduledMessage, error) {
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Schedule.List(ctx, jid)
+}
+
+func (s *Messages) Reschedule(id, text string, sendAt int64) error {
+	n, err := parsePK(id)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Schedule.Update(ctx, n, text, sendAt)
+}
+
+func (s *Messages) Unschedule(id string) error {
+	n, err := parsePK(id)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Schedule.Delete(ctx, n)
+}
+
+func (s *Messages) SendScheduledNow(id string) error {
+	n, err := parsePK(id)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Schedule.SendNow(ctx, n)
+}
+
 // SendContacts shares contacts (their JIDs) as contact cards.
 func (s *Messages) SendContacts(jid string, contacts []string) (domain.Message, error) {
 	ctx, cancel := call()

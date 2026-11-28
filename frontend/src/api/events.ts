@@ -36,6 +36,7 @@ export const WA_EVENTS = {
   statusUpdate: 'status:update',
   syncProgress: 'sync:progress',
   toast: 'toast',
+  scheduledChanged: 'scheduled:changed',
 } as const;
 
 export type WaEventName = (typeof WA_EVENTS)[keyof typeof WA_EVENTS];

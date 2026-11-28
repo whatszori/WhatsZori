@@ -35,6 +35,7 @@ import type {
   SearchHit,
   LocationDraft,
   EventDraft,
+  ScheduledMessage,
 } from '../types';
 import { buildChatInfo, createMockDB, preview, refreshChatPreview, type MockDB } from './data';
 import { DEFAULT_GHOST, withDefaults } from '../defaults';
@@ -423,6 +424,27 @@ export class MockBackend implements Backend {
     },
   };
 
+  private sched: ScheduledMessage[] = [];
+  private schedTimer = 0;
+
+  private async sendScheduled(s: ScheduledMessage): Promise<void> {
+    this.sched = this.sched.filter((x) => x.id !== s.id);
+    const m = await this.messages.sendText(s.chatJid, s.text, s.replyToPk);
+    this.emit('msg:batch', { messages: [m] });
+    this.emit('scheduled:changed', { chatJid: s.chatJid });
+  }
+
+  private watchScheduled(): void {
+    if (this.schedTimer) return;
+    this.schedTimer = window.setInterval(() => {
+      for (const s of this.sched.filter((x) => x.sendAt <= Date.now())) void this.sendScheduled(s);
+      if (this.sched.length === 0) {
+        window.clearInterval(this.schedTimer);
+        this.schedTimer = 0;
+      }
+    }, 2000);
+  }
+
   // one of our own messages, sent like text is
   private async own(jid: JID, extra: Partial<Message>): Promise<Message> {
     await this.wait();
@@ -719,6 +741,46 @@ export class MockBackend implements Backend {
           options: options.map((name) => ({ name, votes: 0, mine: false, voters: [] })),
         },
       }),
+    schedule: async (
+      jid: JID,
+      text: string,
+      sendAt: number,
+      replyToPk?: MessagePK,
+    ): Promise<ScheduledMessage> => {
+      await this.wait();
+      if (sendAt <= Date.now()) throw new Error('pick a time in the future');
+      const s: ScheduledMessage = {
+        id: String(this.db.nextPk++),
+        chatJid: jid,
+        text,
+        sendAt,
+        replyToPk,
+      };
+      this.sched.push(s);
+      this.sched.sort((a, b) => a.sendAt - b.sendAt);
+      this.emit('scheduled:changed', { chatJid: jid });
+      this.watchScheduled();
+      return { ...s };
+    },
+    scheduled: async (jid: JID): Promise<ScheduledMessage[]> =>
+      this.sched.filter((s) => !jid || s.chatJid === jid).map((s) => ({ ...s })),
+    reschedule: async (id: string, text: string, sendAt: number): Promise<void> => {
+      const s = this.sched.find((x) => x.id === id);
+      if (!s) throw new Error('that scheduled message is gone');
+      Object.assign(s, { text, sendAt, error: undefined });
+      this.sched.sort((a, b) => a.sendAt - b.sendAt);
+      this.emit('scheduled:changed', { chatJid: s.chatJid });
+    },
+    unschedule: async (id: string): Promise<void> => {
+      const s = this.sched.find((x) => x.id === id);
+      this.sched = this.sched.filter((x) => x.id !== id);
+      if (s) this.emit('scheduled:changed', { chatJid: s.chatJid });
+    },
+    sendScheduledNow: async (id: string): Promise<void> => {
+      const s = this.sched.find((x) => x.id === id);
+      if (!s) throw new Error('that scheduled message is gone');
+      await this.sendScheduled(s);
+    },
     sendEvent: async (jid: JID, e: EventDraft): Promise<Message> =>
       this.own(jid, {
         kind: 'event',

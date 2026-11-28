@@ -49,6 +49,7 @@ export type Checks = [
   Assert<SameKeys<T.EventInfo, Go.EventInfo>>,
   Assert<SameKeys<T.BusinessInfo, Go.BusinessInfo>>,
   Assert<SameKeys<T.LocationDraft, Go.LocationDraft>>,
+  Assert<SameKeys<T.ScheduledMessage, Go.ScheduledMessage>>,
   Assert<SameKeys<T.EventDraft, Go.EventDraft>>,
   Assert<SameKeys<T.BizButton, Go.BizButton>>,
   Assert<SameKeys<T.BizList, Go.BizList>>,
@@ -111,6 +112,7 @@ export type Checks = [
   Assert<SameKeys<Payload<'chat:typing'>, Go.TypingEvent>>,
   Assert<SameKeys<Payload<'sync:progress'>, Go.SyncProgressEvent>>,
   Assert<SameKeys<Payload<'toast'>, Go.ToastEvent>>,
+  Assert<SameKeys<Payload<'scheduled:changed'>, Go.ScheduledChangedEvent>>,
 
   // names: the WA event list, BackendEvents and what Go registered all agree
   Assert<Same<WaEventName | (typeof WZ_EVENTS)[keyof typeof WZ_EVENTS], GeneratedNames>>,

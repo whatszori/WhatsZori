@@ -854,6 +854,26 @@ export interface ReplyRef {
     "text": string;
 }
 
+export interface ScheduledChangedEvent {
+    "chatJid": string;
+}
+
+/**
+ * a message waiting to be sent at a set time
+ */
+export interface ScheduledMessage {
+    "id": string;
+    "chatJid": string;
+    "text": string;
+    "sendAt": number;
+    "replyToPk"?: string;
+
+    /**
+     * why it hasn't gone out (yet): offline, refused, missed
+     */
+    "error"?: string;
+}
+
 export interface SearchHit {
     "chatJid": string;
     "chatName": string;

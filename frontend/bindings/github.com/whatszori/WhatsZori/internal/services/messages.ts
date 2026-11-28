@@ -99,8 +99,26 @@ export function Receipts(pk: string): $CancellablePromise<domain$0.MessageReceip
     return $Call.ByID(2484837465, pk);
 }
 
+export function Reschedule(id: string, text: string, sendAt: number): $CancellablePromise<void> {
+    return $Call.ByID(3772832468, id, text, sendAt);
+}
+
 export function Revoke(pk: string): $CancellablePromise<void> {
     return $Call.ByID(2457255330, pk);
+}
+
+/**
+ * Schedule keeps a text message to send at sendAt (ms).
+ */
+export function Schedule(jid: string, text: string, sendAt: number, replyToPk: string, mentions: string[] | null): $CancellablePromise<domain$0.ScheduledMessage> {
+    return $Call.ByID(4101043313, jid, text, sendAt, replyToPk, mentions);
+}
+
+/**
+ * Scheduled lists a chat's scheduled messages ("" for all chats).
+ */
+export function Scheduled(jid: string): $CancellablePromise<domain$0.ScheduledMessage[] | null> {
+    return $Call.ByID(3805297935, jid);
 }
 
 /**
@@ -147,6 +165,10 @@ export function SendPoll(jid: string, question: string, options: string[] | null
     return $Call.ByID(1363374059, jid, question, options, multiple);
 }
 
+export function SendScheduledNow(id: string): $CancellablePromise<void> {
+    return $Call.ByID(2804651659, id);
+}
+
 /**
  * SendText sends a text message; mentions are the JIDs of group members it mentions ("@<number>"
  * is in the text for each).
@@ -161,6 +183,10 @@ export function SendText(jid: string, text: string, replyToPk: string, mentions:
  */
 export function SendVoice(jid: string, data: string, waveform: number[] | null): $CancellablePromise<domain$0.Message> {
     return $Call.ByID(535195876, jid, data, waveform);
+}
+
+export function Unschedule(id: string): $CancellablePromise<void> {
+    return $Call.ByID(2732391918, id);
 }
 
 /**

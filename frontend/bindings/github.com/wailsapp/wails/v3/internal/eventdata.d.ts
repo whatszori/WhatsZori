@@ -36,6 +36,7 @@ declare module "@wailsio/runtime" {
             "msg:status": domain$0.MsgStatusEvent;
             "notification:open": domain$0.NotificationOpenEvent;
             "presence": domain$0.PresenceEvent;
+            "scheduled:changed": domain$0.ScheduledChangedEvent;
             "status:update": domain$0.StatusUpdateEvent;
             "sync:progress": domain$0.SyncProgressEvent;
             "toast": domain$0.ToastEvent;

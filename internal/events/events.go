@@ -40,6 +40,8 @@ const (
 	StatusUpdate = "status:update"
 	SyncProgress = "sync:progress"
 	Toast        = "toast"
+	// a chat's scheduled messages changed (added, sent, failed, deleted)
+	ScheduledChanged = "scheduled:changed"
 )
 
 // All lists every event name, for the sync test.
@@ -47,6 +49,7 @@ var All = []string{
 	SystemThemeChanged, ThemeChanged, SettingsChanged, ToastShow, ToastWithdraw, PluginChanged,
 	AuthQR, AuthState, AuthError, ConnState, MsgBatch, MsgStatus, MsgEdited, MsgDeleted, MsgReaction, MsgRemoved,
 	ChatUpdate, ChatRemoved, AvatarChange, ChatCleared, ExportProg, NotifyOpen, Presence, ChatTyping, StatusUpdate, SyncProgress, Toast,
+	ScheduledChanged,
 }
 
 func init() {
@@ -78,6 +81,7 @@ func init() {
 	application.RegisterEvent[domain.StatusUpdateEvent](StatusUpdate)
 	application.RegisterEvent[domain.SyncProgressEvent](SyncProgress)
 	application.RegisterEvent[domain.ToastEvent](Toast)
+	application.RegisterEvent[domain.ScheduledChangedEvent](ScheduledChanged)
 }
 
 type Emitter interface {

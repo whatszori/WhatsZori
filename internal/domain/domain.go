@@ -733,3 +733,18 @@ type ToastEvent struct {
 	Kind string `json:"kind"` // error | info
 	Text string `json:"text"`
 }
+
+// a message waiting to be sent at a set time
+type ScheduledMessage struct {
+	ID        string `json:"id"`
+	ChatJID   string `json:"chatJid"`
+	Text      string `json:"text"`
+	SendAt    int64  `json:"sendAt"`
+	ReplyToPK string `json:"replyToPk,omitempty"`
+	// why it hasn't gone out (yet): offline, refused, missed
+	Error string `json:"error,omitempty"`
+}
+
+type ScheduledChangedEvent struct {
+	ChatJID string `json:"chatJid"`
+}

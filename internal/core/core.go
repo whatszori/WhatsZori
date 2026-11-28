@@ -48,6 +48,7 @@ type Core struct {
 	Media    *media.Store
 	Avatars  *avatar.Store
 	Sender   *wa.Sender
+	Schedule *wa.Scheduler
 	JIDs     *wa.JIDs
 	Emit     *events.Batcher
 	settings *settings.Store
@@ -156,6 +157,7 @@ func New(ctx context.Context, o Options) (*Core, error) {
 		Emit:    c.Emit,
 		Log:     o.Log,
 	}
+	c.Schedule = &wa.Scheduler{S: c.Sender}
 	return c, nil
 }
 
@@ -166,6 +168,7 @@ func (c *Core) Start(ctx context.Context) error {
 		// a failed fix leaves data as it was; not worth refusing to start over
 		c.log.Error("backfill", "error", err)
 	}
+	go c.Schedule.Run(ctx)
 	return c.Mgr.Start(ctx)
 }
 

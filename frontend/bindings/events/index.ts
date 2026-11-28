@@ -99,6 +99,11 @@ export const NotificationOpen = "notification:open";
 export const Presence = "presence";
 
 /**
+ * Name of the custom event "scheduled:changed".
+ */
+export const ScheduledChanged = "scheduled:changed";
+
+/**
  * Name of the custom event "status:update".
  */
 export const StatusUpdate = "status:update";

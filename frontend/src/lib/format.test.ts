@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatChatTime,
+  formatDateTime,
   formatDay,
   formatDuration,
   formatFileSize,
@@ -98,5 +99,14 @@ describe('phone', () => {
   });
   it('groups pairing codes', () => {
     expect(formatPairingCode('abcd1234')).toBe('ABCD-1234');
+  });
+});
+
+describe('formatDateTime ahead', () => {
+  it('says tomorrow and weekdays for the coming days', () => {
+    const now = new Date(2026, 10, 28, 12, 0).getTime();
+    expect(formatDateTime(new Date(2026, 10, 29, 9, 0).getTime(), now)).toBe('Tomorrow, 09:00');
+    expect(formatDateTime(new Date(2026, 10, 28, 20, 0).getTime(), now)).toBe('Today, 20:00');
+    expect(formatDateTime(new Date(2026, 11, 1, 9, 0).getTime(), now)).toBe('Tuesday, 09:00');
   });
 });

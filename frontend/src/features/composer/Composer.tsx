@@ -10,6 +10,7 @@ import {
   BarChart3,
   CalendarPlus,
   Check,
+  Clock,
   Contact,
   Image as ImageIcon,
   MapPin,
@@ -28,6 +29,7 @@ import { canEdit, useMessages } from '../../stores/messages';
 import { composerFor, useUI } from '../../stores/ui';
 import { IconButton, Menu, Popover, type PopoverAnchor } from '../../ui';
 import { SendDialog, type SendKind } from './SendDialogs';
+import { ScheduleDialog, ScheduledBar } from './Schedule';
 import { toastError } from '../../stores/toasts';
 import { VoiceRecorder, canRecord } from './VoiceRecorder';
 import { EmojiPicker } from '../emoji/EmojiPicker';
@@ -106,6 +108,8 @@ export function Composer({ chat }: { chat: Chat }) {
   const [emoji, setEmoji] = useState<PopoverAnchor | null>(null);
   const [attachMenu, setAttachMenu] = useState<PopoverAnchor | null>(null);
   const [sendKind, setSendKind] = useState<SendKind | null>(null);
+  const [sendMenu, setSendMenu] = useState<PopoverAnchor | null>(null);
+  const [scheduling, setScheduling] = useState(false);
   const closeEmoji = useCallback(() => setEmoji(null), []);
   const typing = useTypingSignal(jid);
 
@@ -174,6 +178,15 @@ export function Composer({ chat }: { chat: Chat }) {
       });
   };
 
+  // the draft goes out later instead of now; it leaves the box like a sent one does
+  const schedule = async (at: number, value: string) => {
+    const picked = state.mentions ?? {};
+    const out = encodeMentions(toWhatsApp(value.trim()), picked);
+    await backend.messages.schedule(jid, out.text, at, state.replyTo ?? undefined, out.jids);
+    ui.setDraft(jid, '');
+    if (state.replyTo) ui.cancelComposerMode(jid);
+  };
+
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.nativeEvent.isComposing) return;
     if (mentions.onKeyDown(e)) return;
@@ -231,6 +244,7 @@ export function Composer({ chat }: { chat: Chat }) {
 
   return (
     <div className="wz-composer">
+      <ScheduledBar jid={jid} />
       {mentions.view}
       {bar}
       {recording ? (
@@ -300,6 +314,29 @@ export function Composer({ chat }: { chat: Chat }) {
             ]}
           />
           {sendKind && <SendDialog kind={sendKind} jid={jid} onClose={() => setSendKind(null)} />}
+          <Menu
+            open={!!sendMenu}
+            anchor={sendMenu}
+            onClose={() => setSendMenu(null)}
+            label="Send"
+            placement="top-end"
+            items={[
+              {
+                id: 'schedule',
+                label: 'Schedule message…',
+                icon: <Clock size={16} />,
+                onSelect: () => setScheduling(true),
+              },
+            ]}
+          />
+          {scheduling && (
+            <ScheduleDialog
+              title="Schedule message"
+              text={text}
+              onPick={schedule}
+              onClose={() => setScheduling(false)}
+            />
+          )}
           <div
             className={`wz-composer__field${hasFormatting(text) ? ' wz-composer__field--live' : ''}`}
           >
@@ -352,7 +389,12 @@ export function Composer({ chat }: { chat: Chat }) {
           ) : (
             <IconButton
               label={editMsg ? 'Save edit' : 'Send'}
-              hint="Enter"
+              hint={editMsg ? 'Enter' : 'Enter · right-click to schedule'}
+              onContextMenu={(e) => {
+                if (editMsg || !canSend) return;
+                e.preventDefault();
+                setSendMenu(e.currentTarget.getBoundingClientRect());
+              }}
               tooltipPlacement="top"
               className={`wz-composer__send${canSend ? ' wz-composer__send--ready' : ''}`}
               icon={editMsg ? <Check size={18} /> : <SendHorizontal size={18} />}

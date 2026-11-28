@@ -218,6 +218,18 @@ export interface BizCard {
   buttons: BizButton[];
 }
 
+// a message waiting to be sent at a set time
+export interface ScheduledMessage {
+  id: string;
+  chatJid: JID;
+  text: string;
+  // ms
+  sendAt: number;
+  replyToPk?: MessagePK;
+  // why it hasn't gone out (yet): offline, refused, missed
+  error?: string;
+}
+
 // a pin to send
 export interface LocationDraft {
   lat: number;
@@ -700,6 +712,8 @@ export interface BackendEvents extends WzEvents {
   'status:update': { jid: JID };
   'sync:progress': SyncProgress;
   toast: Toast;
+  // a chat's scheduled messages changed (added, sent, failed, deleted)
+  'scheduled:changed': { chatJid: JID };
 }
 
 export type BackendEventName = keyof BackendEvents;

@@ -34,6 +34,7 @@ import type {
   Reaction,
   SearchHit,
   LocationDraft,
+  ScheduledMessage,
   EventDraft,
 } from './types';
 import type { SystemPalette } from './events';
@@ -129,6 +130,19 @@ export interface MessageService {
   // multiple: people may pick more than one option
   sendPoll(jid: JID, question: string, options: string[], multiple: boolean): Promise<Message>;
   sendEvent(jid: JID, event: EventDraft): Promise<Message>;
+  // text to send at sendAt (ms) from this computer
+  schedule(
+    jid: JID,
+    text: string,
+    sendAt: number,
+    replyToPk?: MessagePK,
+    mentions?: JID[],
+  ): Promise<ScheduledMessage>;
+  // a chat's scheduled messages, soonest first ("" for all chats)
+  scheduled(jid: JID): Promise<ScheduledMessage[]>;
+  reschedule(id: string, text: string, sendAt: number): Promise<void>;
+  unschedule(id: string): Promise<void>;
+  sendScheduledNow(id: string): Promise<void>;
   // an incoming voice or video note started playing ("played" receipt, ghost settings permitting)
   played(pk: MessagePK): Promise<void>;
   // jid limits it to one chat

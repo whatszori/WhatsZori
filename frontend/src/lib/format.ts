@@ -106,8 +106,11 @@ export function formatDateTime(ts: number, now = Date.now()): string {
   const d = new Date(ts);
   const ago = daysAgo(ts, now);
   const time = formatTime(ts);
-  if (ago <= 0) return `Today, ${time}`;
+  if (ago === 0) return `Today, ${time}`;
   if (ago === 1) return `Yesterday, ${time}`;
+  // the future (scheduled messages, events)
+  if (ago === -1) return `Tomorrow, ${time}`;
+  if (ago < -1 && ago > -7) return `${WEEKDAYS_LONG[d.getDay()]}, ${time}`;
   const sameYear = d.getFullYear() === new Date(now).getFullYear();
   return `${d.getDate()} ${MONTHS[d.getMonth()]}${sameYear ? '' : ` ${d.getFullYear()}`}, ${time}`;
 }

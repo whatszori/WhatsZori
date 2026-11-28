@@ -64,6 +64,7 @@ import type {
   SearchHit,
   UserTheme,
   LocationDraft,
+  ScheduledMessage,
   EventDraft,
 } from '../types';
 
@@ -181,6 +182,25 @@ export class WailsBackend implements Backend {
       options: string[],
       multiple: boolean,
     ): Promise<Message> => message(await Messages.SendPoll(jid, question, options, multiple)),
+    schedule: async (
+      jid: JID,
+      text: string,
+      sendAt: number,
+      replyToPk?: MessagePK,
+      mentions?: JID[],
+    ): Promise<ScheduledMessage> =>
+      (await Messages.Schedule(
+        jid,
+        text,
+        sendAt,
+        replyToPk ?? '',
+        mentions ?? [],
+      )) as ScheduledMessage,
+    scheduled: async (jid: JID): Promise<ScheduledMessage[]> =>
+      ((await Messages.Scheduled(jid)) ?? []) as ScheduledMessage[],
+    reschedule: (id: string, text: string, sendAt: number) => Messages.Reschedule(id, text, sendAt),
+    unschedule: (id: string) => Messages.Unschedule(id),
+    sendScheduledNow: (id: string) => Messages.SendScheduledNow(id),
     sendEvent: async (jid: JID, event: EventDraft): Promise<Message> =>
       message(await Messages.SendEvent(jid, event)),
     played: (pk: MessagePK) => Messages.Played(pk),
