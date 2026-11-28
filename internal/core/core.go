@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	waStore "go.mau.fi/whatsmeow/store"
@@ -49,11 +50,14 @@ type Core struct {
 	Avatars  *avatar.Store
 	Sender   *wa.Sender
 	Schedule *wa.Scheduler
-	JIDs     *wa.JIDs
-	Emit     *events.Batcher
-	settings *settings.Store
-	log      *slog.Logger
-	cancel   context.CancelFunc
+
+	// when the channel list was last fetched (ms)
+	channelsSynced atomic.Int64
+	JIDs           *wa.JIDs
+	Emit           *events.Batcher
+	settings       *settings.Store
+	log            *slog.Logger
+	cancel         context.CancelFunc
 
 	openFolder func(string) error
 
@@ -219,6 +223,24 @@ func (c *Core) onConnected(cli wa.Client) {
 			c.log.Error("store contacts", "error", err)
 		}
 	}
+	// channels last: one request per channel
+	if err := wa.SyncChannels(ctx, cli, c.In, 30); err != nil {
+		c.log.Warn("channels", "error", redact.Digits(err.Error()))
+	}
+	c.channelsSynced.Store(time.Now().UnixMilli())
+}
+
+// SyncChannels fetches the channels we follow and their newest posts, at most every few minutes.
+func (c *Core) SyncChannels(ctx context.Context) error {
+	if time.Since(time.UnixMilli(c.channelsSynced.Load())) < 5*time.Minute {
+		return nil
+	}
+	cli, err := c.Mgr.Ready()
+	if err != nil {
+		return err
+	}
+	c.channelsSynced.Store(time.Now().UnixMilli())
+	return wa.SyncChannels(ctx, cli, c.In, 30)
 }
 
 // RemoveFiles deletes media files that no message points at anymore.

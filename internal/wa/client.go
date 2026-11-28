@@ -70,6 +70,17 @@ type Client interface {
 	Blocked(ctx context.Context) ([]types.JID, error)
 	SetBlocked(ctx context.Context, jid types.JID, block bool) error
 	LeaveGroup(ctx context.Context, group types.JID) error
+	GetSubGroups(ctx context.Context, community types.JID) ([]*types.GroupLinkTarget, error)
+
+	// channels
+	GetSubscribedNewsletters(ctx context.Context) ([]*types.NewsletterMetadata, error)
+	// before 0 = the newest
+	GetNewsletterPosts(ctx context.Context, jid types.JID, count int, before types.MessageServerID) ([]*types.NewsletterMessage, error)
+	NewsletterSubscribeLiveUpdates(ctx context.Context, jid types.JID) (time.Duration, error)
+	NewsletterSendReaction(ctx context.Context, jid types.JID, serverID types.MessageServerID, reaction string, messageID types.MessageID) error
+	GetNewsletterInfoWithInvite(ctx context.Context, key string) (*types.NewsletterMetadata, error)
+	FollowNewsletter(ctx context.Context, jid types.JID) error
+	UnfollowNewsletter(ctx context.Context, jid types.JID) error
 	SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error
 	RemoveParticipants(ctx context.Context, group types.JID, members []types.JID) error
 }
@@ -347,6 +358,38 @@ func (m *Meow) SetBlocked(ctx context.Context, jid types.JID, block bool) error 
 
 func (m *Meow) SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error {
 	return m.Cli.SetDisappearingTimer(ctx, chat, timer, settingTS)
+}
+
+func (m *Meow) GetSubscribedNewsletters(ctx context.Context) ([]*types.NewsletterMetadata, error) {
+	return m.Cli.GetSubscribedNewsletters(ctx)
+}
+
+func (m *Meow) GetNewsletterPosts(ctx context.Context, jid types.JID, count int, before types.MessageServerID) ([]*types.NewsletterMessage, error) {
+	return m.Cli.GetNewsletterMessages(ctx, jid, &whatsmeow.GetNewsletterMessagesParams{Count: count, Before: before})
+}
+
+func (m *Meow) NewsletterSubscribeLiveUpdates(ctx context.Context, jid types.JID) (time.Duration, error) {
+	return m.Cli.NewsletterSubscribeLiveUpdates(ctx, jid)
+}
+
+func (m *Meow) NewsletterSendReaction(ctx context.Context, jid types.JID, serverID types.MessageServerID, reaction string, messageID types.MessageID) error {
+	return m.Cli.NewsletterSendReaction(ctx, jid, serverID, reaction, messageID)
+}
+
+func (m *Meow) GetNewsletterInfoWithInvite(ctx context.Context, key string) (*types.NewsletterMetadata, error) {
+	return m.Cli.GetNewsletterInfoWithInvite(ctx, key)
+}
+
+func (m *Meow) FollowNewsletter(ctx context.Context, jid types.JID) error {
+	return m.Cli.FollowNewsletter(ctx, jid)
+}
+
+func (m *Meow) UnfollowNewsletter(ctx context.Context, jid types.JID) error {
+	return m.Cli.UnfollowNewsletter(ctx, jid)
+}
+
+func (m *Meow) GetSubGroups(ctx context.Context, community types.JID) ([]*types.GroupLinkTarget, error) {
+	return m.Cli.GetSubGroups(ctx, community)
 }
 
 func (m *Meow) LeaveGroup(ctx context.Context, group types.JID) error {

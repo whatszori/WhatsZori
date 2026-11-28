@@ -15,6 +15,7 @@ import (
 	"github.com/whatszori/WhatsZori/internal/domain"
 	"github.com/whatszori/WhatsZori/internal/events"
 	"github.com/whatszori/WhatsZori/internal/store/repo"
+	"github.com/whatszori/WhatsZori/internal/wa"
 )
 
 // Chat actions beyond the basics: favourites, lists, clear/delete, block, leave, kick, and the
@@ -150,6 +151,91 @@ func (s *Chats) SetDisappearing(jid string, seconds int) error {
 	ctx, cancel := call()
 	defer cancel()
 	return s.c.Sender.SetDisappearing(ctx, jid, seconds)
+}
+
+// SyncChannels refreshes the channels we follow (at most every few minutes).
+func (s *Chats) SyncChannels() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	return s.c.SyncChannels(ctx)
+}
+
+// RefreshChannel fetches a channel's newest posts (older: the page before the oldest we have)
+// and listens for live updates while it's open. It says whether there were any.
+func (s *Chats) RefreshChannel(jid string, older bool) (bool, error) {
+	ctx, cancel := call()
+	defer cancel()
+	cli, err := s.c.Mgr.Ready()
+	if err != nil {
+		return false, err
+	}
+	return wa.RefreshChannel(ctx, cli, s.c.In, s.c.DB, jid, older)
+}
+
+// FollowChannel follows a channel by its link (whatsapp.com/channel/…).
+func (s *Chats) FollowChannel(link string) (domain.Chat, error) {
+	ctx, cancel := call()
+	defer cancel()
+	cli, err := s.c.Mgr.Ready()
+	if err != nil {
+		return domain.Chat{}, err
+	}
+	jid, err := wa.FollowChannel(ctx, cli, s.c.In, link)
+	if err != nil {
+		return domain.Chat{}, err
+	}
+	row, err := repo.GetChat(ctx, s.c.DB, jid)
+	if err != nil {
+		return domain.Chat{}, err
+	}
+	return s.c.View(ctx).Chat(ctx, s.c.DB, row)
+}
+
+// UnfollowChannel stops following a channel; its posts stay here.
+func (s *Chats) UnfollowChannel(jid string) error {
+	ctx, cancel := call()
+	defer cancel()
+	cli, err := s.c.Mgr.Ready()
+	if err != nil {
+		return err
+	}
+	j, err := types.ParseJID(jid)
+	if err != nil || j.Server != types.NewsletterServer {
+		return errors.New("not a channel")
+	}
+	if err := cli.UnfollowNewsletter(ctx, j); err != nil {
+		return fmt.Errorf("couldn't unfollow: %w", err)
+	}
+	if err := repo.SetChannelRole(ctx, s.c.DB, jid, ""); err != nil {
+		return err
+	}
+	s.emitChat(ctx, jid)
+	return nil
+}
+
+// CommunityGroups lists a community's groups, the ones we're in and the ones we aren't.
+func (s *Chats) CommunityGroups(jid string) ([]domain.CommunityGroup, error) {
+	ctx, cancel := call()
+	defer cancel()
+	cli, err := s.c.Mgr.Ready()
+	if err != nil {
+		return nil, err
+	}
+	j, err := types.ParseJID(jid)
+	if err != nil || j.Server != types.GroupServer {
+		return nil, errors.New("not a community")
+	}
+	subs, err := cli.GetSubGroups(ctx, j)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get the community's groups: %w", err)
+	}
+	out := make([]domain.CommunityGroup, 0, len(subs))
+	for _, g := range subs {
+		c, err := repo.GetChat(ctx, s.c.DB, g.JID.String())
+		joined := err == nil && c.MemberCount > 0
+		out = append(out, domain.CommunityGroup{JID: g.JID.String(), Name: g.Name, IsAnnounce: g.IsDefaultSubGroup, Joined: joined})
+	}
+	return out, nil
 }
 
 // Leave leaves a group. The chat and its history stay, like on the phone.

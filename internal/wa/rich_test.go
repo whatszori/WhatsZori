@@ -10,6 +10,7 @@ import (
 
 	"github.com/whatszori/WhatsZori/internal/domain"
 	"github.com/whatszori/WhatsZori/internal/store/repo"
+	"github.com/whatszori/WhatsZori/internal/wa"
 )
 
 func (f *fakeClient) BuildPollCreation(name string, options []string, selectable int) *waE2E.Message {
@@ -60,5 +61,23 @@ func TestSendRich(t *testing.T) {
 	last := e.cli.sent[len(e.cli.sent)-1].msg
 	if len(last.GetMessageContextInfo().GetMessageSecret()) != 32 || m.Event == nil || m.Event.Start != start || m.Event.Place != "Home" {
 		t.Fatalf("event: %+v %+v", m.Event, last.GetMessageContextInfo())
+	}
+}
+
+func TestInviteKey(t *testing.T) {
+	for in, want := range map[string]string{
+		"https://whatsapp.com/channel/0029VaABC": "0029VaABC",
+		"whatsapp.com/channel/0029VaABC/":        "0029VaABC",
+		"https://www.whatsapp.com/channel/K1":    "K1",
+		"0029VaABC":                              "0029VaABC",
+	} {
+		if got, err := wa.InviteKey(in); err != nil || got != want {
+			t.Errorf("InviteKey(%q) = %q, %v", in, got, err)
+		}
+	}
+	for _, bad := range []string{"", "https://example.com/channel/x", "https://whatsapp.com/x/y"} {
+		if _, err := wa.InviteKey(bad); err == nil {
+			t.Errorf("InviteKey(%q) accepted", bad)
+		}
 	}
 }

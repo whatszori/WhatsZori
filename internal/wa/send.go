@@ -348,6 +348,9 @@ func (s *Sender) React(ctx context.Context, pk int64, emoji string) ([]domain.Re
 	if err != nil {
 		return nil, err
 	}
+	if repo.IsChannel(m.ChatJID) {
+		return s.reactToPost(ctx, m, emoji)
+	}
 	jid, err := ForSend(m.ChatJID)
 	if err != nil {
 		return nil, err

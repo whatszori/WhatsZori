@@ -270,8 +270,21 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			}
 			dto.Poll = pollInfo(p, pv, v.Me, func(jid string) string { return v.Name(names[jid], jid) })
 		}
-		for _, r := range reactions[m.ChatJID][m.MsgID] {
-			dto.Reactions = append(dto.Reactions, domain.Reaction{Emoji: r.Emoji, Count: r.Count, Mine: r.Mine})
+		if IsChannel(m.ChatJID) {
+			// counts come from the server; only our own reaction is known by person
+			mine := ""
+			for _, r := range reactions[m.ChatJID][m.MsgID] {
+				if r.Mine {
+					mine = r.Emoji
+				}
+			}
+			dto.Reactions = channelReactions(m.ReactionCounts, mine)
+			dto.Views = m.Views
+			dto.SenderName = ""
+		} else {
+			for _, r := range reactions[m.ChatJID][m.MsgID] {
+				dto.Reactions = append(dto.Reactions, domain.Reaction{Emoji: r.Emoji, Count: r.Count, Mine: r.Mine})
+			}
 		}
 		out = append(out, dto)
 	}
@@ -359,6 +372,17 @@ func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow, l
 		Favorite:     c.Favorite,
 		Lists:        lists[c.JID],
 		Disappearing: c.Disappearing,
+		IsCommunity:  c.IsCommunity,
+		IsAnnounce:   c.IsAnnounce,
+	}
+	if c.ParentJID != "" {
+		dto.Community = &domain.CommunityRef{JID: c.ParentJID}
+		if p, err := GetChat(ctx, q, c.ParentJID); err == nil {
+			dto.Community.Name = p.Name
+		}
+	}
+	if IsChannel(c.JID) {
+		dto.Channel = &domain.ChannelInfo{Followers: c.Followers, Verified: c.Verified, Role: c.ChannelRole}
 	}
 	if dto.Name == "" {
 		if c.JID == v.Me {
@@ -422,7 +446,7 @@ func (v View) Chats(ctx context.Context, q DBTX) ([]domain.Chat, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !dto.IsGroup && dto.LastMessage == nil {
+		if !dto.IsGroup && dto.Channel == nil && dto.LastMessage == nil {
 			continue
 		}
 		out = append(out, dto)

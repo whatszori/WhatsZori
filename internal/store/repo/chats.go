@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 )
 
 type ChatRow struct {
@@ -118,14 +119,21 @@ type GroupMeta struct {
 	CreatedAt   int64
 	CreatedBy   string
 	MemberCount int
+	IsCommunity bool
+	ParentJID   string
+	IsAnnounce  bool
 }
 
 func UpsertGroup(ctx context.Context, q DBTX, g GroupMeta) error {
 	_, err := q.ExecContext(ctx, `
-		INSERT INTO chats (jid, is_group, name, description, created_at, created_by, member_count, last_ts)
-		VALUES (?, 1, ?, ?, ?, ?, ?, ?)
+		INSERT INTO chats (jid, is_group, name, description, created_at, created_by, member_count, last_ts,
+			is_community, parent_jid, is_announce)
+		VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (jid) DO UPDATE SET
 			is_group = 1,
+			is_community = excluded.is_community,
+			parent_jid = excluded.parent_jid,
+			is_announce = excluded.is_announce,
 			name = CASE WHEN excluded.name <> '' THEN excluded.name ELSE chats.name END,
 			description = excluded.description,
 			created_at = excluded.created_at,
@@ -133,7 +141,8 @@ func UpsertGroup(ctx context.Context, q DBTX, g GroupMeta) error {
 			member_count = excluded.member_count,
 			-- a group nobody wrote in yet still sorts by when it was made
 			last_ts = MAX(chats.last_ts, excluded.last_ts)`,
-		g.JID, g.Name, g.Description, g.CreatedAt, g.CreatedBy, g.MemberCount, g.CreatedAt)
+		g.JID, g.Name, g.Description, g.CreatedAt, g.CreatedBy, g.MemberCount, g.CreatedAt,
+		b2i(g.IsCommunity), g.ParentJID, b2i(g.IsAnnounce))
 	return err
 }
 
@@ -206,3 +215,12 @@ func DisappearingOf(ctx context.Context, q DBTX, jid string) (int, int64) {
 	_ = q.QueryRowContext(ctx, `SELECT disappearing, disappearing_at FROM chats WHERE jid = ?`, jid).Scan(&secs, &at)
 	return secs, at
 }
+
+// SetParent links a group to its community ("" unlinks it).
+func SetParent(ctx context.Context, q DBTX, group, parent string) error {
+	_, err := q.ExecContext(ctx, `UPDATE chats SET parent_jid = ? WHERE jid = ?`, parent, group)
+	return err
+}
+
+// IsChannel tells channel JIDs (…@newsletter) apart.
+func IsChannel(jid string) bool { return strings.HasSuffix(jid, "@newsletter") }

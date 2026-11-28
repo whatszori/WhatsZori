@@ -101,6 +101,33 @@ type Chat struct {
 	Online   bool   `json:"online,omitempty"`
 	// disappearing messages timer in seconds, 0 = off (WhatsZori keeps the messages anyway)
 	Disappearing int `json:"disappearing,omitempty"`
+	// a community (the parent of its groups; not a chat of its own)
+	IsCommunity bool `json:"isCommunity,omitempty"`
+	// a group in a community: which one, and whether it's the announcements group
+	Community  *CommunityRef `json:"community,omitempty"`
+	IsAnnounce bool          `json:"isAnnounce,omitempty"`
+	// a channel (WhatsApp's one-way broadcasts)
+	Channel *ChannelInfo `json:"channel,omitempty"`
+}
+
+type CommunityRef struct {
+	JID  string `json:"jid"`
+	Name string `json:"name"`
+}
+
+type ChannelInfo struct {
+	Followers int  `json:"followers"`
+	Verified  bool `json:"verified"`
+	// subscriber, admin, owner, guest
+	Role string `json:"role,omitempty"`
+}
+
+// a group of a community, joined or not
+type CommunityGroup struct {
+	JID        string `json:"jid"`
+	Name       string `json:"name"`
+	IsAnnounce bool   `json:"isAnnounce"`
+	Joined     bool   `json:"joined"`
 }
 
 type GroupMember struct {
@@ -394,8 +421,10 @@ type Message struct {
 	// a "view once" photo, video or voice note; WhatsZori keeps it anyway
 	ViewOnce bool `json:"viewOnce,omitempty"`
 	// sent as a disappearing message (kept here anyway)
-	Disappearing bool       `json:"disappearing,omitempty"`
-	Reactions    []Reaction `json:"reactions"`
+	Disappearing bool `json:"disappearing,omitempty"`
+	// a channel post: how many saw it
+	Views     int        `json:"views,omitempty"`
+	Reactions []Reaction `json:"reactions"`
 	// people mentioned in the text
 	Mentions []Mention `json:"mentions,omitempty"`
 	// a pin or a live location

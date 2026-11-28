@@ -17,6 +17,8 @@ ALTER TABLE chats ADD COLUMN channel_role TEXT NOT NULL DEFAULT '';
 -- a channel post's server id (reactions and views go by it) and its view count
 ALTER TABLE messages ADD COLUMN server_id INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE messages ADD COLUMN views INTEGER NOT NULL DEFAULT 0;
+-- a channel post's reactions: JSON {"emoji": count}; whose they are isn't shared
+ALTER TABLE messages ADD COLUMN reaction_counts TEXT NOT NULL DEFAULT '';
 
 -- messages to send later; sent ones are removed
 CREATE TABLE scheduled (

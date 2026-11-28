@@ -193,6 +193,17 @@ func (in *Ingester) Handle(evt any) error {
 			}
 			return repo.AddGroupEvent(ctx, tx, e.JID.String(), repo.GroupEvent{TS: ms(in.now()), Kind: kind, Actor: actor, Target: in.Me(ctx)})
 		})
+	case *events.NewsletterJoin:
+		return in.run(ctx, func(tx *sql.Tx, fx *effects) error { return in.channel(ctx, tx, fx, &e.NewsletterMetadata) })
+	case *events.NewsletterLeave:
+		return in.run(ctx, func(tx *sql.Tx, fx *effects) error {
+			fx.chats[e.ID.String()] = true
+			return repo.SetChannelRole(ctx, tx, e.ID.String(), "")
+		})
+	case *events.NewsletterLiveUpdate:
+		return in.run(ctx, func(tx *sql.Tx, fx *effects) error {
+			return in.channelStats(ctx, tx, fx, e.JID.String(), e.Messages)
+		})
 	case *events.Pin:
 		return in.chatFlag(ctx, e.JID, func(tx *sql.Tx, jid string) error {
 			return repo.SetPinned(ctx, tx, jid, e.Action.GetPinned())
@@ -367,9 +378,6 @@ func (in *Ingester) learnSource(ctx context.Context, tx *sql.Tx, fx *effects, sr
 
 func skipChat(j types.JID) bool {
 	switch j.Server {
-	case types.NewsletterServer:
-		// channels aren't part of this client yet
-		return true
 	case types.BroadcastServer:
 		// status updates are; broadcast lists show up in the recipients' own chats
 		return j.User != types.StatusBroadcastJID.User
@@ -416,6 +424,10 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		// history sync hands edits over already unwrapped: the original id with the new content
 		return in.edit(ctx, tx, fx, chat, info.ID, sender, info.IsFromMe, msg, ts)
 	}
+	if nm := e.NewsletterMeta; nm != nil && !nm.EditTS.IsZero() {
+		// an edited channel post comes as the new content under the original id
+		return in.edit(ctx, tx, fx, chat, info.ID, sender, info.IsFromMe, msg, ms(nm.EditTS))
+	}
 	if pu := msg.GetPollUpdateMessage(); pu != nil {
 		return in.pollVote(ctx, tx, fx, e, chat, sender, ts)
 	}
@@ -439,8 +451,10 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		ChatJID: chat, MsgID: info.ID, SenderJID: sender, FromMe: info.IsFromMe, PushName: info.PushName, TS: ts,
 		Kind: c.kind, Body: c.body, IsEphemeral: e.IsEphemeral || c.expiration > 0, IsViewOnce: e.IsViewOnce || isViewOnce(msg), Raw: raw,
 		ForwardScore: c.forwardScore,
+		ServerID:     int64(info.ServerID),
 		// history is old news: no read receipts for it later, whatever the ghost mode
-		ReadSent: !live || info.IsFromMe,
+		// and channel posts never get read receipts (we send no "viewed" for them)
+		ReadSent: !live || info.IsFromMe || repo.IsChannel(chat),
 	}
 	if c.quotedID != "" {
 		row.QuotedID = c.quotedID
@@ -521,7 +535,10 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		if err := repo.IncUnread(ctx, tx, chat); err != nil {
 			return err
 		}
-		fx.notify = append(fx.notify, pk)
+		// channel posts are reading matter, not messages to answer: no notifications
+		if !repo.IsChannel(chat) {
+			fx.notify = append(fx.notify, pk)
+		}
 	}
 	fx.msgs = append(fx.msgs, pk)
 	fx.chats[chat] = true
@@ -937,8 +954,13 @@ func (in *Ingester) UpsertGroup(ctx context.Context, tx *sql.Tx, fx *effects, g 
 		}
 		creator = in.jids.Key(ctx, g.OwnerJID)
 	}
+	parent := ""
+	if !g.LinkedParentJID.IsEmpty() {
+		parent = g.LinkedParentJID.String()
+	}
 	if err := repo.UpsertGroup(ctx, tx, repo.GroupMeta{JID: jid, Name: g.Name, Description: g.Topic,
-		CreatedAt: ms(g.GroupCreated), CreatedBy: creator, MemberCount: len(g.Participants)}); err != nil {
+		CreatedAt: ms(g.GroupCreated), CreatedBy: creator, MemberCount: len(g.Participants),
+		IsCommunity: g.IsParent, ParentJID: parent, IsAnnounce: g.IsDefaultSubGroup}); err != nil {
 		return err
 	}
 	if !g.GroupCreated.IsZero() {
@@ -986,6 +1008,27 @@ func (in *Ingester) groupChange(ctx context.Context, tx *sql.Tx, fx *effects, e 
 		if err := repo.SetGroupDescription(ctx, tx, jid, e.Topic.Topic); err != nil {
 			return err
 		}
+	}
+	// a group joined or left a community
+	for _, l := range []*types.GroupLinkChange{e.Link, e.Unlink} {
+		if l == nil || l.Group.JID.IsEmpty() {
+			continue
+		}
+		linked := l == e.Link
+		child, parent := l.Group.JID.String(), jid
+		if l.Type == types.GroupLinkChangeTypeParent {
+			child, parent = jid, l.Group.JID.String()
+		}
+		if !linked {
+			parent = ""
+		}
+		if err := repo.EnsureChat(ctx, tx, child, true); err != nil {
+			return err
+		}
+		if err := repo.SetParent(ctx, tx, child, parent); err != nil {
+			return err
+		}
+		fx.chats[child] = true
 	}
 	if e.Ephemeral != nil {
 		timer := 0
