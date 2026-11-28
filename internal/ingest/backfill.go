@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/whatszori/WhatsZori/internal/store"
@@ -21,6 +22,9 @@ func (in *Ingester) Backfill(ctx context.Context) error {
 		// builds before video-note support stored them as plain videos
 		{"round-videos", backfillRoundVideos},
 		{"gifs", backfillGifs},
+		// stored as "unknown" by builds that didn't know the type yet (events, business messages,
+		// album items); bump the name when a later build learns more types
+		{"recheck-unknown-1", in.recheckUnknown},
 	}
 	for _, f := range fixes {
 		var n int
@@ -78,6 +82,71 @@ func retag(ctx context.Context, tx *sql.Tx, kind string, match func(*waE2E.Messa
 	for _, pk := range round {
 		if _, err := tx.ExecContext(ctx, `UPDATE messages SET kind = ? WHERE pk = ?`, kind, pk); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// recheckUnknown reads "unknown" messages again with what this build knows: ones it can show get
+// their kind, text and media; control messages (album markers) that never were messages go.
+func (in *Ingester) recheckUnknown(ctx context.Context, tx *sql.Tx) error {
+	rows, err := tx.QueryContext(ctx, `SELECT pk, raw FROM messages WHERE kind = ? AND raw IS NOT NULL`, repo.KindUnknown)
+	if err != nil {
+		return err
+	}
+	type found struct {
+		pk  int64
+		msg *waE2E.Message
+	}
+	var list []found
+	for rows.Next() {
+		var f found
+		var raw []byte
+		if err := rows.Scan(&f.pk, &raw); err != nil {
+			rows.Close()
+			return err
+		}
+		var m waE2E.Message
+		if proto.Unmarshal(raw, &m) == nil {
+			f.msg = unwrapMore(&m)
+			list = append(list, f)
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for _, f := range list {
+		if isControl(f.msg) || isMetaOnly(f.msg) {
+			if _, err := tx.ExecContext(ctx, `DELETE FROM messages WHERE pk = ?`, f.pk); err != nil {
+				return err
+			}
+			continue
+		}
+		c := extract(f.msg)
+		if c.kind == repo.KindUnknown {
+			continue
+		}
+		raw, err := proto.Marshal(f.msg)
+		if err != nil {
+			return err
+		}
+		quotedSender := ""
+		if c.quotedSender != "" {
+			if j, err := types.ParseJID(c.quotedSender); err == nil {
+				quotedSender = in.jids.Key(ctx, j)
+			}
+		}
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE messages SET kind = ?, body = ?, raw = ?, quoted_id = ?, quoted_sender = ?, forward_score = ? WHERE pk = ?`,
+			c.kind, c.body, raw, c.quotedID, quotedSender, c.forwardScore, f.pk); err != nil {
+			return err
+		}
+		if c.media != nil {
+			c.media.MessagePK = f.pk
+			if err := repo.UpsertMedia(ctx, tx, *c.media); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

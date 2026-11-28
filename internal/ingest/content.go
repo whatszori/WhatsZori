@@ -36,6 +36,27 @@ func isMetaOnly(msg *waE2E.Message) bool {
 	return proto.Size(c) == 0
 }
 
+// unwrapMore opens wrappers whatsmeow leaves on: an album's photos and videos come inside
+// AssociatedChildMessage, and a group mention inside GroupMentionedMessage.
+func unwrapMore(msg *waE2E.Message) *waE2E.Message {
+	for range 4 {
+		var inner *waE2E.Message
+		switch {
+		case msg.GetAssociatedChildMessage().GetMessage() != nil:
+			inner = msg.GetAssociatedChildMessage().GetMessage()
+		case msg.GetGroupMentionedMessage().GetMessage() != nil:
+			inner = msg.GetGroupMentionedMessage().GetMessage()
+		default:
+			return msg
+		}
+		if inner.MessageContextInfo == nil {
+			inner.MessageContextInfo = msg.MessageContextInfo
+		}
+		msg = inner
+	}
+	return msg
+}
+
 // isControl covers message types that change other messages or state rather than being one.
 func isControl(msg *waE2E.Message) bool {
 	return msg.GetProtocolMessage() != nil || msg.GetReactionMessage() != nil || msg.GetEncReactionMessage() != nil ||

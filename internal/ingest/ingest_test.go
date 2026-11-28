@@ -834,3 +834,40 @@ func TestNotifierGetsOnlyNewIncoming(t *testing.T) {
 		t.Errorf("offline start=%d done=%d", n.offStart, n.offDone)
 	}
 }
+
+func TestBackfillRecheckUnknown(t *testing.T) {
+	ctx := context.Background()
+	e := newEnv(t)
+	tmpl, _ := proto.Marshal(&waE2E.Message{TemplateMessage: &waE2E.TemplateMessage{
+		HydratedTemplate: &waE2E.TemplateMessage_HydratedFourRowTemplate{HydratedContentText: proto.String("Your code")},
+	}})
+	album, _ := proto.Marshal(&waE2E.Message{AlbumMessage: &waE2E.AlbumMessage{ExpectedImageCount: proto.Uint32(2)}})
+	child, _ := proto.Marshal(&waE2E.Message{AssociatedChildMessage: &waE2E.FutureProofMessage{Message: &waE2E.Message{
+		VideoMessage: &waE2E.VideoMessage{Seconds: proto.Uint32(3), DirectPath: proto.String("/v")},
+	}}})
+	odd, _ := proto.Marshal(&waE2E.Message{OrderMessage: &waE2E.OrderMessage{OrderID: proto.String("x")}})
+	repo.EnsureChat(ctx, e.db, alice.String(), false)
+	for id, r := range map[string][]byte{"TMPL": tmpl, "ALBUM": album, "CHILD": child, "ODD": odd} {
+		if _, _, err := repo.InsertMessage(ctx, e.db, &repo.MessageRow{ChatJID: alice.String(), MsgID: id, SenderJID: alice.String(), TS: 1, Kind: repo.KindUnknown, Raw: r}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := e.in.Backfill(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if m := e.msg(t, alice, "TMPL"); m.Kind != repo.KindBusiness || m.Body != "Your code" {
+		t.Errorf("template: %q %q", m.Kind, m.Body)
+	}
+	if m := e.msg(t, alice, "CHILD"); m.Kind != repo.KindVideo {
+		t.Errorf("album video: %q", m.Kind)
+	}
+	if med, err := repo.GetMedia(ctx, e.db, e.msg(t, alice, "CHILD").PK); err != nil || med.DirectPath != "/v" {
+		t.Errorf("album video media: %+v %v", med, err)
+	}
+	if _, err := repo.GetMessageByID(ctx, e.db, alice.String(), "ALBUM"); err == nil {
+		t.Error("album marker kept")
+	}
+	if m := e.msg(t, alice, "ODD"); m.Kind != repo.KindUnknown {
+		t.Errorf("still-unknown type changed to %q", m.Kind)
+	}
+}

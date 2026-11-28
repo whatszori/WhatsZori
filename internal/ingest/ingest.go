@@ -390,7 +390,7 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 	if info.IsFromMe && me != "" {
 		sender = me
 	}
-	msg := e.Message
+	msg := unwrapMore(e.Message)
 	ts := ms(info.Timestamp)
 
 	if pm := msg.GetProtocolMessage(); pm != nil {
