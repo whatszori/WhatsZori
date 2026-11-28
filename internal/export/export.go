@@ -85,6 +85,16 @@ type Message struct {
 	Deleted      *Deleted   `json:"deleted,omitempty"`
 	Edits        []Edit     `json:"edits,omitempty"`
 	Reactions    []Reaction `json:"reactions,omitempty"`
+	// what isn't plain text: a place, contacts, an event, a poll, a business message's buttons
+	Location     *domain.LocationInfo `json:"location,omitempty"`
+	Contacts     []domain.ContactCard `json:"contacts,omitempty"`
+	Event        *domain.EventInfo    `json:"event,omitempty"`
+	Poll         *domain.PollInfo     `json:"poll,omitempty"`
+	Business     *domain.BusinessInfo `json:"business,omitempty"`
+	Disappearing bool                 `json:"disappearing,omitempty"`
+
+	// HTML only: photos and videos sent together are drawn as one grid
+	inAlbum, albumStart, albumEnd bool
 }
 
 type MediaFile struct {
@@ -242,7 +252,13 @@ func (j *Job) Run(ctx context.Context) (string, error) {
 func (j *Job) message(ctx context.Context, r repo.MessageRow, d domain.Message) Message {
 	m := Message{
 		ID: r.MsgID, Time: time.UnixMilli(r.TS), Sender: d.SenderName, SenderJID: r.SenderJID, FromMe: r.FromMe,
-		Kind: r.Kind, Text: r.Body,
+		Kind: r.Kind, Text: domain.MentionNames(d.Text, d.Mentions),
+		Location: d.Location, Contacts: d.Contacts, Event: d.Event, Poll: d.Poll, Business: d.Business,
+		Disappearing: d.Disappearing,
+	}
+	if d.Poll != nil {
+		// the question and options are in Poll
+		m.Text = ""
 	}
 	if d.ReplyTo != nil {
 		m.ReplyTo = &Reply{ID: r.QuotedID, Sender: d.ReplyTo.SenderName, Text: d.ReplyTo.Text}
