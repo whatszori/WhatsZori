@@ -92,6 +92,8 @@ export function SharedMedia({ jid, initial }: { jid: JID; initial: SharedKind })
     const t = window.setTimeout(() => setQuery(typed.trim()), 250);
     return () => window.clearTimeout(t);
   }, [typed]);
+  // the audio tab has nothing to search
+  const q = kind === 'audio' ? '' : query;
   return (
     <div className="wz-shared">
       <div className="wz-shared__tabs">
@@ -114,7 +116,7 @@ export function SharedMedia({ jid, initial }: { jid: JID; initial: SharedKind })
         />
       </div>
       {/* keyed so each tab and search starts from the top with its own list */}
-      <SharedList key={kind + '\u0000' + query} jid={jid} kind={kind} query={query} />
+      <SharedList key={kind + '0000' + q} jid={jid} kind={kind} query={q} />
     </div>
   );
 }
