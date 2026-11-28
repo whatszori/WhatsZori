@@ -18,7 +18,8 @@ import { backend } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { ViewButtons } from '../../plugin-core/host';
 import { ActivityIndicator } from '../../plugin-core/ActivityIndicator';
-import { buildChatList } from '../../stores/chat-selectors';
+import { buildChatList, type ChatFilter } from '../../stores/chat-selectors';
+import { SectionTabs, useSectionTabs } from './SectionTabs';
 import { useChats } from '../../stores/chats';
 import { useUI } from '../../stores/ui';
 import { IconButton, Input, Logo, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
@@ -35,7 +36,12 @@ function markAllRead(): void {
 
 export function ChatListPane({ rail = false }: { rail?: boolean }) {
   const chats = useChats((s) => s.chats);
-  const filter = useChats((s) => s.filter);
+  const chipFilter = useChats((s) => s.filter);
+  const tabs = useSectionTabs();
+  const picked = useChats((s) => s.section);
+  // a tab that went away (hidden, or nothing in it anymore) falls back to chats
+  const section = tabs.includes(picked) ? picked : 'chats';
+  const filter: ChatFilter = section === 'chats' ? chipFilter : section;
   const query = useChats((s) => s.query);
   const showArchived = useChats((s) => s.showArchived);
   const { setQuery, setShowArchived } = useChats.getState();
@@ -112,7 +118,13 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
             <h1 className="wz-chat-pane__title">Archived</h1>
           </>
         ) : rail ? (
-          <h1 className="wz-chat-pane__title wz-chat-pane__title--large">Chats</h1>
+          <h1 className="wz-chat-pane__title wz-chat-pane__title--large">
+            {section === 'channels'
+              ? 'Channels'
+              : section === 'communities'
+                ? 'Communities'
+                : 'Chats'}
+          </h1>
         ) : (
           <Logo className="wz-wordmark" height={22} />
         )}
@@ -189,6 +201,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
         />
       </header>
 
+      {!showArchived && <SectionTabs tabs={tabs} />}
       <div className="wz-chat-pane__tools">
         <Input
           ref={searchRef}
@@ -225,7 +238,7 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
             )
           }
         />
-        {!showArchived && <FilterChips />}
+        {!showArchived && section === 'chats' && <FilterChips />}
       </div>
 
       <ChatList view={list} showArchived={showArchived} query={query} filter={filter} />

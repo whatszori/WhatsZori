@@ -1,0 +1,63 @@
+.wz-sections {
+  display: flex;
+  gap: 2px;
+  margin: 0 12px 6px;
+  padding: 3px;
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-secondary);
+}
+
+.wz-sections__tab {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 6px;
+  overflow: hidden;
+  border-radius: calc(var(--wz-radius-md) - 2px);
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wz-sections__tab:hover {
+  color: var(--wz-text-primary);
+}
+
+.wz-sections__tab--on {
+  background: var(--wz-bg-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  color: var(--wz-text-primary);
+}
+
+.wz-sections__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: var(--wz-accent);
+  vertical-align: 2px;
+}
+
+.wz-sections__hint {
+  margin: 0;
+  max-width: 230px;
+  padding: 6px 12px 2px;
+  color: var(--wz-text-muted);
+  white-space: normal;
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-app--compact .wz-sections {
+  display: none;
+}
+
+/* the toggles in Settings → Appearance */
+.wz-settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

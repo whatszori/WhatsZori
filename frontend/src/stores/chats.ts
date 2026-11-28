@@ -4,10 +4,15 @@ import type { ChatFilter } from './chat-selectors';
 import { toastError } from './toasts';
 import { useUI } from './ui';
 
+// the tabs above the chat list
+export type ChatSection = 'chats' | 'channels' | 'communities';
+
 interface ChatsState {
   chats: Record<JID, Chat>;
   loaded: boolean;
   filter: ChatFilter;
+  // which tab above the chat list is open
+  section: ChatSection;
   query: string;
   showArchived: boolean;
   // chatJid -> senderJid -> senderName
@@ -24,6 +29,7 @@ interface ChatsState {
   upsert(chat: Chat): void;
   remove(jid: JID): void;
   setFilter(filter: ChatFilter): void;
+  setSection(section: ChatSection): void;
   setQuery(query: string): void;
   setShowArchived(show: boolean): void;
   setTyping(chatJid: JID, senderJid: JID, name: string, typing: boolean): void;
@@ -58,6 +64,7 @@ export const useChats = create<ChatsState>((set, get) => {
     chats: {},
     loaded: false,
     filter: 'all',
+    section: 'chats',
     query: '',
     showArchived: false,
     typing: {},
@@ -132,6 +139,7 @@ export const useChats = create<ChatsState>((set, get) => {
         delete chats[jid];
         return { chats };
       }),
+    setSection: (section) => set({ section, showArchived: false }),
     setFilter: (filter) => set({ filter }),
     setQuery: (query) => set({ query }),
     setShowArchived: (showArchived) => set({ showArchived }),

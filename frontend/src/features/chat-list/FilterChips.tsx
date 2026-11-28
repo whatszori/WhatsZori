@@ -74,14 +74,8 @@ export function FilterChips() {
   const row = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setMenu(null), []);
 
-  const hasCommunities = useChats((s) => Object.values(s.chats).some((c) => c.isCommunity));
-  const hasChannels = useChats((s) => Object.values(s.chats).some((c) => c.channel));
-  // right after "All", so they're in sight even when the row has to scroll
   const options: { value: ChatFilter; label: string; list?: number }[] = [
-    BUILT_IN[0],
-    ...(hasChannels ? [{ value: 'channels' as ChatFilter, label: 'Channels' }] : []),
-    ...(hasCommunities ? [{ value: 'communities' as ChatFilter, label: 'Communities' }] : []),
-    ...BUILT_IN.slice(1),
+    ...BUILT_IN,
     ...lists.map((l) => ({ value: `list:${l.id}` as ChatFilter, label: l.name, list: l.id })),
   ];
 

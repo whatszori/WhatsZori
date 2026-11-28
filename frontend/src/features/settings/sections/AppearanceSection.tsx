@@ -7,6 +7,7 @@ import { Bubble } from '../../conversation/Bubble';
 import '../../conversation/Bubble.css';
 import { Group, Page, Row } from './common';
 import { WallpaperRows } from './Wallpaper';
+import { setTabHidden, useHiddenTabs } from '../../chat-list/SectionTabs';
 
 type Appearance = AppSettings['appearance'];
 
@@ -42,6 +43,7 @@ const PREVIEW: Message[] = [
 
 export function AppearanceSection() {
   const a = useSettings((s) => s.settings.appearance);
+  const hidden = useHiddenTabs();
   const update = useSettings((s) => s.update);
   const set = (patch: Partial<Appearance>) =>
     update((s) => ({ ...s, appearance: { ...s.appearance, ...patch } }));
@@ -146,6 +148,26 @@ export function AppearanceSection() {
               { value: 'rail', label: 'Rail' },
             ]}
           />
+        </Row>
+      </Group>
+
+      <Group title="Chat list">
+        <Row
+          label="Tabs"
+          description="Shown above the chat list when you have channels or communities. Right-click a tab to hide it."
+        >
+          <div className="wz-settings-stack">
+            <Toggle
+              label="Channels"
+              checked={!hidden.includes('channels')}
+              onChange={(on) => setTabHidden('channels', !on)}
+            />
+            <Toggle
+              label="Communities"
+              checked={!hidden.includes('communities')}
+              onChange={(on) => setTabHidden('communities', !on)}
+            />
+          </div>
         </Row>
       </Group>
 

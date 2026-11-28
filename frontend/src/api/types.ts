@@ -673,6 +673,8 @@ export interface AppSettings {
     sidebarWidth: number;
     // the chat list as a column of avatars
     sidebarCompact?: boolean;
+    // tabs above the chat list the user hid ('channels', 'communities')
+    hiddenTabs?: string[];
   };
 }
 
