@@ -30,6 +30,73 @@ export interface AvatarChangedEvent {
     "jid": string;
 }
 
+export interface BizButton {
+    /**
+     * reply, url, call, copy, list or other (a flow the app can't run: payments, forms, ...)
+     */
+    "kind": string;
+    "text": string;
+    "id"?: string;
+    "url"?: string;
+    "phone"?: string;
+    "code"?: string;
+
+    /**
+     * the native flow name, for "other"
+     */
+    "name"?: string;
+}
+
+export interface BizCard {
+    "header"?: string;
+    "body"?: string;
+    "footer"?: string;
+    "thumb"?: string;
+    "buttons": BizButton[] | null;
+}
+
+export interface BizList {
+    "button": string;
+    "title"?: string;
+    "sections": BizSection[] | null;
+}
+
+export interface BizRow {
+    "id": string;
+    "title": string;
+    "description"?: string;
+}
+
+export interface BizSection {
+    "title"?: string;
+    "rows": BizRow[] | null;
+}
+
+/**
+ * a business message's parts around the text, and what can be tapped
+ */
+export interface BusinessInfo {
+    "header"?: string;
+    "subtitle"?: string;
+    "footer"?: string;
+
+    /**
+     * a header picture that isn't downloadable media (data: URL)
+     */
+    "thumb"?: string;
+    "buttons": BizButton[] | null;
+
+    /**
+     * what the "list" button opens
+     */
+    "list"?: BizList | null;
+
+    /**
+     * a carousel's cards
+     */
+    "cards"?: BizCard[] | null;
+}
+
 /**
  * one entry of the "Deleted & edited" feed
  */
@@ -441,6 +508,11 @@ export interface Message {
      * an event
      */
     "event"?: EventInfo | null;
+
+    /**
+     * buttons, lists and the like from business accounts
+     */
+    "business"?: BusinessInfo | null;
 }
 
 /**

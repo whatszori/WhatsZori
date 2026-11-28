@@ -77,6 +77,7 @@ const SEEDS: ChatSeed[] = [
     ago: 18,
   },
   { name: 'Mark Ellison', topic: 'work', count: 60, ago: 75, lastSeenAgo: 70 },
+  { name: 'Northwind Coffee', topic: 'work', count: 0, ago: 95, lastSeenAgo: null },
   { name: '山田太郎', topic: 'ja-work', count: 24, unread: 1, ago: 130, lastSeenAgo: null },
   { name: 'Мама', topic: 'mum', count: 50, ago: 160, lastSeenAgo: 150 },
   { name: 'Sophie Laurent', topic: 'work', count: 30, ago: 300, lastSeenAgo: 280 },
@@ -747,6 +748,58 @@ const TAILS: Record<string, Tail> = {
       k.add(mum, 58, { text: 'Миша, плед у неё уже есть, давайте фотокнигу 😊' });
       k.add(misha, 57, { text: 'Ок, тогда фотокнига. Оля, сделаешь макет?' });
       k.add(olya, 55, { text: 'Сделаю, скидывайте фотки до пятницы' });
+    },
+  },
+
+  'Northwind Coffee': {
+    from: 100,
+    unread: 0,
+    build: (k) => {
+      const shop = k.p('Northwind Coffee');
+      k.add(k.me, 100, { text: 'Hi! Do you have oat milk?' });
+      k.add(shop, 99, {
+        text: 'Hi there 👋 Yes, oat, almond and soy. What would you like to do?',
+        business: {
+          header: 'Northwind Coffee',
+          footer: 'Replies usually within a few minutes',
+          buttons: [
+            { kind: 'reply', text: 'Order for pickup', id: 'pickup' },
+            { kind: 'reply', text: 'Talk to a barista', id: 'human' },
+            { kind: 'url', text: 'See the menu', url: 'https://example.com/menu' },
+          ],
+        },
+      });
+      k.add(shop, 97, {
+        text: 'Pick a drink and we will start making it when you are 5 minutes away.',
+        business: {
+          header: 'Pickup order',
+          buttons: [{ kind: 'list', text: 'Choose a drink' }],
+          list: {
+            button: 'Choose a drink',
+            title: 'Drinks',
+            sections: [
+              {
+                title: 'Coffee',
+                rows: [
+                  { id: 'flat-white', title: 'Flat white', description: 'Double shot, oat milk' },
+                  { id: 'cappuccino', title: 'Cappuccino', description: 'Single shot' },
+                ],
+              },
+              { title: 'Not coffee', rows: [{ id: 'matcha', title: 'Matcha latte' }] },
+            ],
+          },
+        },
+      });
+      k.add(shop, 96, {
+        text: 'Your welcome code: 10% off the first order',
+        business: {
+          footer: 'Valid until Sunday',
+          buttons: [
+            { kind: 'copy', text: 'Copy code', code: 'NORTH10' },
+            { kind: 'other', text: 'Pay now', name: 'review_and_pay' },
+          ],
+        },
+      });
     },
   },
 

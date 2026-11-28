@@ -494,7 +494,7 @@ func (in *Ingester) message(ctx context.Context, tx *sql.Tx, fx *effects, e *eve
 		// view-once media are fetched right away whatever the setting: the server drops them soon
 		// so are statuses: they're gone after a day
 		status := chat == repo.StatusChat
-		if c.media.DirectPath != "" && (status || live && (row.IsViewOnce || in.policy().AutoDownload && autoDownloadable(c.kind, c.media.Size))) {
+		if c.media.DirectPath != "" && (status || live && (row.IsViewOnce || in.policy().AutoDownload && autoDownloadable(mediaKind(c), c.media.Size))) {
 			fx.downloads = append(fx.downloads, pk)
 		}
 	}
@@ -519,6 +519,14 @@ const AutoDownloadLimit = 16 << 20
 // isViewOnce catches view-once media that come without the ViewOnceMessage wrapper.
 func isViewOnce(msg *waE2E.Message) bool {
 	return msg.GetImageMessage().GetViewOnce() || msg.GetVideoMessage().GetViewOnce() || msg.GetAudioMessage().GetViewOnce()
+}
+
+// mediaKind is the kind for downloading: a business message's header picture counts as a picture.
+func mediaKind(c content) string {
+	if c.kind == repo.KindBusiness && c.media != nil && c.media.MediaType == "image" {
+		return repo.KindImage
+	}
+	return c.kind
 }
 
 func autoDownloadable(kind string, size int64) bool {

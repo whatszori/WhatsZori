@@ -277,7 +277,7 @@ func TestReplyAndMediaAndUnknown(t *testing.T) {
 		JPEGThumbnail: []byte{0xff, 0xd8},
 	}}}
 	e.handle(t, img)
-	odd := &events.Message{Info: info(group, bob, "ODD"), Message: &waE2E.Message{ButtonsResponseMessage: &waE2E.ButtonsResponseMessage{SelectedButtonID: proto.String("x")}}}
+	odd := &events.Message{Info: info(group, bob, "ODD"), Message: &waE2E.Message{OrderMessage: &waE2E.OrderMessage{OrderID: proto.String("x")}}}
 	e.handle(t, odd)
 	meta := &events.Message{Info: info(group, bob, "META"), Message: &waE2E.Message{SenderKeyDistributionMessage: &waE2E.SenderKeyDistributionMessage{GroupID: proto.String("g")}}}
 	e.handle(t, meta)

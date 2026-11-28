@@ -51,6 +51,8 @@ const (
 	KindLocation = "location"
 	KindContact  = "contact"
 	KindEvent    = "event"
+	// buttons, lists, templates: shown as text plus BusinessInfo
+	KindBusiness = "business"
 	KindPoll     = "poll"
 	KindUnknown  = "unknown"
 )

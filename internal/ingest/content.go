@@ -2,7 +2,6 @@ package ingest
 
 import (
 	"fmt"
-	"strings"
 
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"google.golang.org/protobuf/proto"
@@ -127,21 +126,49 @@ func extract(msg *waE2E.Message) content {
 		m := msg.GetEventInviteMessage()
 		c.kind, ctx = repo.KindEvent, m
 		c.body = "📅 " + firstNonEmpty(m.GetEventTitle(), "Event")
+	case msg.ButtonsMessage != nil:
+		m := msg.GetButtonsMessage()
+		c.kind, ctx = repo.KindBusiness, m
+		c.body = firstNonEmpty(m.GetContentText(), m.GetText())
+		c.media = headerMedia(m.GetImageMessage(), m.GetVideoMessage(), m.GetDocumentMessage())
+	case msg.ListMessage != nil:
+		m := msg.GetListMessage()
+		c.kind, ctx = repo.KindBusiness, m
+		c.body = firstNonEmpty(m.GetDescription(), m.GetTitle())
+	case msg.InteractiveMessage != nil:
+		m := msg.GetInteractiveMessage()
+		c.kind, ctx = repo.KindBusiness, m
+		c.body = firstNonEmpty(m.GetBody().GetText(), m.GetHeader().GetTitle())
+		h := m.GetHeader()
+		c.media = headerMedia(h.GetImageMessage(), h.GetVideoMessage(), h.GetDocumentMessage())
 	case msg.TemplateMessage != nil:
-		// business templates: their text, the buttons can't do anything here
 		m := msg.GetTemplateMessage()
+		c.kind, ctx = repo.KindBusiness, m
+		if it := m.GetInteractiveMessageTemplate(); it != nil {
+			c.body = firstNonEmpty(it.GetBody().GetText(), it.GetHeader().GetTitle())
+			h := it.GetHeader()
+			c.media = headerMedia(h.GetImageMessage(), h.GetVideoMessage(), h.GetDocumentMessage())
+			break
+		}
 		h := m.GetHydratedTemplate()
 		if h == nil {
 			h = m.GetHydratedFourRowTemplate()
 		}
-		var parts []string
-		for _, s := range []string{h.GetHydratedTitleText(), h.GetHydratedContentText(), h.GetHydratedFooterText()} {
-			if s != "" {
-				parts = append(parts, s)
-			}
-		}
-		c.kind, ctx = repo.KindText, m
-		c.body = strings.Join(parts, "\n")
+		c.body = firstNonEmpty(h.GetHydratedContentText(), h.GetHydratedTitleText())
+		c.media = headerMedia(h.GetImageMessage(), h.GetVideoMessage(), h.GetDocumentMessage())
+	// answers to business messages (ours and other people's) read as text replies
+	case msg.ButtonsResponseMessage != nil:
+		m := msg.GetButtonsResponseMessage()
+		c.kind, c.body, ctx = repo.KindText, m.GetSelectedDisplayText(), m
+	case msg.TemplateButtonReplyMessage != nil:
+		m := msg.GetTemplateButtonReplyMessage()
+		c.kind, c.body, ctx = repo.KindText, m.GetSelectedDisplayText(), m
+	case msg.ListResponseMessage != nil:
+		m := msg.GetListResponseMessage()
+		c.kind, c.body, ctx = repo.KindText, firstNonEmpty(m.GetTitle(), m.GetDescription()), m
+	case msg.InteractiveResponseMessage != nil:
+		m := msg.GetInteractiveResponseMessage()
+		c.kind, c.body, ctx = repo.KindText, m.GetBody().GetText(), m
 	case msg.EventMessage != nil:
 		m := msg.GetEventMessage()
 		c.kind, ctx = repo.KindEvent, m
@@ -189,6 +216,19 @@ func textOf(msg *waE2E.Message) string {
 		return msg.GetDocumentMessage().GetCaption()
 	}
 	return ""
+}
+
+// headerMedia is the picture, video or file in a business message's header, as media of its own.
+func headerMedia(img *waE2E.ImageMessage, vid *waE2E.VideoMessage, doc *waE2E.DocumentMessage) *repo.MediaRow {
+	switch {
+	case img != nil:
+		return extract(&waE2E.Message{ImageMessage: img}).media
+	case vid != nil:
+		return extract(&waE2E.Message{VideoMessage: vid}).media
+	case doc != nil:
+		return extract(&waE2E.Message{DocumentMessage: doc}).media
+	}
+	return nil
 }
 
 func firstNonEmpty(s ...string) string {

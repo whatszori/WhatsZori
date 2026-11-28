@@ -9,6 +9,7 @@ import { formatters, useRegistry } from '../../plugin-core/registry';
 import type { PopoverAnchor } from '../../ui';
 import { Marked } from '../search/MessageHits';
 import { MediaBlock } from './Media';
+import { BusinessFooter, BusinessHeader } from './Business';
 import { ContactCards, EventCard } from './Cards';
 import { LocationCard } from './Location';
 import { Poll } from './Poll';
@@ -264,6 +265,7 @@ export const Bubble = memo(function Bubble({
                   <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
                 )
               )}
+              {m.business && !m.deleted && <BusinessHeader m={m} />}
               {m.contacts && m.contacts.length > 0 && !m.deleted && <ContactCards m={m} />}
               {m.event && !m.deleted && <EventCard m={m} />}
               {(m.contacts?.length || m.event) && !m.deleted && !m.text && (
@@ -289,6 +291,7 @@ export const Bubble = memo(function Bubble({
                   </p>
                 )
               )}
+              {m.business && !m.deleted && <BusinessFooter m={m} />}
             </div>
           )}
 

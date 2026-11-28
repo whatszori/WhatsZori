@@ -168,6 +168,56 @@ export interface EventInfo {
   cover?: string;
 }
 
+// a business message's parts around the text, and what can be tapped
+export interface BusinessInfo {
+  header?: string;
+  subtitle?: string;
+  footer?: string;
+  // a header picture that isn't downloadable media (data: URL)
+  thumb?: string;
+  buttons: BizButton[];
+  // what the "list" button opens
+  list?: BizList;
+  // a carousel's cards
+  cards?: BizCard[];
+}
+
+export interface BizButton {
+  // other = a flow the app can't run (payments, forms, ...)
+  kind: 'reply' | 'url' | 'call' | 'copy' | 'list' | 'other' | (string & {});
+  text: string;
+  id?: string;
+  url?: string;
+  phone?: string;
+  code?: string;
+  name?: string;
+}
+
+export interface BizList {
+  button: string;
+  title?: string;
+  sections: BizSection[];
+}
+
+export interface BizSection {
+  title?: string;
+  rows: BizRow[];
+}
+
+export interface BizRow {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface BizCard {
+  header?: string;
+  body?: string;
+  footer?: string;
+  thumb?: string;
+  buttons: BizButton[];
+}
+
 // a pin or a live location
 export interface LocationInfo {
   lat: number;
@@ -327,6 +377,8 @@ export interface Message {
   // shared contacts
   contacts?: ContactCard[];
   event?: EventInfo;
+  // buttons, lists and the like from business accounts
+  business?: BusinessInfo;
 }
 
 export type ChangeKind = '' | 'deleted' | 'edited';

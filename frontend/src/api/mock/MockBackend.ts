@@ -648,6 +648,16 @@ export class MockBackend implements Backend {
       }
       return n;
     },
+    answer: async (pk: MessagePK, id: string): Promise<Message> => {
+      const m = this.byPk.get(pk);
+      const b = m?.business;
+      if (!m || !b) throw new Error('Not a business message');
+      const text =
+        b.buttons.find((x) => x.kind === 'reply' && x.id === id)?.text ??
+        b.list?.sections.flatMap((s) => s.rows).find((r) => r.id === id)?.title;
+      if (!text) throw new Error("That button isn't in this message");
+      return this.messages.sendText(m.chatJid, text, pk);
+    },
     vote: async (pk: MessagePK, options: string[]): Promise<void> => {
       await this.wait();
       const m = this.byPk.get(pk);

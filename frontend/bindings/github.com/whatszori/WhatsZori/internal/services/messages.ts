@@ -13,6 +13,13 @@ import * as domain$0 from "../domain/models.js";
 import * as uploads$0 from "../uploads/models.js";
 
 /**
+ * Answer taps a reply button or picks a list row (by its id) of a business message.
+ */
+export function Answer(pk: string, id: string): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(174984046, pk, id);
+}
+
+/**
  * Changes is the "Deleted & edited" feed. kind: "deleted", "edited" or "" for both; pass the last
  * item's at and pk to get the next page.
  */

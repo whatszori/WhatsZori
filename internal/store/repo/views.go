@@ -209,6 +209,13 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 				if cards := contactCards(m.Raw); len(cards) > 0 {
 					dto.Contacts, dto.Text = cards, ""
 				}
+			case KindBusiness:
+				if b, _ := BusinessOf(m.Raw); b != nil {
+					if b.Header == dto.Text {
+						b.Header = ""
+					}
+					dto.Business = b
+				}
 			case KindEvent, KindUnknown:
 				// unknown: events stored before the app knew the invite form
 				if ev := eventInfo(m.Raw); ev != nil {
@@ -228,6 +235,10 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			dto.Media = mediaInfo(med, m)
 			// the caption is the text; the media block shows it below the picture
 			dto.Text = m.Body
+			if m.Kind == KindBusiness {
+				// a business message with a picture, video or file in its header
+				dto.Kind = UIKind(med.MediaType)
+			}
 		}
 		if m.IsDeleted {
 			dto.Deleted = &domain.DeletedInfo{ByJID: m.DeletedBy, ByName: name(m.DeletedBy, ""), At: m.DeletedAt}

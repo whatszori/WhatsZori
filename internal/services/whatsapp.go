@@ -308,6 +308,17 @@ func (s *Messages) SendText(jid, text, replyToPk string, mentions []string) (dom
 	return s.c.Sender.SendText(ctx, jid, text, reply, mentions...)
 }
 
+// Answer taps a reply button or picks a list row (by its id) of a business message.
+func (s *Messages) Answer(pk, id string) (domain.Message, error) {
+	n, err := parsePK(pk)
+	if err != nil {
+		return domain.Message{}, err
+	}
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.Answer(ctx, n, id)
+}
+
 func (s *Messages) Edit(pk, text string) error {
 	ctx, cancel := call()
 	defer cancel()

@@ -166,6 +166,8 @@ export class WailsBackend implements Backend {
     revoke: (pk: MessagePK) => Messages.Revoke(pk),
     forward: (pks: MessagePK[], jids: JID[]): Promise<number> => Messages.Forward(pks, jids),
     vote: (pk: MessagePK, options: string[]) => Messages.Vote(pk, options),
+    answer: async (pk: MessagePK, id: string): Promise<Message> =>
+      message(await Messages.Answer(pk, id)),
     played: (pk: MessagePK) => Messages.Played(pk),
     changes: async (
       kind: ChangeKind,

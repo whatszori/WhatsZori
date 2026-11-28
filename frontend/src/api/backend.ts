@@ -117,6 +117,8 @@ export interface MessageService {
   react(pk: MessagePK, emoji: string): Promise<Reaction[]>;
   // our vote on a poll, by option name; [] takes it back
   vote(pk: MessagePK, options: string[]): Promise<void>;
+  // tap a reply button or pick a list row (by id) of a business message; the answer is sent
+  answer(pk: MessagePK, id: string): Promise<Message>;
   // an incoming voice or video note started playing ("played" receipt, ghost settings permitting)
   played(pk: MessagePK): Promise<void>;
   // jid limits it to one chat

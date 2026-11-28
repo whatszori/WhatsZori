@@ -280,6 +280,57 @@ type EventInfo struct {
 	Cover string `json:"cover,omitempty"`
 }
 
+// a business message's parts around the text, and what can be tapped
+type BusinessInfo struct {
+	Header   string `json:"header,omitempty"`
+	Subtitle string `json:"subtitle,omitempty"`
+	Footer   string `json:"footer,omitempty"`
+	// a header picture that isn't downloadable media (data: URL)
+	Thumb   string      `json:"thumb,omitempty"`
+	Buttons []BizButton `json:"buttons"`
+	// what the "list" button opens
+	List *BizList `json:"list,omitempty"`
+	// a carousel's cards
+	Cards []BizCard `json:"cards,omitempty"`
+}
+
+type BizButton struct {
+	// reply, url, call, copy, list or other (a flow the app can't run: payments, forms, ...)
+	Kind  string `json:"kind"`
+	Text  string `json:"text"`
+	ID    string `json:"id,omitempty"`
+	URL   string `json:"url,omitempty"`
+	Phone string `json:"phone,omitempty"`
+	Code  string `json:"code,omitempty"`
+	// the native flow name, for "other"
+	Name string `json:"name,omitempty"`
+}
+
+type BizList struct {
+	Button   string       `json:"button"`
+	Title    string       `json:"title,omitempty"`
+	Sections []BizSection `json:"sections"`
+}
+
+type BizSection struct {
+	Title string   `json:"title,omitempty"`
+	Rows  []BizRow `json:"rows"`
+}
+
+type BizRow struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+}
+
+type BizCard struct {
+	Header  string      `json:"header,omitempty"`
+	Body    string      `json:"body,omitempty"`
+	Footer  string      `json:"footer,omitempty"`
+	Thumb   string      `json:"thumb,omitempty"`
+	Buttons []BizButton `json:"buttons"`
+}
+
 type ReplyRef struct {
 	PK         string      `json:"pk"`
 	SenderName string      `json:"senderName"`
@@ -331,6 +382,8 @@ type Message struct {
 	Contacts []ContactCard `json:"contacts,omitempty"`
 	// an event
 	Event *EventInfo `json:"event,omitempty"`
+	// buttons, lists and the like from business accounts
+	Business *BusinessInfo `json:"business,omitempty"`
 }
 
 type PollOption struct {
