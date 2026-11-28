@@ -218,6 +218,24 @@ export interface BizCard {
   buttons: BizButton[];
 }
 
+// a pin to send
+export interface LocationDraft {
+  lat: number;
+  lon: number;
+  name: string;
+  address: string;
+}
+
+// an event to send; times in ms, end 0 = no end time
+export interface EventDraft {
+  name: string;
+  description: string;
+  start: number;
+  end: number;
+  place: string;
+  joinLink: string;
+}
+
 // a pin or a live location
 export interface LocationInfo {
   lat: number;

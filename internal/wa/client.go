@@ -64,6 +64,7 @@ type Client interface {
 	// polls: votes come encrypted with the poll's message secret, which whatsmeow keeps
 	DecryptPollVote(ctx context.Context, vote *events.Message) (*waE2E.PollVoteMessage, error)
 	BuildPollVote(ctx context.Context, poll *types.MessageInfo, options []string) (*waE2E.Message, error)
+	BuildPollCreation(name string, options []string, selectable int) *waE2E.Message
 
 	// Blocked lists who we blocked; SetBlocked blocks or unblocks one person.
 	Blocked(ctx context.Context) ([]types.JID, error)
@@ -288,6 +289,10 @@ func (m *Meow) DecryptPollVote(ctx context.Context, vote *events.Message) (*waE2
 }
 func (m *Meow) BuildPollVote(ctx context.Context, poll *types.MessageInfo, options []string) (*waE2E.Message, error) {
 	return m.Cli.BuildPollVote(ctx, poll, options)
+}
+
+func (m *Meow) BuildPollCreation(name string, options []string, selectable int) *waE2E.Message {
+	return m.Cli.BuildPollCreation(name, options, selectable)
 }
 
 func (m *Meow) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error) {

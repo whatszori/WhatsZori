@@ -36,6 +36,8 @@ interface MessagesState {
   send(jid: JID, text: string, replyToPk?: MessagePK, mentions?: JID[]): Promise<boolean>;
   // a business message's reply button or list row
   answer(jid: JID, pk: MessagePK, id: string): Promise<void>;
+  // a contact, place, poll or event: run sends it, the result goes into the chat
+  sendRich(jid: JID, run: () => Promise<Message>): Promise<boolean>;
   // a message we sent some other way (an attachment from the preview)
   addSent(jid: JID, m: Message): void;
   sendVoice(jid: JID, recording: Blob, waveform: number[]): Promise<void>;
@@ -135,6 +137,17 @@ export const useMessages = create<MessagesState>((set, get) => {
     async send(jid, text, replyToPk, mentions) {
       try {
         const m = await backend.messages.sendText(jid, text, replyToPk, mentions);
+        updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
+        return true;
+      } catch (err) {
+        toastError(err, 'Not sent');
+        return false;
+      }
+    },
+
+    async sendRich(jid, run) {
+      try {
+        const m = await run();
         updateChat(jid, (c) => ({ ...c, items: mergeByPk(c.items, [m]) }));
         return true;
       } catch (err) {

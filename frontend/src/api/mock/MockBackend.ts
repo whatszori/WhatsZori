@@ -33,6 +33,8 @@ import type {
   MessagePage,
   Reaction,
   SearchHit,
+  LocationDraft,
+  EventDraft,
 } from '../types';
 import { buildChatInfo, createMockDB, preview, refreshChatPreview, type MockDB } from './data';
 import { DEFAULT_GHOST, withDefaults } from '../defaults';
@@ -421,6 +423,28 @@ export class MockBackend implements Backend {
     },
   };
 
+  // one of our own messages, sent like text is
+  private async own(jid: JID, extra: Partial<Message>): Promise<Message> {
+    await this.wait();
+    const m: Message = {
+      pk: String(this.db.nextPk++),
+      id: `3EB0OUT${this.db.nextPk}`,
+      chatJid: jid,
+      senderJid: this.db.me.jid,
+      senderName: this.db.me.name,
+      fromMe: true,
+      timestamp: Date.now(),
+      kind: 'text',
+      text: '',
+      status: 'pending',
+      reactions: [],
+      ...extra,
+    };
+    this.insert(m);
+    this.progressStatus(m);
+    return clone(m);
+  }
+
   contacts = {
     list: async (): Promise<Contact[]> => {
       await this.wait();
@@ -656,6 +680,59 @@ export class MockBackend implements Backend {
       }
       return n;
     },
+    sendContacts: async (jid: JID, contacts: JID[]): Promise<Message> =>
+      this.own(jid, {
+        kind: 'contact',
+        contacts: contacts.map((c) => {
+          const n = c.split('@')[0];
+          return {
+            name: this.db.chats.get(c)?.name ?? '+' + n,
+            phones: [{ number: '+' + n, label: 'cell', waid: n, jid: c }],
+            emails: [],
+          };
+        }),
+      }),
+    sendLocation: async (jid: JID, p: LocationDraft): Promise<Message> =>
+      this.own(jid, {
+        kind: 'location',
+        location: {
+          lat: p.lat,
+          lon: p.lon,
+          name: p.name || undefined,
+          address: p.address || undefined,
+          live: false,
+        },
+      }),
+    sendPoll: async (
+      jid: JID,
+      question: string,
+      options: string[],
+      multiple: boolean,
+    ): Promise<Message> =>
+      this.own(jid, {
+        kind: 'poll',
+        text: question,
+        poll: {
+          name: question,
+          selectable: multiple ? 0 : 1,
+          totalVoters: 0,
+          options: options.map((name) => ({ name, votes: 0, mine: false, voters: [] })),
+        },
+      }),
+    sendEvent: async (jid: JID, e: EventDraft): Promise<Message> =>
+      this.own(jid, {
+        kind: 'event',
+        event: {
+          name: e.name,
+          description: e.description || undefined,
+          start: e.start,
+          end: e.end || undefined,
+          place: e.place || undefined,
+          joinLink: e.joinLink || undefined,
+          canceled: false,
+          call: false,
+        },
+      }),
     answer: async (pk: MessagePK, id: string): Promise<Message> => {
       const m = this.byPk.get(pk);
       const b = m?.business;

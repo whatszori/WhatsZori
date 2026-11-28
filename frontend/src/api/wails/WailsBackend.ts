@@ -63,6 +63,8 @@ import type {
   Reaction,
   SearchHit,
   UserTheme,
+  LocationDraft,
+  EventDraft,
 } from '../types';
 
 const SETTINGS_KEY = 'app';
@@ -169,6 +171,18 @@ export class WailsBackend implements Backend {
     vote: (pk: MessagePK, options: string[]) => Messages.Vote(pk, options),
     answer: async (pk: MessagePK, id: string): Promise<Message> =>
       message(await Messages.Answer(pk, id)),
+    sendContacts: async (jid: JID, contacts: JID[]): Promise<Message> =>
+      message(await Messages.SendContacts(jid, contacts)),
+    sendLocation: async (jid: JID, place: LocationDraft): Promise<Message> =>
+      message(await Messages.SendLocation(jid, place)),
+    sendPoll: async (
+      jid: JID,
+      question: string,
+      options: string[],
+      multiple: boolean,
+    ): Promise<Message> => message(await Messages.SendPoll(jid, question, options, multiple)),
+    sendEvent: async (jid: JID, event: EventDraft): Promise<Message> =>
+      message(await Messages.SendEvent(jid, event)),
     played: (pk: MessagePK) => Messages.Played(pk),
     changes: async (
       kind: ChangeKind,

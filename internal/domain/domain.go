@@ -333,6 +333,24 @@ type BizCard struct {
 	Buttons []BizButton `json:"buttons"`
 }
 
+// a pin to send
+type LocationDraft struct {
+	Lat     float64 `json:"lat"`
+	Lon     float64 `json:"lon"`
+	Name    string  `json:"name"`
+	Address string  `json:"address"`
+}
+
+// an event to send; times in ms, End 0 = no end time
+type EventDraft struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Start       int64  `json:"start"`
+	End         int64  `json:"end"`
+	Place       string `json:"place"`
+	JoinLink    string `json:"joinLink"`
+}
+
 type ReplyRef struct {
 	PK         string      `json:"pk"`
 	SenderName string      `json:"senderName"`

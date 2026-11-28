@@ -308,6 +308,34 @@ func (s *Messages) SendText(jid, text, replyToPk string, mentions []string) (dom
 	return s.c.Sender.SendText(ctx, jid, text, reply, mentions...)
 }
 
+// SendContacts shares contacts (their JIDs) as contact cards.
+func (s *Messages) SendContacts(jid string, contacts []string) (domain.Message, error) {
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.SendContacts(ctx, jid, contacts)
+}
+
+// SendLocation sends a pin.
+func (s *Messages) SendLocation(jid string, p domain.LocationDraft) (domain.Message, error) {
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.SendLocation(ctx, jid, p)
+}
+
+// SendPoll sends a poll; multiple allows more than one answer per person.
+func (s *Messages) SendPoll(jid, question string, options []string, multiple bool) (domain.Message, error) {
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.SendPoll(ctx, jid, question, options, multiple)
+}
+
+// SendEvent sends an event.
+func (s *Messages) SendEvent(jid string, e domain.EventDraft) (domain.Message, error) {
+	ctx, cancel := call()
+	defer cancel()
+	return s.c.Sender.SendEvent(ctx, jid, e)
+}
+
 // Answer taps a reply button or picks a list row (by its id) of a business message.
 func (s *Messages) Answer(pk, id string) (domain.Message, error) {
 	n, err := parsePK(pk)

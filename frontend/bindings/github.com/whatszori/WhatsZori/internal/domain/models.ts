@@ -253,6 +253,18 @@ export interface EditVersion {
 }
 
 /**
+ * an event to send; times in ms, End 0 = no end time
+ */
+export interface EventDraft {
+    "name": string;
+    "description": string;
+    "start": number;
+    "end": number;
+    "place": string;
+    "joinLink": string;
+}
+
+/**
  * an event (WhatsApp's "Event" in groups and chats)
  */
 export interface EventInfo {
@@ -372,6 +384,16 @@ export interface InAppToast {
     "isGroup": boolean;
     "actions": boolean;
     "at": number;
+}
+
+/**
+ * a pin to send
+ */
+export interface LocationDraft {
+    "lat": number;
+    "lon": number;
+    "name": string;
+    "address": string;
 }
 
 /**

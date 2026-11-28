@@ -1,0 +1,159 @@
+.wz-send__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+
+.wz-send__label {
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+  font-weight: 600;
+}
+
+.wz-send__hint {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-send__error {
+  margin: -6px 0 12px;
+  color: var(--wz-danger);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-send__row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+}
+
+.wz-send__options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wz-send__toggle {
+  margin-top: 4px;
+}
+
+.wz-send__textarea {
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid var(--wz-border);
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-input);
+  resize: vertical;
+  line-height: 1.4;
+  user-select: text;
+}
+
+.wz-send__locate {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--wz-text-secondary);
+  cursor: pointer;
+}
+
+.wz-send__locate:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--wz-text-primary) 8%, transparent);
+  color: var(--wz-text-primary);
+}
+
+/* the place's preview: the same drawn map the bubbles use */
+.wz-send__map {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 140px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-secondary);
+}
+
+.wz-send__map .wz-loc__drawn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wz-send__map-empty {
+  color: var(--wz-text-muted);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-send__pin {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--wz-danger);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+/* people to share */
+.wz-send__people {
+  max-height: 320px;
+  margin: 10px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.wz-send__empty {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--wz-text-muted);
+}
+
+.wz-send__person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wz-send__person:hover {
+  background: color-mix(in srgb, var(--wz-text-primary) 6%, transparent);
+}
+
+.wz-send__who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wz-send__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wz-send__sub {
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+}
+
+.wz-send__person .wz-check {
+  flex: none;
+}
+
+.wz-send__person--on .wz-check {
+  border-color: var(--wz-accent);
+  background: var(--wz-accent);
+  color: var(--wz-accent-fg);
+}

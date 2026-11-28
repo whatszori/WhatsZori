@@ -48,6 +48,8 @@ export type Checks = [
   Assert<SameKeys<T.ContactPhone, Go.ContactPhone>>,
   Assert<SameKeys<T.EventInfo, Go.EventInfo>>,
   Assert<SameKeys<T.BusinessInfo, Go.BusinessInfo>>,
+  Assert<SameKeys<T.LocationDraft, Go.LocationDraft>>,
+  Assert<SameKeys<T.EventDraft, Go.EventDraft>>,
   Assert<SameKeys<T.BizButton, Go.BizButton>>,
   Assert<SameKeys<T.BizList, Go.BizList>>,
   Assert<SameKeys<T.BizSection, Go.BizSection>>,

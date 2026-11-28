@@ -41,7 +41,7 @@ function seeded(lat: number, lon: number) {
   };
 }
 
-function DrawnMap({ lat, lon }: { lat: number; lon: number }) {
+export function DrawnMap({ lat, lon }: { lat: number; lon: number }) {
   const paths = useMemo(() => {
     const r = seeded(lat, lon);
     const roads: string[] = [];

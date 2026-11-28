@@ -33,6 +33,8 @@ import type {
   MessagePage,
   Reaction,
   SearchHit,
+  LocationDraft,
+  EventDraft,
 } from './types';
 import type { SystemPalette } from './events';
 
@@ -121,6 +123,12 @@ export interface MessageService {
   vote(pk: MessagePK, options: string[]): Promise<void>;
   // tap a reply button or pick a list row (by id) of a business message; the answer is sent
   answer(pk: MessagePK, id: string): Promise<Message>;
+  // contacts (their JIDs) as contact cards
+  sendContacts(jid: JID, contacts: JID[]): Promise<Message>;
+  sendLocation(jid: JID, place: LocationDraft): Promise<Message>;
+  // multiple: people may pick more than one option
+  sendPoll(jid: JID, question: string, options: string[], multiple: boolean): Promise<Message>;
+  sendEvent(jid: JID, event: EventDraft): Promise<Message>;
   // an incoming voice or video note started playing ("played" receipt, ghost settings permitting)
   played(pk: MessagePK): Promise<void>;
   // jid limits it to one chat

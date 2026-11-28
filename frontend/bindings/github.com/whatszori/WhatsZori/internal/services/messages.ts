@@ -120,6 +120,34 @@ export function SendAttachment(jid: string, token: string, caption: string, asFi
 }
 
 /**
+ * SendContacts shares contacts (their JIDs) as contact cards.
+ */
+export function SendContacts(jid: string, contacts: string[] | null): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(2866963307, jid, contacts);
+}
+
+/**
+ * SendEvent sends an event.
+ */
+export function SendEvent(jid: string, e: domain$0.EventDraft): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(1083508398, jid, e);
+}
+
+/**
+ * SendLocation sends a pin.
+ */
+export function SendLocation(jid: string, p: domain$0.LocationDraft): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(1606103441, jid, p);
+}
+
+/**
+ * SendPoll sends a poll; multiple allows more than one answer per person.
+ */
+export function SendPoll(jid: string, question: string, options: string[] | null, multiple: boolean): $CancellablePromise<domain$0.Message> {
+    return $Call.ByID(1363374059, jid, question, options, multiple);
+}
+
+/**
  * SendText sends a text message; mentions are the JIDs of group members it mentions ("@<number>"
  * is in the text for each).
  */

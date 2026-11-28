@@ -6,13 +6,28 @@ import {
   useState,
   type KeyboardEvent,
 } from 'react';
-import { Check, Mic, Paperclip, Pencil, Reply, SendHorizontal, Smile, X } from 'lucide-react';
+import {
+  BarChart3,
+  CalendarPlus,
+  Check,
+  Contact,
+  Image as ImageIcon,
+  MapPin,
+  Mic,
+  Paperclip,
+  Pencil,
+  Reply,
+  SendHorizontal,
+  Smile,
+  X,
+} from 'lucide-react';
 import { backend, type Chat, type JID } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
 import { useAttach } from '../../stores/attach';
 import { canEdit, useMessages } from '../../stores/messages';
 import { composerFor, useUI } from '../../stores/ui';
-import { IconButton, Popover, type PopoverAnchor } from '../../ui';
+import { IconButton, Menu, Popover, type PopoverAnchor } from '../../ui';
+import { SendDialog, type SendKind } from './SendDialogs';
 import { toastError } from '../../stores/toasts';
 import { VoiceRecorder, canRecord } from './VoiceRecorder';
 import { EmojiPicker } from '../emoji/EmojiPicker';
@@ -89,6 +104,8 @@ export function Composer({ chat }: { chat: Chat }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [emoji, setEmoji] = useState<PopoverAnchor | null>(null);
+  const [attachMenu, setAttachMenu] = useState<PopoverAnchor | null>(null);
+  const [sendKind, setSendKind] = useState<SendKind | null>(null);
   const closeEmoji = useCallback(() => setEmoji(null), []);
   const typing = useTypingSignal(jid);
 
@@ -238,8 +255,51 @@ export function Composer({ chat }: { chat: Chat }) {
             className="wz-composer__attach"
             icon={<Paperclip size={18} />}
             tooltipPlacement="top"
-            onClick={() => void useAttach.getState().pick(jid)}
+            aria-haspopup="menu"
+            aria-expanded={!!attachMenu}
+            onClick={(e) => setAttachMenu(e.currentTarget.getBoundingClientRect())}
           />
+          <Menu
+            open={!!attachMenu}
+            anchor={attachMenu}
+            onClose={() => setAttachMenu(null)}
+            label="Attach"
+            placement="top-start"
+            items={[
+              {
+                id: 'files',
+                label: 'Photos & files',
+                icon: <ImageIcon size={16} />,
+                shortcut: 'Ctrl+V',
+                onSelect: () => void useAttach.getState().pick(jid),
+              },
+              {
+                id: 'contact',
+                label: 'Contact',
+                icon: <Contact size={16} />,
+                onSelect: () => setSendKind('contact'),
+              },
+              {
+                id: 'location',
+                label: 'Place',
+                icon: <MapPin size={16} />,
+                onSelect: () => setSendKind('location'),
+              },
+              {
+                id: 'poll',
+                label: 'Poll',
+                icon: <BarChart3 size={16} />,
+                onSelect: () => setSendKind('poll'),
+              },
+              {
+                id: 'event',
+                label: 'Event',
+                icon: <CalendarPlus size={16} />,
+                onSelect: () => setSendKind('event'),
+              },
+            ]}
+          />
+          {sendKind && <SendDialog kind={sendKind} jid={jid} onClose={() => setSendKind(null)} />}
           <div
             className={`wz-composer__field${hasFormatting(text) ? ' wz-composer__field--live' : ''}`}
           >
