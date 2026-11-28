@@ -1,0 +1,60 @@
+{
+  "id": "translate",
+  "name": "Translate",
+  "version": "1.0.0",
+  "description": "Translate a message from its menu; the translation shows under it. Only the message you pick is sent to the translator (Google, or DeepL with your own key). Runs sandboxed.",
+  "author": "WhatsZori",
+  "main": "index.js",
+  "icon": "icon.svg",
+  "apiVersion": 2,
+  "minAppVersion": "0.2.0",
+  "sandbox": true,
+  "permissions": ["messages", "network", "clipboard"],
+  "network": ["translate.googleapis.com", "api-free.deepl.com", "api.deepl.com"],
+  "settings": [
+    {
+      "key": "target",
+      "type": "select",
+      "label": "Translate into",
+      "default": "auto",
+      "options": [
+        { "value": "auto", "label": "The app's language" },
+        { "value": "en", "label": "English" },
+        { "value": "ru", "label": "Русский" },
+        { "value": "uk", "label": "Українська" },
+        { "value": "de", "label": "Deutsch" },
+        { "value": "fr", "label": "Français" },
+        { "value": "es", "label": "Español" },
+        { "value": "it", "label": "Italiano" },
+        { "value": "pt", "label": "Português" },
+        { "value": "pl", "label": "Polski" },
+        { "value": "tr", "label": "Türkçe" },
+        { "value": "uz", "label": "Oʻzbekcha" },
+        { "value": "kk", "label": "Қазақша" },
+        { "value": "ar", "label": "العربية" },
+        { "value": "zh", "label": "中文" },
+        { "value": "ja", "label": "日本語" },
+        { "value": "ko", "label": "한국어" }
+      ]
+    },
+    {
+      "key": "provider",
+      "type": "select",
+      "label": "Translator",
+      "description": "Google needs nothing; DeepL needs a key (a free one is enough).",
+      "default": "google",
+      "options": [
+        { "value": "google", "label": "Google Translate" },
+        { "value": "deepl", "label": "DeepL" }
+      ]
+    },
+    {
+      "key": "deeplKey",
+      "type": "password",
+      "label": "DeepL key",
+      "description": "From deepl.com → Account → API keys. Keys ending in :fx use the free API.",
+      "placeholder": "xxxxxxxx-xxxx-…:fx",
+      "default": ""
+    }
+  ]
+}
