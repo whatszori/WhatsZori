@@ -19,6 +19,13 @@ export function Copy(pk: string): $CancellablePromise<void> {
 }
 
 /**
+ * CopyAvatar puts the full-size profile picture on the clipboard, as a file and a picture.
+ */
+export function CopyAvatar(jid: string): $CancellablePromise<void> {
+    return $Call.ByID(37910540, jid);
+}
+
+/**
  * Reveal opens the media folder with the file selected.
  */
 export function Reveal(pk: string): $CancellablePromise<void> {
@@ -31,4 +38,12 @@ export function Reveal(pk: string): $CancellablePromise<void> {
  */
 export function SaveAs(pk: string): $CancellablePromise<string> {
     return $Call.ByID(1483421493, pk);
+}
+
+/**
+ * SaveAvatar saves someone's (or a group's) full-size profile picture where the user picks.
+ * Returns the path, or "" when they cancelled.
+ */
+export function SaveAvatar(jid: string, name: string): $CancellablePromise<string> {
+    return $Call.ByID(3439014764, jid, name);
 }

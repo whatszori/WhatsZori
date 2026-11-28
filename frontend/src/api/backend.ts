@@ -212,6 +212,9 @@ export interface MediaService {
   saveAs(pk: MessagePK): Promise<string | null>;
   // the file onto the system clipboard (pictures also as a picture)
   copy(pk: MessagePK): Promise<void>;
+  // a full-size profile picture: save dialog (the path, or null) and clipboard
+  saveAvatar(jid: JID, name: string): Promise<string | null>;
+  copyAvatar(jid: JID): Promise<void>;
   // file manager with the file selected
   reveal(pk: MessagePK): Promise<void>;
 }

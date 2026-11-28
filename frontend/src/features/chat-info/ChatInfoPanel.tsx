@@ -527,7 +527,14 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
         ) : (
           <>
             <div className="wz-info__hero">
-              <Avatar name={name || ' '} jid={jid} size={112} group={isGroup} />
+              <button
+                type="button"
+                className="wz-avatar-open"
+                aria-label="Show the profile picture"
+                onClick={() => useUI.getState().setAvatarViewer({ jid, name: name || jid })}
+              >
+                <Avatar name={name || ' '} jid={jid} size={112} group={isGroup} />
+              </button>
               <h3 className="wz-info__name wz-selectable">{name}</h3>
               <p className="wz-info__sub wz-selectable">
                 {isGroup

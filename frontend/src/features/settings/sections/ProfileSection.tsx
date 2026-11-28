@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useUI } from '../../../stores/ui';
 import { Check, Pencil, Phone, User, Info } from 'lucide-react';
 import { useConnection } from '../../../stores/connection';
 import { useProfile } from '../../../stores/profile';
@@ -91,7 +92,17 @@ export function ProfileSection() {
     <Page title="Profile">
       <div className="wz-profile">
         <div className="wz-profile__avatar">
-          <Avatar name={profile.name || profile.phone} jid={myJid} size={128} />
+          <button
+            type="button"
+            className="wz-avatar-open"
+            aria-label="Show your profile picture"
+            disabled={!myJid}
+            onClick={() =>
+              myJid && useUI.getState().setAvatarViewer({ jid: myJid, name: profile.name || 'You' })
+            }
+          >
+            <Avatar name={profile.name || profile.phone} jid={myJid} size={128} />
+          </button>
         </div>
         <EditableField
           icon={<User size={18} />}

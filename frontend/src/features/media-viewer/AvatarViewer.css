@@ -1,0 +1,53 @@
+.wz-avatar-viewer__stage {
+  position: relative;
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  place-items: center;
+  padding: var(--wz-space-6);
+}
+
+.wz-avatar-viewer__img {
+  grid-area: 1 / 1;
+  max-width: min(640px, 100%);
+  max-height: 100%;
+  border-radius: var(--wz-radius-lg);
+  object-fit: contain;
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity var(--wz-duration) var(--wz-ease),
+    transform var(--wz-duration) var(--wz-ease);
+}
+
+.wz-avatar-viewer__img.is-ready {
+  opacity: 1;
+  transform: none;
+}
+
+.wz-avatar-viewer__stage > .wz-spinner {
+  grid-area: 1 / 1;
+}
+
+.wz-avatar-viewer__none {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wz-space-4);
+  color: var(--wz-viewer-muted);
+  text-align: center;
+}
+
+/* big avatars that open the viewer */
+.wz-avatar-open {
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: zoom-in;
+}
+
+.wz-avatar-open:focus-visible {
+  outline: 2px solid var(--wz-accent);
+  outline-offset: 3px;
+}

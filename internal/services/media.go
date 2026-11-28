@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.mau.fi/whatsmeow/types"
 	"io"
 	"os"
 	"path"
@@ -93,6 +94,64 @@ func (m *Media) Copy(pk string) error {
 		data, _ = os.ReadFile(src)
 	}
 	return clip.Copy(src, data)
+}
+
+// SaveAvatar saves someone's (or a group's) full-size profile picture where the user picks.
+// Returns the path, or "" when they cancelled.
+func (m *Media) SaveAvatar(jid, name string) (string, error) {
+	src, err := m.avatarPath(jid)
+	if err != nil {
+		return "", err
+	}
+	if name = strings.TrimSpace(name); name == "" {
+		name = "profile picture"
+	}
+	dst, err := m.desktop.PickSavePath("Save profile picture", safeFileName(name)+".jpg")
+	if err != nil || dst == "" {
+		return "", err
+	}
+	if err := copyFileTo(src, dst); err != nil {
+		return "", fmt.Errorf("couldn't save: %w", err)
+	}
+	return dst, nil
+}
+
+// CopyAvatar puts the full-size profile picture on the clipboard, as a file and a picture.
+func (m *Media) CopyAvatar(jid string) error {
+	src, err := m.avatarPath(jid)
+	if err != nil {
+		return err
+	}
+	data, _ := os.ReadFile(src)
+	return clip.Copy(src, data)
+}
+
+func (m *Media) avatarPath(jid string) (string, error) {
+	j, err := types.ParseJID(jid)
+	if err != nil {
+		return "", errors.New("bad jid")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	p, err := m.c.Avatars.FullPath(ctx, j)
+	if err != nil {
+		return "", errors.New("there's no profile picture to save (or it's hidden)")
+	}
+	return p, nil
+}
+
+// safeFileName keeps a name usable as a file name on every system
+func safeFileName(s string) string {
+	s = strings.Map(func(r rune) rune {
+		if r < 0x20 || strings.ContainsRune(`<>:"/\|?*`, r) {
+			return -1
+		}
+		return r
+	}, s)
+	if r := []rune(s); len(r) > 80 {
+		s = string(r[:80])
+	}
+	return strings.TrimSpace(s)
 }
 
 // Reveal opens the media folder with the file selected.

@@ -4,6 +4,7 @@ import { Logo, Spinner } from '../ui';
 import { MainLayout } from './MainLayout';
 import { Toasts } from './Toasts';
 import { MediaViewer } from '../features/media-viewer/MediaViewer';
+import { AvatarViewer } from '../features/media-viewer/AvatarViewer';
 import { AppProviders } from './providers';
 import { PluginHost } from '../plugin-core/host';
 import './App.css';
@@ -26,6 +27,7 @@ export function App() {
     <AppProviders>
       <Screens />
       <MediaViewer />
+      <AvatarViewer />
       <PluginHost />
       <Toasts />
     </AppProviders>

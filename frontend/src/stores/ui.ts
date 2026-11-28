@@ -62,6 +62,9 @@ interface UIState {
   // full-window media viewer
   // items: what ←/→ walk through; default is what's loaded in the chat
   viewer: { jid: JID; pk: MessagePK; items?: Message[] } | null;
+  // a profile picture, full size
+  avatarViewer: { jid: JID; name: string } | null;
+  setAvatarViewer(v: { jid: JID; name: string } | null): void;
   searchFocusNonce: number;
   // words to mark in the bubbles of one chat while its Ctrl+F bar is open
   searchHighlight: { jid: JID; query: string } | null;
@@ -121,6 +124,7 @@ export const useUI = create<UIState>((set, get) => {
     composer: {},
     infoMessage: null,
     viewer: null,
+    avatarViewer: null,
     searchFocusNonce: 0,
     searchHighlight: null,
     chatSearchOpen: false,
@@ -178,6 +182,7 @@ export const useUI = create<UIState>((set, get) => {
         viewer: { jid, pk, items: items ?? (s.viewer?.jid === jid ? s.viewer.items : undefined) },
       })),
     closeViewer: () => set({ viewer: null }),
+    setAvatarViewer: (avatarViewer) => set({ avatarViewer }),
     focusSearch: () => set((s) => ({ view: 'chats', searchFocusNonce: s.searchFocusNonce + 1 })),
     setDraft: (jid, draft) => {
       // forget mentions whose "@Name" is gone from the text

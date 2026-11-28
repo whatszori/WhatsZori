@@ -291,6 +291,15 @@ func (s *Store) Cached(jid string) string {
 	return filepath.Join(s.dir, filepath.FromSlash(r.localPath))
 }
 
+// FullPath returns the full-size picture's file, fetching it when needed.
+func (s *Store) FullPath(ctx context.Context, jid types.JID) (string, error) {
+	rel, err := s.Ensure(ctx, jid.ToNonAD(), Full)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(s.dir, filepath.FromSlash(rel)), nil
+}
+
 // Handler serves /wz-avatar/<jid> (preview size) and /wz-avatar/<jid>?full=1. 404 means "show
 // initials": no picture, hidden, or offline with nothing cached.
 func (s *Store) Handler(prefix string) http.Handler {

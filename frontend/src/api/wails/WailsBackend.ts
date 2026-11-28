@@ -322,6 +322,9 @@ export class WailsBackend implements Backend {
     canAttach: true,
     saveAs: async (pk: MessagePK): Promise<string | null> => (await Media.SaveAs(pk)) || null,
     copy: (pk: MessagePK) => Media.Copy(pk),
+    saveAvatar: async (jid: JID, name: string): Promise<string | null> =>
+      (await Media.SaveAvatar(jid, name)) || null,
+    copyAvatar: (jid: JID) => Media.CopyAvatar(jid),
     reveal: (pk: MessagePK) => Media.Reveal(pk),
   };
 

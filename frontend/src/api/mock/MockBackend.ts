@@ -452,6 +452,12 @@ export class MockBackend implements Backend {
     saveAs: async (): Promise<string | null> => {
       throw new Error('Saving files works in the desktop app');
     },
+    saveAvatar: async (): Promise<string | null> => {
+      throw new Error('Saving works in the desktop app');
+    },
+    copyAvatar: async (): Promise<void> => {
+      throw new Error('Copying works in the desktop app');
+    },
     copy: async (): Promise<void> => {
       throw new Error('Copying files works in the desktop app');
     },
