@@ -228,6 +228,21 @@ type LocationInfo struct {
 	Thumb string `json:"thumb,omitempty"`
 }
 
+// who got a message of ours, and who read it
+type MessageReceipts struct {
+	People []ReceiptPerson `json:"people"`
+}
+
+type ReceiptPerson struct {
+	JID  string `json:"jid"`
+	Name string `json:"name"`
+	// ms; 0 = not yet (all zero: still waiting)
+	DeliveredAt int64 `json:"deliveredAt"`
+	ReadAt      int64 `json:"readAt"`
+	// a voice or video note was played
+	PlayedAt int64 `json:"playedAt"`
+}
+
 type ReplyRef struct {
 	PK         string      `json:"pk"`
 	SenderName string      `json:"senderName"`

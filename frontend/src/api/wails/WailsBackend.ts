@@ -29,6 +29,7 @@ import { WZ_EVENTS } from '../events';
 import type { MockBackend } from '../mock/MockBackend';
 import type {
   Attachment,
+  MessageReceipts,
   MarketEntry,
   PluginFetchRequest,
   PluginFetchResponse,
@@ -147,6 +148,10 @@ export class WailsBackend implements Backend {
     ): Promise<MessagePage> => {
       const page = await Messages.GetMessages(jid, beforePk ?? '', limit);
       return { messages: (page.messages ?? []).map(message), hasMore: page.hasMore };
+    },
+    receipts: async (pk: MessagePK): Promise<MessageReceipts> => {
+      const r = await Messages.Receipts(pk);
+      return { people: r.people ?? [] };
     },
     getEditHistory: async (pk: MessagePK): Promise<EditVersion[]> =>
       (await Messages.GetEditHistory(pk)) ?? [],

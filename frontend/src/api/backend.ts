@@ -1,5 +1,6 @@
 import type {
   Attachment,
+  MessageReceipts,
   MarketEntry,
   PluginFetchRequest,
   PluginFetchResponse,
@@ -97,6 +98,8 @@ export interface ProfileService {
 export interface MessageService {
   getMessages(jid: JID, beforePk: MessagePK | null, limit: number): Promise<MessagePage>;
   getEditHistory(pk: MessagePK): Promise<EditVersion[]>;
+  // who a message of ours reached and who read it
+  receipts(pk: MessagePK): Promise<MessageReceipts>;
   // the "Deleted & edited" feed, latest first; before = the last item of the previous page
   changes(
     kind: ChangeKind,

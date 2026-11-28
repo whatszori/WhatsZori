@@ -1,0 +1,117 @@
+.wz-minfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-4);
+}
+
+.wz-minfo__receipts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-4);
+}
+
+.wz-minfo__loading {
+  display: grid;
+  place-items: center;
+  padding: var(--wz-space-4);
+}
+
+.wz-minfo__empty {
+  margin: 0;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+}
+
+.wz-minfo__title {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+  margin: 0 0 var(--wz-space-2);
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  font-weight: 600;
+}
+
+.wz-minfo__title--read {
+  color: var(--wz-tick-read);
+}
+
+.wz-minfo__count {
+  margin-left: auto;
+  color: var(--wz-text-muted);
+  font-weight: 500;
+}
+
+.wz-minfo__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wz-minfo__person {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-3);
+  padding: 4px 0;
+}
+
+.wz-minfo__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wz-minfo__at {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wz-minfo__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wz-space-2);
+  padding: var(--wz-space-3);
+  border-radius: var(--wz-radius-md);
+  background: var(--wz-bg-secondary);
+}
+
+.wz-minfo__step {
+  display: flex;
+  align-items: center;
+  gap: var(--wz-space-2);
+}
+
+.wz-minfo__step-icon {
+  display: grid;
+  place-items: center;
+  color: var(--wz-text-secondary);
+}
+
+.wz-minfo__step--read .wz-minfo__step-icon {
+  color: var(--wz-tick-read);
+}
+
+.wz-minfo__step--pending {
+  opacity: 0.55;
+}
+
+.wz-minfo__step-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.wz-minfo__step-at {
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}

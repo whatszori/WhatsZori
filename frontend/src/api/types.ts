@@ -218,6 +218,21 @@ export interface Mention {
   name: string;
 }
 
+// who got a message of ours, and who read it
+export interface MessageReceipts {
+  people: ReceiptPerson[];
+}
+
+export interface ReceiptPerson {
+  jid: JID;
+  name: string;
+  // ms; 0 = not yet (all zero: still waiting)
+  deliveredAt: number;
+  readAt: number;
+  // a voice or video note was played
+  playedAt: number;
+}
+
 export interface ReplyRef {
   pk: MessagePK;
   senderName: string;

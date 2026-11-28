@@ -1,6 +1,7 @@
 ﻿import type { Backend } from '../backend';
 import type {
   Attachment,
+  MessageReceipts,
   MarketEntry,
   PluginFetchRequest,
   PluginFetchResponse,
@@ -533,6 +534,27 @@ export class MockBackend implements Backend {
         : 0;
       const rest = start < 0 ? [] : all.slice(start);
       return { items: rest.slice(0, limit), hasMore: rest.length > limit };
+    },
+    // made up from the message's status: everyone read it, or some got it, or nobody yet
+    receipts: async (pk: MessagePK): Promise<MessageReceipts> => {
+      await this.wait();
+      const m = this.byPk.get(pk);
+      if (!m) throw new Error('no such message');
+      const chat = this.db.chats.get(m.chatJid);
+      const others = chat?.isGroup
+        ? (this.db.members.get(m.chatJid) ?? [])
+        : [{ jid: m.chatJid, name: chat?.name ?? m.chatJid }];
+      return {
+        people: others.map((p, i) => {
+          const delivered =
+            m.status === 'read' || m.status === 'delivered' ? m.timestamp + 2_000 + i * 900 : 0;
+          const read =
+            m.status === 'read' || (m.status === 'delivered' && i % 3 === 0 && chat?.isGroup)
+              ? m.timestamp + 60_000 + i * 45_000
+              : 0;
+          return { jid: p.jid, name: p.name, deliveredAt: delivered, readAt: read, playedAt: 0 };
+        }),
+      };
     },
     getEditHistory: async (pk: MessagePK): Promise<EditVersion[]> => {
       await this.wait();

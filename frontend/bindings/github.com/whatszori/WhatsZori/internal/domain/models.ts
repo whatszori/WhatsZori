@@ -413,6 +413,13 @@ export interface MessagePreview {
     "status"?: MessageStatus;
 }
 
+/**
+ * who got a message of ours, and who read it
+ */
+export interface MessageReceipts {
+    "people": ReceiptPerson[] | null;
+}
+
 export enum MessageStatus {
     /**
      * The Go zero value for the underlying type of the enum.
@@ -652,6 +659,22 @@ export enum ReadReceiptMode {
     ReadNever = "never",
     ReadOnReply = "on-reply",
 };
+
+export interface ReceiptPerson {
+    "jid": string;
+    "name": string;
+
+    /**
+     * ms; 0 = not yet (all zero: still waiting)
+     */
+    "deliveredAt": number;
+    "readAt": number;
+
+    /**
+     * a voice or video note was played
+     */
+    "playedAt": number;
+}
 
 export interface ReplyRef {
     "pk": string;

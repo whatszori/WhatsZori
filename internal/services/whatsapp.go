@@ -254,6 +254,21 @@ func (s *Messages) GetMessages(jid, beforePk string, limit int) (domain.MessageP
 	return domain.MessagePage{Messages: msgs, HasMore: more}, nil
 }
 
+// Receipts says who a message of ours reached and who read it, per person.
+func (s *Messages) Receipts(pk string) (domain.MessageReceipts, error) {
+	ctx, cancel := call()
+	defer cancel()
+	id, err := parsePK(pk)
+	if err != nil {
+		return domain.MessageReceipts{}, err
+	}
+	m, err := repo.GetMessage(ctx, s.c.DB, id)
+	if err != nil {
+		return domain.MessageReceipts{}, err
+	}
+	return s.c.View(ctx).MessageReceipts(ctx, s.c.DB, m)
+}
+
 func (s *Messages) GetEditHistory(pk string) ([]domain.EditVersion, error) {
 	ctx, cancel := call()
 	defer cancel()

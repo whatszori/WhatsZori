@@ -85,6 +85,13 @@ export function React(pk: string, emoji: string): $CancellablePromise<domain$0.R
     return $Call.ByID(4210929667, pk, emoji);
 }
 
+/**
+ * Receipts says who a message of ours reached and who read it, per person.
+ */
+export function Receipts(pk: string): $CancellablePromise<domain$0.MessageReceipts> {
+    return $Call.ByID(2484837465, pk);
+}
+
 export function Revoke(pk: string): $CancellablePromise<void> {
     return $Call.ByID(2457255330, pk);
 }
