@@ -164,6 +164,8 @@ export interface EventInfo {
   canceled: boolean;
   // a scheduled call rather than a meeting
   call: boolean;
+  // the cover picture (data: URL)
+  cover?: string;
 }
 
 // a pin or a live location

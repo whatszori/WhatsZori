@@ -202,6 +202,11 @@ export interface EventInfo {
      * a scheduled call rather than a meeting
      */
     "call": boolean;
+
+    /**
+     * the cover picture (data: URL)
+     */
+    "cover"?: string;
 }
 
 export interface ExportOptions {

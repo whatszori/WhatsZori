@@ -119,8 +119,9 @@ export function EventCard({ m }: { m: Message }) {
 
   return (
     <div
-      className={`wz-event${ev.canceled ? ' wz-event--canceled' : ''}${past ? ' wz-event--past' : ''}`}
+      className={`wz-event${ev.cover ? ' wz-event--cover' : ''}${ev.canceled ? ' wz-event--canceled' : ''}${past ? ' wz-event--past' : ''}`}
     >
+      {ev.cover && <img className="wz-event__cover" src={ev.cover} alt="" draggable={false} />}
       <div className="wz-event__head">
         <span className="wz-event__date" aria-hidden="true">
           <span className="wz-event__month">{MONTH.format(d)}</span>

@@ -276,6 +276,8 @@ type EventInfo struct {
 	Canceled bool    `json:"canceled"`
 	// a scheduled call rather than a meeting
 	Call bool `json:"call"`
+	// the cover picture (data: URL)
+	Cover string `json:"cover,omitempty"`
 }
 
 type ReplyRef struct {

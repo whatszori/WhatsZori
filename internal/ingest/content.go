@@ -2,6 +2,7 @@ package ingest
 
 import (
 	"fmt"
+	"strings"
 
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"google.golang.org/protobuf/proto"
@@ -40,7 +41,9 @@ func isMetaOnly(msg *waE2E.Message) bool {
 func isControl(msg *waE2E.Message) bool {
 	return msg.GetProtocolMessage() != nil || msg.GetReactionMessage() != nil || msg.GetEncReactionMessage() != nil ||
 		msg.GetPollUpdateMessage() != nil || msg.GetKeepInChatMessage() != nil || msg.GetPinInChatMessage() != nil ||
-		msg.GetSecretEncryptedMessage() != nil || msg.GetEncEventResponseMessage() != nil
+		msg.GetSecretEncryptedMessage() != nil || msg.GetEncEventResponseMessage() != nil ||
+		// the marker before an album; its photos come as their own messages
+		msg.GetAlbumMessage() != nil
 }
 
 func extract(msg *waE2E.Message) content {
@@ -120,6 +123,25 @@ func extract(msg *waE2E.Message) content {
 		m := msg.GetContactsArrayMessage()
 		c.kind, ctx = repo.KindContact, m
 		c.body = fmt.Sprintf("👤 %d contacts", len(m.GetContacts()))
+	case msg.EventInviteMessage != nil:
+		m := msg.GetEventInviteMessage()
+		c.kind, ctx = repo.KindEvent, m
+		c.body = "📅 " + firstNonEmpty(m.GetEventTitle(), "Event")
+	case msg.TemplateMessage != nil:
+		// business templates: their text, the buttons can't do anything here
+		m := msg.GetTemplateMessage()
+		h := m.GetHydratedTemplate()
+		if h == nil {
+			h = m.GetHydratedFourRowTemplate()
+		}
+		var parts []string
+		for _, s := range []string{h.GetHydratedTitleText(), h.GetHydratedContentText(), h.GetHydratedFooterText()} {
+			if s != "" {
+				parts = append(parts, s)
+			}
+		}
+		c.kind, ctx = repo.KindText, m
+		c.body = strings.Join(parts, "\n")
 	case msg.EventMessage != nil:
 		m := msg.GetEventMessage()
 		c.kind, ctx = repo.KindEvent, m

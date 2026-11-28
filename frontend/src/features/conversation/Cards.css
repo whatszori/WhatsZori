@@ -234,3 +234,11 @@
   color: var(--wz-text-secondary);
   text-decoration: line-through;
 }
+
+.wz-event__cover {
+  display: block;
+  width: calc(100% + 20px);
+  max-height: 160px;
+  margin: -10px -10px 0;
+  object-fit: cover;
+}

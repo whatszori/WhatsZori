@@ -47,6 +47,15 @@ func TestContactCardsAndEvent(t *testing.T) {
 	if ev == nil || ev.Name != "Party" || ev.Start != 1700000000000 || !ev.Canceled || ev.Place != "Home" || ev.Lat != 1 {
 		t.Fatalf("event: %+v", ev)
 	}
+	// what phones send now
+	raw, _ = proto.Marshal(&waE2E.Message{EventInviteMessage: &waE2E.EventInviteMessage{
+		EventTitle: proto.String("Picnic"), StartTime: proto.Int64(1795838400), LocationName: proto.String("Park"),
+		JPEGThumbnail: []byte{0xff, 0xd8}, Status: waE2E.EventInviteMessage_CANCELED.Enum(),
+	}})
+	ev = eventInfo(raw)
+	if ev == nil || ev.Name != "Picnic" || ev.Start != 1795838400000 || ev.Place != "Park" || !ev.Canceled || ev.Cover == "" {
+		t.Fatalf("invite: %+v", ev)
+	}
 	if eventInfo(nil) != nil {
 		t.Fatal("nil raw")
 	}

@@ -209,9 +209,10 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 				if cards := contactCards(m.Raw); len(cards) > 0 {
 					dto.Contacts, dto.Text = cards, ""
 				}
-			case KindEvent:
+			case KindEvent, KindUnknown:
+				// unknown: events stored before the app knew the invite form
 				if ev := eventInfo(m.Raw); ev != nil {
-					dto.Event, dto.Text = ev, ""
+					dto.Event, dto.Text, dto.Kind = ev, "", domain.KindEvent
 				}
 			}
 		}
@@ -377,6 +378,9 @@ func (v View) chat(ctx context.Context, q DBTX, c ChatRow, contact ContactRow, l
 	}
 	if last.Kind == KindUnknown && last.Body == "" {
 		dto.LastMessage.Text = m.Text
+		if m.Event != nil {
+			dto.LastMessage.Text = "📅 " + m.Event.Name
+		}
 	}
 	return dto, nil
 }

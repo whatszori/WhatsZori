@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"encoding/base64"
 	"strings"
 
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -97,12 +98,30 @@ func unescapeVCard(s string) string {
 	return strings.NewReplacer(`\,`, ",", `\;`, ";", `\n`, " ", `\N`, " ", `\\`, `\`).Replace(s)
 }
 
+// eventInfo reads either form: phones now send an EventInviteMessage (title, times, place name,
+// a cover picture), older ones and the web an EventMessage.
 func eventInfo(raw []byte) *domain.EventInfo {
 	var msg waE2E.Message
-	if raw == nil || proto.Unmarshal(raw, &msg) != nil || msg.GetEventMessage() == nil {
+	if raw == nil || proto.Unmarshal(raw, &msg) != nil {
 		return nil
 	}
+	if inv := msg.GetEventInviteMessage(); inv != nil {
+		st := inv.GetStatus()
+		info := &domain.EventInfo{
+			Name: inv.GetEventTitle(), Description: inv.GetCaption(), JoinLink: inv.GetCallLink(),
+			Start: inv.GetStartTime() * 1000, End: inv.GetEndTime() * 1000, Place: inv.GetLocationName(),
+			Canceled: inv.GetIsCanceled() || st == waE2E.EventInviteMessage_CANCELED || st == waE2E.EventInviteMessage_DELETED,
+			Call:     inv.GetCallLink() != "",
+		}
+		if b := inv.GetJPEGThumbnail(); len(b) > 0 && len(b) <= 256<<10 {
+			info.Cover = "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(b)
+		}
+		return info
+	}
 	e := msg.GetEventMessage()
+	if e == nil {
+		return nil
+	}
 	info := &domain.EventInfo{
 		Name: e.GetName(), Description: e.GetDescription(), JoinLink: e.GetJoinLink(),
 		Start: e.GetStartTime() * 1000, End: e.GetEndTime() * 1000,
