@@ -2,6 +2,7 @@ import { memo, type MouseEvent } from 'react';
 import { BellOff, Pin, Trash2 } from 'lucide-react';
 import type { Chat, JID } from '../../api';
 import { formatChatTime } from '../../lib/format';
+import { plainText } from '../../lib/markdown';
 import { Avatar, Badge, type PopoverAnchor } from '../../ui';
 import { StatusTicks } from '../conversation/StatusTicks';
 import { toPluginChat } from '../conversation/plugin-adapters';
@@ -121,7 +122,7 @@ export const ChatItem = memo(function ChatItem({
                 />
               )}
               {prefix && <span className="wz-chat-item__sender">{prefix}: </span>}
-              {last?.text ?? ''}
+              {last?.text ? plainText(last.text) : ''}
             </span>
           )}
           {chat.unread > 0 ? (

@@ -1,8 +1,9 @@
-import { memo, type MouseEvent, type ReactNode } from 'react';
+import { memo, useMemo, type MouseEvent, type ReactNode } from 'react';
 import { Ban, Check, Forward, MoreHorizontal, Trash2 } from 'lucide-react';
 import type { JID, Mention, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
+import { hasFormatting, parseBlocks, plainText, type Inline } from '../../lib/markdown';
 import { PluginSlot } from '../../plugin-core/slots';
 import { ErrorBoundary } from '../../plugin-core/ErrorBoundary';
 import { formatters, useRegistry } from '../../plugin-core/registry';
@@ -59,9 +60,8 @@ function splitMentions(text: string, mentions: Mention[] | undefined): (string |
   return out;
 }
 
-function Text({ text, chat, mentions }: { text: string; chat: JID; mentions?: Mention[] }) {
-  // only this chat's bubbles re-render when its Ctrl+F query changes
-  const query = useUI((s) => (s.searchHighlight?.jid === chat ? s.searchHighlight.query : ''));
+// a run of plain text: mentions, links and the Ctrl+F highlight
+function Leaf({ text, mentions, query }: { text: string; mentions?: Mention[]; query: string }) {
   return (
     <>
       {splitMentions(text, mentions).map((part, j) =>
@@ -96,6 +96,99 @@ function Text({ text, chat, mentions }: { text: string; chat: JID; mentions?: Me
           )
         ),
       )}
+    </>
+  );
+}
+
+function Inlines({ xs, mentions, query }: { xs: Inline[]; mentions?: Mention[]; query: string }) {
+  return (
+    <>
+      {xs.map((x, i) => {
+        switch (x.t) {
+          case 'text':
+            return <Leaf key={i} text={x.v} mentions={mentions} query={query} />;
+          case 'code':
+            return (
+              <code key={i} className="wz-md-code">
+                {x.v}
+              </code>
+            );
+          case 'b':
+            return (
+              <strong key={i}>
+                <Inlines xs={x.c} mentions={mentions} query={query} />
+              </strong>
+            );
+          case 'i':
+            return (
+              <em key={i}>
+                <Inlines xs={x.c} mentions={mentions} query={query} />
+              </em>
+            );
+          case 's':
+            return (
+              <s key={i}>
+                <Inlines xs={x.c} mentions={mentions} query={query} />
+              </s>
+            );
+        }
+      })}
+    </>
+  );
+}
+
+// WhatsApp formatting: emphasis, code, quotes, lists, code blocks
+function Text({ text, chat, mentions }: { text: string; chat: JID; mentions?: Mention[] }) {
+  // only this chat's bubbles re-render when its Ctrl+F query changes
+  const query = useUI((s) => (s.searchHighlight?.jid === chat ? s.searchHighlight.query : ''));
+  const blocks = useMemo(() => (hasFormatting(text) ? parseBlocks(text) : null), [text]);
+  if (!blocks) return <Leaf text={text} mentions={mentions} query={query} />;
+  const inl = (xs: Inline[]) => <Inlines xs={xs} mentions={mentions} query={query} />;
+  return (
+    <>
+      {blocks.map((b, i) => {
+        switch (b.t) {
+          case 'p':
+            return <span key={i}>{inl(b.c)}</span>;
+          case 'quote':
+            return (
+              <span key={i} className="wz-md-quote">
+                {inl(b.c)}
+              </span>
+            );
+          case 'pre':
+            return (
+              <code key={i} className="wz-md-pre">
+                {b.v}
+              </code>
+            );
+          case 'ul':
+            return (
+              <span key={i} className="wz-md-list" role="list">
+                {b.items.map((it, j) => (
+                  <span key={j} className="wz-md-item" role="listitem" data-mark="•">
+                    {inl(it)}
+                  </span>
+                ))}
+              </span>
+            );
+          case 'ol':
+            return (
+              <span key={i} className="wz-md-list" role="list">
+                {b.items.map((it, j) => (
+                  <span
+                    key={j}
+                    className="wz-md-item"
+                    role="listitem"
+                    data-mark={`${b.start + j}.`}
+                  >
+                    {inl(it)}
+                  </span>
+                ))}
+              </span>
+            );
+        }
+      })}
     </>
   );
 }
@@ -255,7 +348,7 @@ export const Bubble = memo(function Bubble({
                   <span className="wz-quote__name">
                     {m.replyTo.fromMe ? 'You' : m.replyTo.senderName}
                   </span>
-                  <span className="wz-quote__text">{m.replyTo.text || 'Message'}</span>
+                  <span className="wz-quote__text">{plainText(m.replyTo.text) || 'Message'}</span>
                 </button>
               )}
               {onceCard ? (

@@ -17,9 +17,36 @@ import { toastError } from '../../stores/toasts';
 import { VoiceRecorder, canRecord } from './VoiceRecorder';
 import { EmojiPicker } from '../emoji/EmojiPicker';
 import { encodeMentions, useMentionPicker } from './mentions';
+import { toWhatsApp } from '../../lib/markdown';
 import './Composer.css';
 
 const MAX_LINES = 8;
+
+// formatting shortcuts: the selection gets wrapped in WhatsApp's markers
+const WRAP: { key: string; shift: boolean; mark: string }[] = [
+  { key: 'b', shift: false, mark: '*' },
+  { key: 'i', shift: false, mark: '_' },
+  { key: 'x', shift: true, mark: '~' },
+  { key: 'm', shift: true, mark: '```' },
+  { key: 'e', shift: false, mark: '`' },
+];
+
+// wraps the selection (or puts the caret between a pair of markers), through insertText so
+// Ctrl+Z undoes it
+function wrapSelection(el: HTMLTextAreaElement, mark: string) {
+  const { selectionStart: a, selectionEnd: b, value } = el;
+  const picked = value.slice(a, b);
+  // trailing spaces stay outside, or the markers wouldn't count
+  const core = picked.replace(/\s+$/, '');
+  const tail = picked.slice(core.length);
+  el.focus();
+  if (!document.execCommand('insertText', false, mark + core + mark + tail)) {
+    el.setRangeText(mark + core + mark + tail, a, b, 'end');
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (!core) el.setSelectionRange(a + mark.length, a + mark.length);
+  else el.setSelectionRange(a + mark.length, a + mark.length + core.length);
+}
 
 // Tells the other side we're typing: composing at most every few seconds while keys are
 // pressed, paused after a short idle or when the message goes out. The backend drops all of it
@@ -104,14 +131,14 @@ export function Composer({ chat }: { chat: Chat }) {
     const value = text.trim();
     if (!value) return;
     if (editMsg) {
-      void useMessages.getState().edit(jid, editMsg.pk, value);
+      void useMessages.getState().edit(jid, editMsg.pk, toWhatsApp(value));
       ui.cancelComposerMode(jid);
       return;
     }
     typing.stop();
     const replyTo = state.replyTo ?? undefined;
     const picked = state.mentions ?? {};
-    const out = encodeMentions(value, picked);
+    const out = encodeMentions(toWhatsApp(value), picked);
     ui.setDraft(jid, '');
     if (replyTo) ui.cancelComposerMode(jid);
     void useMessages
@@ -130,6 +157,14 @@ export function Composer({ chat }: { chat: Chat }) {
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.nativeEvent.isComposing) return;
     if (mentions.onKeyDown(e)) return;
+    if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+      const w = WRAP.find((x) => x.key === e.key.toLowerCase() && x.shift === e.shiftKey);
+      if (w) {
+        e.preventDefault();
+        wrapSelection(e.currentTarget, w.mark);
+        return;
+      }
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       submit();

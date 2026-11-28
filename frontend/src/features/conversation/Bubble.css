@@ -598,3 +598,57 @@ button.wz-bubble__edited:hover {
 .wz-mention:hover {
   text-decoration: underline;
 }
+
+/* ---- WhatsApp formatting ---- */
+
+/* blocks are spans (the text is a <p>), laid out as blocks; no newlines between them */
+.wz-md-quote,
+.wz-md-pre,
+.wz-md-list,
+.wz-md-item {
+  display: block;
+}
+
+.wz-md-quote {
+  margin: 2px 0;
+  padding: 1px 0 1px 10px;
+  border-left: 3px solid color-mix(in srgb, var(--wz-text-primary) 25%, transparent);
+  color: var(--wz-text-secondary);
+}
+
+.wz-md-code,
+.wz-md-pre {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.wz-md-code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--wz-text-primary) 8%, transparent);
+}
+
+.wz-md-pre {
+  margin: 4px 0;
+  padding: 6px 8px;
+  overflow-x: auto;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wz-text-primary) 7%, transparent);
+  white-space: pre;
+}
+
+.wz-md-list {
+  margin: 2px 0;
+}
+
+.wz-md-item {
+  position: relative;
+  padding-left: 1.4em;
+}
+
+.wz-md-item::before {
+  content: attr(data-mark);
+  position: absolute;
+  left: 0;
+  color: var(--wz-text-secondary);
+}

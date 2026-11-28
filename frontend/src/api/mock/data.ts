@@ -800,6 +800,9 @@ const TAILS: Record<string, Tail> = {
           ],
         },
       });
+      k.add(shop, 95, {
+        text: '*Today only:* _seasonal menu_ is back ~until Friday~ till Sunday!\n> Best pumpkin latte in town\n- Pumpkin spice latte\n- Maple flat white\n1. Order in the chat\n2. Pick up with code `NORTH10`\n```\nMon-Fri  07:00-19:00\nSat-Sun  09:00-17:00\n```\nMenu: https://example.com/menu_autumn_2026',
+      });
     },
   },
 
