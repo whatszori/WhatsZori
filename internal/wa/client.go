@@ -290,7 +290,34 @@ func pickAbout(info map[types.JID]types.UserInfo, jid types.JID) string {
 	return ""
 }
 func (m *Meow) GetProfilePicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error) {
+	if jid.Server == types.NewsletterServer {
+		return m.channelPicture(ctx, jid, existingID, preview)
+	}
 	return m.Cli.GetProfilePictureInfo(ctx, jid, &whatsmeow.GetProfilePictureParams{Preview: preview, ExistingID: existingID})
+}
+
+// channelPicture reads a channel's picture from its info (whatsmeow's profile picture call
+// doesn't do channels).
+func (m *Meow) channelPicture(ctx context.Context, jid types.JID, existingID string, preview bool) (*types.ProfilePictureInfo, error) {
+	info, err := m.Cli.GetNewsletterInfo(ctx, jid)
+	if err != nil {
+		return nil, err
+	}
+	pic := info.ThreadMeta.Picture
+	if preview || pic == nil || (pic.URL == "" && pic.DirectPath == "") {
+		p := info.ThreadMeta.Preview
+		pic = &p
+	}
+	if pic.URL == "" && pic.DirectPath != "" {
+		pic.URL = "https://mmg.whatsapp.net" + pic.DirectPath
+	}
+	if pic.URL == "" {
+		return nil, whatsmeow.ErrProfilePictureNotSet
+	}
+	if pic.ID != "" && pic.ID == existingID {
+		return nil, nil
+	}
+	return pic, nil
 }
 func (m *Meow) AllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
 	return m.Cli.Store.Contacts.GetAllContacts(ctx)

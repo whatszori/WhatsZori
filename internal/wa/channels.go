@@ -23,7 +23,11 @@ type ChannelSync interface {
 	SyncChannels(ctx context.Context, list []*types.NewsletterMetadata) error
 	ChannelPosts(ctx context.Context, chat types.JID, posts []*types.NewsletterMessage) error
 	SyncChannelOne(ctx context.Context, n *types.NewsletterMetadata) error
+	ChannelInfo(ctx context.Context, n *types.NewsletterMetadata) error
 }
+
+// ChannelsLacking lists channels we know only from their posts (no name or follower count yet).
+type ChannelsLacking func(ctx context.Context) ([]string, error)
 
 func channelJID(jid string) (types.JID, error) {
 	j, err := types.ParseJID(jid)
@@ -63,7 +67,7 @@ func (s *Sender) reactToPost(ctx context.Context, m repo.MessageRow, emoji strin
 }
 
 // SyncChannels stores the channels we follow and their newest posts.
-func SyncChannels(ctx context.Context, cli Client, in ChannelSync, perChannel int) error {
+func SyncChannels(ctx context.Context, cli Client, in ChannelSync, perChannel int, lacking ChannelsLacking) error {
 	list, err := cli.GetSubscribedNewsletters(ctx)
 	if err != nil {
 		return err
@@ -83,6 +87,27 @@ func SyncChannels(ctx context.Context, cli Client, in ChannelSync, perChannel in
 			return err
 		}
 	}
+	// channels that came with history or a forwarded post: their info, one by one
+	if lacking != nil {
+		jids, err := lacking(ctx)
+		if err != nil {
+			return err
+		}
+		for _, j := range jids {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			pj, err := channelJID(j)
+			if err != nil {
+				continue
+			}
+			if info, err := cli.GetNewsletterInfo(ctx, pj); err == nil {
+				if err := in.ChannelInfo(ctx, info); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -96,6 +121,12 @@ func RefreshChannel(ctx context.Context, cli Client, in ChannelSync, db repo.DBT
 	var before types.MessageServerID
 	if older {
 		before = types.MessageServerID(repo.OldestServerID(ctx, db, jid))
+	}
+	if !older {
+		// fresh name, followers and picture each time it's opened
+		if info, err := cli.GetNewsletterInfo(ctx, j); err == nil {
+			_ = in.ChannelInfo(ctx, info)
+		}
 	}
 	posts, err := cli.GetNewsletterPosts(ctx, j, 50, before)
 	if err != nil {

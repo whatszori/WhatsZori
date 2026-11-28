@@ -8,6 +8,8 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
+	"github.com/whatszori/WhatsZori/internal/domain"
+	evnames "github.com/whatszori/WhatsZori/internal/events"
 	"github.com/whatszori/WhatsZori/internal/store/repo"
 )
 
@@ -19,9 +21,29 @@ func (in *Ingester) channel(ctx context.Context, tx *sql.Tx, fx *effects, n *typ
 	if n.ViewerMeta != nil && n.ViewerMeta.Role != "" {
 		role = string(n.ViewerMeta.Role)
 	}
+	return in.storeChannel(ctx, tx, fx, n, role)
+}
+
+// ChannelInfo stores what a channel's own info says (name, followers, ...). Our role comes from
+// its viewer part when there is one; otherwise the one we have stays.
+func (in *Ingester) ChannelInfo(ctx context.Context, n *types.NewsletterMetadata) error {
+	return in.run(ctx, func(tx *sql.Tx, fx *effects) error {
+		role := ""
+		if c, err := repo.GetChat(ctx, tx, n.ID.String()); err == nil {
+			role = c.ChannelRole
+		}
+		if n.ViewerMeta != nil && n.ViewerMeta.Role != "" && n.ViewerMeta.Role != types.NewsletterRoleGuest {
+			role = string(n.ViewerMeta.Role)
+		}
+		return in.storeChannel(ctx, tx, fx, n, role)
+	})
+}
+
+func (in *Ingester) storeChannel(ctx context.Context, tx *sql.Tx, fx *effects, n *types.NewsletterMetadata, role string) error {
 	t := n.ThreadMeta
 	jid := n.ID.String()
 	fx.chats[jid] = true
+	fx.event(evnames.AvatarChange, domain.AvatarChangedEvent{JID: jid})
 	return repo.UpsertChannel(ctx, tx, repo.ChannelMeta{
 		JID: jid, Name: t.Name.Text, Description: t.Description.Text, Followers: t.SubscriberCount,
 		Verified: t.VerificationState == types.NewsletterVerificationStateVerified, Role: role,

@@ -224,7 +224,7 @@ func (c *Core) onConnected(cli wa.Client) {
 		}
 	}
 	// channels last: one request per channel
-	if err := wa.SyncChannels(ctx, cli, c.In, 30); err != nil {
+	if err := wa.SyncChannels(ctx, cli, c.In, 30, c.channelsLacking); err != nil {
 		c.log.Warn("channels", "error", redact.Digits(err.Error()))
 	}
 	c.channelsSynced.Store(time.Now().UnixMilli())
@@ -240,7 +240,7 @@ func (c *Core) SyncChannels(ctx context.Context) error {
 		return err
 	}
 	c.channelsSynced.Store(time.Now().UnixMilli())
-	return wa.SyncChannels(ctx, cli, c.In, 30)
+	return wa.SyncChannels(ctx, cli, c.In, 30, c.channelsLacking)
 }
 
 // RemoveFiles deletes media files that no message points at anymore.
@@ -270,4 +270,8 @@ func (c *Core) Wipe(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (c *Core) channelsLacking(ctx context.Context) ([]string, error) {
+	return repo.ChannelsLackingInfo(ctx, c.DB)
 }

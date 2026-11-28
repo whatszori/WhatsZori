@@ -76,10 +76,12 @@ export function FilterChips() {
 
   const hasCommunities = useChats((s) => Object.values(s.chats).some((c) => c.isCommunity));
   const hasChannels = useChats((s) => Object.values(s.chats).some((c) => c.channel));
+  // right after "All", so they're in sight even when the row has to scroll
   const options: { value: ChatFilter; label: string; list?: number }[] = [
-    ...BUILT_IN,
-    ...(hasCommunities ? [{ value: 'communities' as ChatFilter, label: 'Communities' }] : []),
+    BUILT_IN[0],
     ...(hasChannels ? [{ value: 'channels' as ChatFilter, label: 'Channels' }] : []),
+    ...(hasCommunities ? [{ value: 'communities' as ChatFilter, label: 'Communities' }] : []),
+    ...BUILT_IN.slice(1),
     ...lists.map((l) => ({ value: `list:${l.id}` as ChatFilter, label: l.name, list: l.id })),
   ];
 
@@ -119,6 +121,10 @@ export function FilterChips() {
         role="tablist"
         aria-label="Filter chats"
         onKeyDown={onKeyDown}
+        // the wheel scrolls the row sideways; it has no scrollbar
+        onWheel={(e) => {
+          if (e.deltaY && row.current) row.current.scrollLeft += e.deltaY;
+        }}
       >
         {options.map((o) => (
           <button

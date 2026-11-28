@@ -4,6 +4,8 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding: 1px 0 2px;
+  /* fades at the right edge, so chips that don't fit show there's more */
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
 }
 
 .wz-chips::-webkit-scrollbar {

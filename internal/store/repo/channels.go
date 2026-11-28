@@ -112,3 +112,21 @@ func channelReactions(countsJSON, mine string) []domain.Reaction {
 	})
 	return out
 }
+
+// ChannelsLackingInfo lists channels known only from their posts: no name or no follower count.
+func ChannelsLackingInfo(ctx context.Context, q DBTX) ([]string, error) {
+	rows, err := q.QueryContext(ctx, `SELECT jid FROM chats WHERE jid LIKE '%@newsletter' AND (name = '' OR followers = 0) ORDER BY last_ts DESC LIMIT 100`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var j string
+		if err := rows.Scan(&j); err != nil {
+			return nil, err
+		}
+		out = append(out, j)
+	}
+	return out, rows.Err()
+}
