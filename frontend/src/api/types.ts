@@ -312,6 +312,33 @@ export interface Chat {
   online?: boolean;
   // disappearing messages timer in seconds, 0/absent = off (WhatsZori keeps the messages)
   disappearing?: number;
+  // a community: the parent of its groups, not a chat of its own
+  isCommunity?: boolean;
+  // a group in a community, and whether it's the announcements group
+  community?: CommunityRef;
+  isAnnounce?: boolean;
+  // a channel (one-way broadcasts)
+  channel?: ChannelInfo;
+}
+
+export interface CommunityRef {
+  jid: JID;
+  name: string;
+}
+
+export interface ChannelInfo {
+  followers: number;
+  verified: boolean;
+  // subscriber, admin, owner, guest; empty = not followed (anymore)
+  role?: string;
+}
+
+// a group of a community, joined or not
+export interface CommunityGroup {
+  jid: JID;
+  name: string;
+  isAnnounce: boolean;
+  joined: boolean;
 }
 
 export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
@@ -408,6 +435,8 @@ export interface Message {
   location?: LocationInfo;
   // sent as a disappearing message (kept here anyway)
   disappearing?: boolean;
+  // a channel post: how many saw it
+  views?: number;
   // shared contacts
   contacts?: ContactCard[];
   event?: EventInfo;

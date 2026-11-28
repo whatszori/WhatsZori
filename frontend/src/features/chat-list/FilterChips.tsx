@@ -74,8 +74,12 @@ export function FilterChips() {
   const row = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setMenu(null), []);
 
+  const hasCommunities = useChats((s) => Object.values(s.chats).some((c) => c.isCommunity));
+  const hasChannels = useChats((s) => Object.values(s.chats).some((c) => c.channel));
   const options: { value: ChatFilter; label: string; list?: number }[] = [
     ...BUILT_IN,
+    ...(hasCommunities ? [{ value: 'communities' as ChatFilter, label: 'Communities' }] : []),
+    ...(hasChannels ? [{ value: 'channels' as ChatFilter, label: 'Channels' }] : []),
     ...lists.map((l) => ({ value: `list:${l.id}` as ChatFilter, label: l.name, list: l.id })),
   ];
 

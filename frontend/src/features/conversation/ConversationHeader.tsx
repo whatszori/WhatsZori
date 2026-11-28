@@ -12,9 +12,11 @@ import {
   PinOff,
   Search,
   Timer,
+  BadgeCheck,
 } from 'lucide-react';
 import type { Chat } from '../../api';
 import { timerLabel } from '../chat-info/Disappearing';
+import '../chat-list/CommunityChannel.css';
 import { formatLastSeen, pluralize } from '../../lib/format';
 import { PluginSlot } from '../../plugin-core/slots';
 import { PanelButtons } from '../../plugin-core/host';
@@ -23,6 +25,9 @@ import { useSettings } from '../../stores/settings';
 import { useUI } from '../../stores/ui';
 import { Avatar, IconButton, Menu, type MenuEntry, type PopoverAnchor } from '../../ui';
 import { toPluginChat } from './plugin-adapters';
+
+const COMPACT = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+export const compact = (n: number) => COMPACT.format(n);
 
 function statusLine(chat: Chat, typing: string[]): { text: string; accent: boolean } {
   if (typing.length) {
@@ -36,6 +41,13 @@ function statusLine(chat: Chat, typing: string[]): { text: string; accent: boole
       accent: true,
     };
   }
+  if (chat.channel)
+    return { text: `Channel · ${compact(chat.channel.followers)} followers`, accent: false };
+  if (chat.isGroup && chat.community)
+    return {
+      text: `${chat.community.name} · ${pluralize(chat.memberCount ?? 0, 'member')}`,
+      accent: false,
+    };
   if (chat.isGroup) return { text: pluralize(chat.memberCount ?? 0, 'member'), accent: false };
   if (chat.online) return { text: 'online', accent: false };
   return { text: formatLastSeen(chat.lastSeen ?? null), accent: false };
@@ -107,6 +119,11 @@ export function ConversationHeader({ chat }: { chat: Chat }) {
         <span className="wz-conv-header__text">
           <span className="wz-conv-header__name">
             {chat.name}
+            {chat.channel?.verified && (
+              <span className="wz-verified" title="Verified channel">
+                <BadgeCheck size={15} aria-label="Verified" />
+              </span>
+            )}
             {!!chat.disappearing && (
               <span
                 className="wz-conv-header__ghost"

@@ -34,6 +34,7 @@ import type {
   Reaction,
   SearchHit,
   LocationDraft,
+  CommunityGroup,
   ScheduledMessage,
   EventDraft,
 } from './types';
@@ -70,6 +71,14 @@ export interface ChatService {
   leave(jid: JID): Promise<void>;
   // 0 (off), 86400, 604800 or 7776000 seconds, for everyone in the chat
   setDisappearing(jid: JID, seconds: number): Promise<void>;
+  // a community's groups, joined or not
+  communityGroups(jid: JID): Promise<CommunityGroup[]>;
+  // channels: refresh the followed ones (throttled), fetch a channel's newest (or older) posts,
+  // follow by link (or by the channel's JID again), unfollow
+  syncChannels(): Promise<void>;
+  refreshChannel(jid: JID, older: boolean): Promise<boolean>;
+  followChannel(link: string): Promise<Chat>;
+  unfollowChannel(jid: JID): Promise<void>;
   removeMember(group: JID, member: JID): Promise<void>;
   groupEvents(jid: JID): Promise<GroupEvent[]>;
   lists(): Promise<ChatList[]>;

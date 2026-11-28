@@ -428,7 +428,7 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
       />,
     );
   }
-  if (!isGroup && ready)
+  if (!isGroup && ready && !target?.channel)
     actions.push(
       <ActionRow
         key="block"
@@ -510,7 +510,13 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
           <IconButton label="Close" hint="Esc" icon={<X size={18} />} onClick={back} />
         )}
         <h2 className="wz-info__title">
-          {shared ? 'Media, links and docs' : isGroup ? 'Group info' : 'Contact info'}
+          {shared
+            ? 'Media, links and docs'
+            : target?.channel
+              ? 'Channel info'
+              : isGroup
+                ? 'Group info'
+                : 'Contact info'}
         </h2>
         {nested && !shared && (
           <IconButton
@@ -540,7 +546,9 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
               <p className="wz-info__sub wz-selectable">
                 {isGroup
                   ? `Group · ${pluralize(ready?.members?.length ?? target?.memberCount ?? 0, 'member')}`
-                  : (ready?.phone ?? ' ')}
+                  : target?.channel
+                    ? `Channel · ${target.channel.followers.toLocaleString('en')} followers`
+                    : (ready?.phone ?? ' ')}
               </p>
               <div className="wz-info__actions">
                 {nested && !isGroup && (
@@ -616,7 +624,9 @@ function Panel({ chat, infoJid }: { chat: Chat; infoJid: JID | null }) {
                   </Section>
                 )}
 
-                {target && !ready.noChat && <DisappearingSection chat={target} />}
+                {target && !ready.noChat && !target.channel && (
+                  <DisappearingSection chat={target} />
+                )}
 
                 {target && (
                   <Section>

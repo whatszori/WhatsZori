@@ -1,5 +1,6 @@
 import { memo, useMemo, type MouseEvent, type ReactNode } from 'react';
-import { Ban, Check, Forward, MoreHorizontal, Timer, Trash2 } from 'lucide-react';
+import { Ban, Check, Eye, Forward, MoreHorizontal, Timer, Trash2 } from 'lucide-react';
+import { compact } from './ConversationHeader';
 import type { JID, Mention, Message, MessagePK } from '../../api';
 import { formatTime } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
@@ -247,6 +248,12 @@ function Meta({
           title="Disappearing message. It’s gone from their phones after a while; WhatsZori keeps it."
         >
           <Timer size={11} strokeWidth={2} aria-label="Disappearing message" />
+        </span>
+      )}
+      {!!m.views && (
+        <span className="wz-bubble__views" title={`Seen by ${m.views.toLocaleString()}`}>
+          <Eye size={11} strokeWidth={2} aria-hidden="true" />
+          {compact(m.views)}
         </span>
       )}
       <time dateTime={new Date(m.timestamp).toISOString()}>{formatTime(m.timestamp)}</time>

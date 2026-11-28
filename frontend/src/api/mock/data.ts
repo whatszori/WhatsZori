@@ -397,6 +397,8 @@ export function createMockDB(now = Date.now(), seed = 7): MockDB {
   }
 
   addMandarin(db, now, pk);
+  addCommunity(db, now, pk);
+  addChannel(db, now, pk);
 
   for (const [jid, list] of db.messages) refreshChatPreview(db, jid, list);
   return db;
@@ -1085,5 +1087,114 @@ function addMandarin(db: MockDB, now: number, pk: () => string): void {
     lastActivity: list[list.length - 1].timestamp,
     lastSeen: at(12, 14),
     online: false,
+  });
+}
+
+// a community with an announcements group, holding two groups that already exist
+function addCommunity(db: MockDB, now: number, pk: () => string): void {
+  const parent = 'mock-neighbours@g.us';
+  const community = { jid: parent, name: 'Riverside neighbours' };
+  db.chats.set(parent, {
+    jid: parent,
+    name: community.name,
+    isGroup: true,
+    isCommunity: true,
+    pinned: false,
+    archived: false,
+    muted: false,
+    unread: 0,
+    lastMessage: null,
+    lastActivity: now - 3 * 86_400_000,
+  });
+  for (const c of db.chats.values()) {
+    if (c.name === 'Weekend hiking' || c.name === 'Book club') c.community = community;
+  }
+  const jid = 'mock-neighbours-news@g.us';
+  const admin = { jid: '491701110001@s.whatsapp.net', name: 'Hannah Fischer' };
+  const at = now - 26 * 60_000;
+  db.members.set(jid, [admin]);
+  db.messages.set(jid, [
+    {
+      pk: pk(),
+      id: `3EB0ANN${db.nextPk}`,
+      chatJid: jid,
+      senderJid: admin.jid,
+      senderName: admin.name,
+      fromMe: false,
+      timestamp: at,
+      kind: 'text',
+      text: '*Street party on Saturday* 🎉\nBring a dish to share. Tables go up at 3 pm by the playground.',
+      reactions: [{ emoji: '🎉', count: 14, mine: false }],
+    },
+  ]);
+  db.chats.set(jid, {
+    jid,
+    name: 'Announcements',
+    isGroup: true,
+    isAnnounce: true,
+    community,
+    memberCount: 212,
+    pinned: false,
+    archived: false,
+    muted: false,
+    unread: 1,
+    lastMessage: null,
+    lastActivity: at,
+  });
+}
+
+// a channel we follow, with views and reaction counts
+function addChannel(db: MockDB, now: number, pk: () => string): void {
+  const jid = '120363000000000077@newsletter';
+  const post = (
+    minsAgo: number,
+    text: string,
+    views: number,
+    reactions: [string, number][],
+  ): Message => ({
+    pk: pk(),
+    id: `3EB0CH${db.nextPk}`,
+    chatJid: jid,
+    senderJid: jid,
+    senderName: '',
+    fromMe: false,
+    timestamp: now - minsAgo * 60_000,
+    kind: 'text',
+    text,
+    views,
+    reactions: reactions.map(([emoji, count]) => ({ emoji, count, mine: false })),
+  });
+  db.messages.set(jid, [
+    post(
+      60 * 26,
+      'WhatsZori 0.2 is out: plugins with permissions, a marketplace and themes. https://whatszori.obzori.dev',
+      18_420,
+      [
+        ['🔥', 812],
+        ['❤️', 301],
+      ],
+    ),
+    post(60 * 5, 'Tip: right-click the send button to *schedule* a message.', 9_870, [
+      ['👍', 420],
+      ['😮', 37],
+    ]),
+    post(
+      42,
+      'Coming next: _channels_ and _communities_ right in the app. This post is one.',
+      4_310,
+      [['🎉', 266]],
+    ),
+  ]);
+  db.chats.set(jid, {
+    jid,
+    name: 'WhatsZori News',
+    isGroup: false,
+    pinned: false,
+    archived: false,
+    muted: false,
+    unread: 1,
+    lastMessage: null,
+    lastActivity: now - 42 * 60_000,
+    channel: { followers: 12_480, verified: true, role: 'subscriber' },
   });
 }

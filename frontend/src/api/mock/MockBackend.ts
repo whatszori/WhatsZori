@@ -35,6 +35,7 @@ import type {
   SearchHit,
   LocationDraft,
   EventDraft,
+  CommunityGroup,
   ScheduledMessage,
 } from '../types';
 import { buildChatInfo, createMockDB, preview, refreshChatPreview, type MockDB } from './data';
@@ -341,6 +342,48 @@ export class MockBackend implements Backend {
       await this.wait();
       if (blocked) this.blocked.add(jid);
       else this.blocked.delete(jid);
+    },
+    communityGroups: async (jid: JID): Promise<CommunityGroup[]> => {
+      await this.wait();
+      const mine = [...this.db.chats.values()]
+        .filter((c) => c.community?.jid === jid)
+        .map((c) => ({ jid: c.jid, name: c.name, isAnnounce: !!c.isAnnounce, joined: true }));
+      return [
+        ...mine,
+        { jid: 'mock-garden@g.us', name: 'Garden club', isAnnounce: false, joined: false },
+      ];
+    },
+    syncChannels: async (): Promise<void> => undefined,
+    refreshChannel: async (): Promise<boolean> => false,
+    followChannel: async (link: string): Promise<Chat> => {
+      await this.wait();
+      if (!/whatsapp\.com\/channel\/\w+|@newsletter$/.test(link))
+        throw new Error('that isn’t a WhatsApp channel link (whatsapp.com/channel/…)');
+      const jid = link.endsWith('@newsletter') ? link : '120363999999999999@newsletter';
+      const chat: Chat = this.db.chats.get(jid) ?? {
+        jid,
+        name: 'Daily Space Photos',
+        isGroup: false,
+        pinned: false,
+        archived: false,
+        muted: false,
+        unread: 0,
+        lastMessage: null,
+        lastActivity: Date.now(),
+        channel: { followers: 48_200, verified: false, role: 'subscriber' },
+      };
+      chat.channel = { ...chat.channel!, role: 'subscriber' };
+      this.db.chats.set(jid, chat);
+      if (!this.db.messages.has(jid)) this.db.messages.set(jid, []);
+      this.emit('chat:update', { chat: clone(chat) });
+      return clone(chat);
+    },
+    unfollowChannel: async (jid: JID): Promise<void> => {
+      await this.wait();
+      const chat = this.db.chats.get(jid);
+      if (!chat?.channel) return;
+      chat.channel = { ...chat.channel, role: '' };
+      this.emit('chat:update', { chat: clone(chat) });
     },
     setDisappearing: async (jid: JID, seconds: number): Promise<void> => {
       await this.wait();

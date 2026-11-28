@@ -10,6 +10,7 @@ import { SelectionBar } from '../selection/SelectionBar';
 import { useUI } from '../../stores/ui';
 import { ChatInfoPanel } from '../chat-info/ChatInfoPanel';
 import { Composer } from '../composer/Composer';
+import { ChannelBar } from './ChannelBar';
 import { ConversationHeader } from './ConversationHeader';
 import { MessageList } from './MessageList';
 import { toPluginChat } from './plugin-adapters';
@@ -62,7 +63,13 @@ export function Conversation({ jid }: { jid: JID }) {
         )}
         <PluginSlot name="conversation.banner" props={{ chat: toPluginChat(chat) }} />
         <MessageList chat={chat} />
-        {selecting ? <SelectionBar chat={chat} /> : <Composer chat={chat} />}
+        {selecting ? (
+          <SelectionBar chat={chat} />
+        ) : chat.channel ? (
+          <ChannelBar chat={chat} />
+        ) : (
+          <Composer chat={chat} />
+        )}
         {dragging && (
           <div className="wz-drop-hint" aria-hidden="true">
             <Paperclip size={28} />

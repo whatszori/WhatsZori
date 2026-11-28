@@ -64,6 +64,7 @@ import type {
   SearchHit,
   UserTheme,
   LocationDraft,
+  CommunityGroup,
   ScheduledMessage,
   EventDraft,
 } from '../types';
@@ -121,6 +122,12 @@ export class WailsBackend implements Backend {
     setBlocked: (jid: JID, blocked: boolean) => Chats.SetBlocked(jid, blocked),
     leave: (jid: JID) => Chats.Leave(jid),
     setDisappearing: (jid: JID, seconds: number) => Chats.SetDisappearing(jid, seconds),
+    communityGroups: async (jid: JID): Promise<CommunityGroup[]> =>
+      ((await Chats.CommunityGroups(jid)) ?? []) as CommunityGroup[],
+    syncChannels: () => Chats.SyncChannels(),
+    refreshChannel: (jid: JID, older: boolean) => Chats.RefreshChannel(jid, older),
+    followChannel: async (link: string): Promise<Chat> => as<Chat>(await Chats.FollowChannel(link)),
+    unfollowChannel: (jid: JID) => Chats.UnfollowChannel(jid),
     removeMember: (group: JID, member: JID) => Chats.RemoveMember(group, member),
     groupEvents: async (jid: JID): Promise<GroupEvent[]> =>
       as<GroupEvent[]>((await Chats.GroupEvents(jid)) ?? []),

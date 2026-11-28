@@ -717,3 +717,9 @@ button.wz-bubble__edited:hover {
   align-items: center;
   opacity: 0.8;
 }
+
+.wz-bubble__views {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}

@@ -13,7 +13,8 @@ import {
   StarOff,
 } from 'lucide-react';
 import type { Chat, JID } from '../../api';
-import type { ChatFilter, ChatListView } from '../../stores/chat-selectors';
+import { communitySections, type ChatFilter, type ChatListView } from '../../stores/chat-selectors';
+import { CommunityHeading, FollowChannelRow } from './CommunityChannel';
 import { useChats } from '../../stores/chats';
 import { useSettings } from '../../stores/settings';
 import { useUI } from '../../stores/ui';
@@ -24,6 +25,8 @@ import './ChatList.css';
 
 type Row =
   | { type: 'header'; key: string; label: string }
+  | { type: 'community'; key: string; chat: Chat }
+  | { type: 'follow'; key: string }
   | { type: 'chat'; key: string; chat: Chat }
   | { type: 'archived'; key: string; count: number; unread: number };
 
@@ -71,14 +74,30 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
   const [menu, setMenu] = useState<{ jid: JID; anchor: PopoverAnchor } | null>(null);
   const [listsFor, setListsFor] = useState<JID | null>(null);
 
-  const rows = useMemo(() => buildRows(view, showArchived, query), [view, showArchived, query]);
+  const all = useChats((s) => s.chats);
+  const rows = useMemo((): Row[] => {
+    if (!showArchived && !query.trim() && filter === 'communities')
+      return communitySections(Object.values(all)).flatMap(({ community, groups }) => [
+        { type: 'community' as const, key: 'c-' + community.jid, chat: community },
+        ...groups.map((c) => ({ type: 'chat' as const, key: c.jid, chat: c })),
+      ]);
+    const list = buildRows(view, showArchived, query);
+    if (!showArchived && filter === 'channels') return [{ type: 'follow', key: 'follow' }, ...list];
+    return list;
+  }, [view, showArchived, query, filter, all]);
   const itemH = Math.round((density === 'compact' ? 56 : 68) * Math.max(1, fontScale));
 
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: (i) =>
-      rows[i].type === 'header' ? 28 : rows[i].type === 'archived' ? 52 : itemH,
+      rows[i].type === 'header'
+        ? 28
+        : rows[i].type === 'archived' || rows[i].type === 'community'
+          ? 52
+          : rows[i].type === 'follow'
+            ? 60
+            : itemH,
     getItemKey: (i) => rows[i].key,
     overscan: 8,
   });
@@ -114,7 +133,8 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-row]');
     if (!el) return;
     const i = Number(el.dataset.row);
-    const focusable = (j: number) => rows[j] && rows[j].type !== 'header';
+    const focusable = (j: number) =>
+      rows[j] && rows[j].type !== 'header' && rows[j].type !== 'community';
     let j = i;
     if (e.key === 'ArrowDown')
       do j++;
@@ -187,11 +207,13 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
               ? 'No archived chats'
               : filter === 'unread'
                 ? 'You’re all caught up'
-                : filter === 'favorites'
-                  ? 'No favorites yet. Right-click a chat to add it.'
-                  : filter.startsWith('list:')
-                    ? 'This list is empty. Right-click a chat to add it.'
-                    : 'No chats here yet'}
+                : filter === 'communities'
+                  ? 'You’re not in any community'
+                  : filter === 'favorites'
+                    ? 'No favorites yet. Right-click a chat to add it.'
+                    : filter.startsWith('list:')
+                      ? 'This list is empty. Right-click a chat to add it.'
+                      : 'No chats here yet'}
         </p>
       </div>
     );
@@ -218,6 +240,18 @@ export function ChatList({ view, showArchived, query, filter }: ChatListProps) {
             return (
               <div key={vi.key} style={style} className="wz-chat-list__header" role="presentation">
                 {row.label}
+              </div>
+            );
+          if (row.type === 'community')
+            return (
+              <div key={vi.key} style={style} role="presentation">
+                <CommunityHeading chat={row.chat} />
+              </div>
+            );
+          if (row.type === 'follow')
+            return (
+              <div key={vi.key} style={style} role="listitem">
+                <FollowChannelRow />
               </div>
             );
           if (row.type === 'archived')
