@@ -624,3 +624,29 @@ button.wz-info__member:hover {
   font-size: var(--wz-font-size-xs);
   line-height: 1.4;
 }
+
+/* ---- shared media: search, months, audio ---- */
+
+.wz-shared__search {
+  padding: 0 12px 8px;
+}
+
+.wz-shared__month {
+  padding: 10px 4px 4px;
+  color: var(--wz-text-secondary);
+  font-size: var(--wz-font-size-xs);
+  font-weight: 600;
+  list-style: none;
+}
+
+.wz-shared__month--grid {
+  grid-column: 1 / -1;
+  padding-left: 0;
+}
+
+.wz-shared__audio {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  cursor: default;
+}

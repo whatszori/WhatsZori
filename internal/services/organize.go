@@ -289,8 +289,9 @@ func (s *Chats) SetInList(id int64, jid string, in bool) error {
 	return nil
 }
 
-// ListShared pages a chat's media ("media"), documents ("docs") or messages with links ("links").
-func (s *Messages) ListShared(jid, kind, beforePk string, limit int) (domain.MessagePage, error) {
+// ListShared pages a chat's media ("media"), documents ("docs"), voice and audio ("audio") or
+// messages with links ("links"); query, when set, matches the text, caption or file name.
+func (s *Messages) ListShared(jid, kind, query, beforePk string, limit int) (domain.MessagePage, error) {
 	ctx, cancel := call()
 	defer cancel()
 	var before int64
@@ -300,7 +301,7 @@ func (s *Messages) ListShared(jid, kind, beforePk string, limit int) (domain.Mes
 			return domain.MessagePage{}, err
 		}
 	}
-	rows, more, err := repo.SharedPage(ctx, s.c.DB, jid, kind, before, limit)
+	rows, more, err := repo.SharedPage(ctx, s.c.DB, jid, kind, query, before, limit)
 	if err != nil {
 		return domain.MessagePage{}, err
 	}

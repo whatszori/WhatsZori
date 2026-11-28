@@ -240,16 +240,20 @@ const (
 	SharedMedia = "media"
 	SharedDocs  = "docs"
 	SharedLinks = "links"
+	SharedAudio = "audio"
 )
 
 var sharedFilter = map[string]string{
 	SharedMedia: `kind IN ('image', 'video', 'gif') AND pk IN (SELECT message_pk FROM media)`,
 	SharedDocs:  `kind = 'document'`,
 	SharedLinks: `(body LIKE '%http://%' OR body LIKE '%https://%' OR body LIKE '%www.%')`,
+	SharedAudio: `kind IN ('voice', 'audio') AND pk IN (SELECT message_pk FROM media)`,
 }
 
 // SharedPage pages a chat's media, documents or link messages, newest first, by (ts, pk).
-func SharedPage(ctx context.Context, q DBTX, chat, kind string, beforePK int64, limit int) ([]MessageRow, bool, error) {
+// SharedPage pages a chat's shared things of one kind, newest first; query (optional) matches
+// the text or caption and a file's name.
+func SharedPage(ctx context.Context, q DBTX, chat, kind, query string, beforePK int64, limit int) ([]MessageRow, bool, error) {
 	filter, ok := sharedFilter[kind]
 	if !ok {
 		return nil, false, errors.New("unknown kind " + kind)
@@ -258,14 +262,19 @@ func SharedPage(ctx context.Context, q DBTX, chat, kind string, beforePK int64, 
 		limit = 60
 	}
 	where := `chat_jid = ?1 AND ` + filter + ` AND NOT (is_deleted = 1 AND raw IS NULL)`
+	like := ""
+	if query = strings.TrimSpace(query); query != "" {
+		like = "%" + strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(query) + "%"
+		where += ` AND (body LIKE ?4 ESCAPE '\' OR pk IN (SELECT message_pk FROM media WHERE file_name LIKE ?4 ESCAPE '\'))`
+	}
 	var rows []MessageRow
 	var err error
 	if beforePK > 0 {
 		rows, err = scanMessages(q.QueryContext(ctx, `SELECT `+msgCols+` FROM messages WHERE `+where+`
-			AND (ts, pk) < (SELECT ts, pk FROM messages WHERE pk = ?2) ORDER BY ts DESC, pk DESC LIMIT ?3`, chat, beforePK, limit+1))
+			AND (ts, pk) < (SELECT ts, pk FROM messages WHERE pk = ?2) ORDER BY ts DESC, pk DESC LIMIT ?3`, chat, beforePK, limit+1, like))
 	} else {
 		rows, err = scanMessages(q.QueryContext(ctx, `SELECT `+msgCols+` FROM messages WHERE `+where+`
-			ORDER BY ts DESC, pk DESC LIMIT ?3`, chat, nil, limit+1))
+			ORDER BY ts DESC, pk DESC LIMIT ?3`, chat, nil, limit+1, like))
 	}
 	if err != nil {
 		return nil, false, err

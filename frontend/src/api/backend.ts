@@ -165,6 +165,8 @@ export interface MessageService {
     kind: SharedKind,
     beforePk: MessagePK | null,
     limit: number,
+    // matches the text, caption or file name
+    query?: string,
   ): Promise<MessagePage>;
 }
 

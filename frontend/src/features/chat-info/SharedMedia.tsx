@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ExternalLink, FileText, Image as ImageIcon, MessageSquareText, Play } from 'lucide-react';
+import {
+  ExternalLink,
+  FileText,
+  Image as ImageIcon,
+  MessageSquareText,
+  Play,
+  Search,
+} from 'lucide-react';
 import { backend, type JID, type Message, type SharedKind } from '../../api';
 import { formatDateTime, formatDuration, formatFileSize } from '../../lib/format';
 import { linkify } from '../../lib/linkify';
 import { toastError, useToasts } from '../../stores/toasts';
 import { useUI } from '../../stores/ui';
-import { Segmented, Spinner } from '../../ui';
+import { Input, Segmented, Spinner } from '../../ui';
+import { MediaBlock } from '../conversation/Media';
 
 const PAGE = 60;
 
@@ -13,9 +21,27 @@ const TABS: { value: SharedKind; label: string }[] = [
   { value: 'media', label: 'Media' },
   { value: 'docs', label: 'Docs' },
   { value: 'links', label: 'Links' },
+  { value: 'audio', label: 'Audio' },
 ];
 
-function useShared(jid: JID, kind: SharedKind) {
+const MONTH = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' });
+
+// items with a month header before each new month
+function byMonth(items: Message[]): (Message | { month: string })[] {
+  const out: (Message | { month: string })[] = [];
+  let last = '';
+  for (const m of items) {
+    const label = MONTH.format(m.timestamp);
+    if (label !== last) out.push({ month: label });
+    last = label;
+    out.push(m);
+  }
+  return out;
+}
+
+const isHeader = (x: Message | { month: string }): x is { month: string } => 'month' in x;
+
+function useShared(jid: JID, kind: SharedKind, query: string) {
   const [items, setItems] = useState<Message[]>([]);
   const [more, setMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -27,7 +53,7 @@ function useShared(jid: JID, kind: SharedKind) {
     setLoading(true);
     try {
       const before = items.length ? items[items.length - 1].pk : null;
-      const page = await backend.messages.listShared(jid, kind, before, PAGE);
+      const page = await backend.messages.listShared(jid, kind, before, PAGE, query);
       setItems((cur) => [...cur, ...page.messages]);
       setMore(page.hasMore);
     } catch (err) {
@@ -37,7 +63,7 @@ function useShared(jid: JID, kind: SharedKind) {
       busy.current = false;
       setLoading(false);
     }
-  }, [jid, kind, items]);
+  }, [jid, kind, items, query]);
 
   return { items, more, loading, next };
 }
@@ -59,42 +85,78 @@ function Sentinel({ onVisible, active }: { onVisible: () => void; active: boolea
 
 export function SharedMedia({ jid, initial }: { jid: JID; initial: SharedKind }) {
   const [kind, setKind] = useState<SharedKind>(initial);
+  const [typed, setTyped] = useState('');
+  const [query, setQuery] = useState('');
+  // search after a short pause in typing
+  useEffect(() => {
+    const t = window.setTimeout(() => setQuery(typed.trim()), 250);
+    return () => window.clearTimeout(t);
+  }, [typed]);
   return (
     <div className="wz-shared">
       <div className="wz-shared__tabs">
         <Segmented label="Show" value={kind} options={TABS} onChange={setKind} size="sm" />
       </div>
-      {/* keyed so each tab starts from the top with its own list */}
-      <SharedList key={kind} jid={jid} kind={kind} />
+      {/* voice notes have no text to search */}
+      <div className="wz-shared__search" hidden={kind === 'audio'}>
+        <Input
+          icon={<Search size={15} />}
+          placeholder={
+            kind === 'docs'
+              ? 'Search file names and captions'
+              : kind === 'links'
+                ? 'Search links and messages'
+                : 'Search captions'
+          }
+          aria-label="Search"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+        />
+      </div>
+      {/* keyed so each tab and search starts from the top with its own list */}
+      <SharedList key={kind + '\u0000' + query} jid={jid} kind={kind} query={query} />
     </div>
   );
 }
 
-function SharedList({ jid, kind }: { jid: JID; kind: SharedKind }) {
-  const { items, more, loading, next } = useShared(jid, kind);
+function SharedList({ jid, kind, query }: { jid: JID; kind: SharedKind; query: string }) {
+  const { items, more, loading, next } = useShared(jid, kind, query);
   const empty = !loading && !more && items.length === 0;
+  const rows = byMonth(items);
+  const head = (x: { month: string }) => (
+    <li key={'h' + x.month} className="wz-shared__month">
+      {x.month}
+    </li>
+  );
 
   return (
     <>
       {kind === 'media' && (
         <div className="wz-shared__grid">
-          {items.map((m) => (
-            <MediaTile key={m.pk} m={m} items={items} />
-          ))}
+          {rows.map((x) =>
+            isHeader(x) ? (
+              <div key={'h' + x.month} className="wz-shared__month wz-shared__month--grid">
+                {x.month}
+              </div>
+            ) : (
+              <MediaTile key={x.pk} m={x} items={items} />
+            ),
+          )}
         </div>
       )}
       {kind === 'docs' && (
         <ul className="wz-shared__list">
-          {items.map((m) => (
-            <DocRow key={m.pk} m={m} />
-          ))}
+          {rows.map((x) => (isHeader(x) ? head(x) : <DocRow key={x.pk} m={x} />))}
         </ul>
       )}
       {kind === 'links' && (
         <ul className="wz-shared__list">
-          {items.map((m) => (
-            <LinkRow key={m.pk} m={m} />
-          ))}
+          {rows.map((x) => (isHeader(x) ? head(x) : <LinkRow key={x.pk} m={x} />))}
+        </ul>
+      )}
+      {kind === 'audio' && (
+        <ul className="wz-shared__list">
+          {rows.map((x) => (isHeader(x) ? head(x) : <AudioRow key={x.pk} m={x} />))}
         </ul>
       )}
       {loading && (
@@ -104,7 +166,15 @@ function SharedList({ jid, kind }: { jid: JID; kind: SharedKind }) {
       )}
       {empty && (
         <p className="wz-empty-text wz-shared__empty">
-          {kind === 'media' ? 'No photos or videos' : kind === 'docs' ? 'No documents' : 'No links'}
+          {query
+            ? 'Nothing matches'
+            : kind === 'media'
+              ? 'No photos or videos'
+              : kind === 'docs'
+                ? 'No documents'
+                : kind === 'audio'
+                  ? 'No voice messages'
+                  : 'No links'}
         </p>
       )}
       <Sentinel onVisible={() => void next()} active={more && !loading} />
@@ -230,6 +300,28 @@ function LinkRow({ m }: { m: Message }) {
           </span>
         </span>
       </button>
+      <button
+        type="button"
+        className="wz-shared__row-side"
+        onClick={() => jump(m)}
+        aria-label="Show in chat"
+        title="Show in chat"
+      >
+        <MessageSquareText size={16} />
+      </button>
+    </li>
+  );
+}
+
+function AudioRow({ m }: { m: Message }) {
+  return (
+    <li className="wz-shared__row wz-shared__row--audio">
+      <div className="wz-shared__row-main wz-shared__audio">
+        <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
+        <span className="wz-shared__row-meta">
+          {formatDateTime(m.timestamp)} · {m.senderName}
+        </span>
+      </div>
       <button
         type="button"
         className="wz-shared__row-side"

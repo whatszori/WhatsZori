@@ -65,10 +65,11 @@ export function GetMessages(jid: string, beforePk: string, limit: number): $Canc
 }
 
 /**
- * ListShared pages a chat's media ("media"), documents ("docs") or messages with links ("links").
+ * ListShared pages a chat's media ("media"), documents ("docs"), voice and audio ("audio") or
+ * messages with links ("links"); query, when set, matches the text, caption or file name.
  */
-export function ListShared(jid: string, kind: string, beforePk: string, limit: number): $CancellablePromise<domain$0.MessagePage> {
-    return $Call.ByID(1407556369, jid, kind, beforePk, limit);
+export function ListShared(jid: string, kind: string, query: string, beforePk: string, limit: number): $CancellablePromise<domain$0.MessagePage> {
+    return $Call.ByID(1407556369, jid, kind, query, beforePk, limit);
 }
 
 /**

@@ -232,8 +232,9 @@ export class WailsBackend implements Backend {
       kind: SharedKind,
       beforePk: MessagePK | null,
       limit: number,
+      query?: string,
     ): Promise<MessagePage> => {
-      const page = await Messages.ListShared(jid, kind, beforePk ?? '', limit);
+      const page = await Messages.ListShared(jid, kind, query ?? '', beforePk ?? '', limit);
       return { messages: (page.messages ?? []).map(message), hasMore: page.hasMore };
     },
     sendVoice: async (jid: JID, recording: Blob, waveform: number[]): Promise<Message> => {

@@ -88,16 +88,29 @@ func TestSharedPage(t *testing.T) {
 	db.ExecContext(ctx, `UPDATE messages SET kind = 'image' WHERE pk = ?`, img)
 	repo.UpsertMedia(ctx, db, repo.MediaRow{MessagePK: img, MediaType: "image"})
 
-	links, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedLinks, 0, 10)
+	links, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedLinks, "", 0, 10)
 	if len(links) != 2 {
 		t.Errorf("links: %d", len(links))
 	}
-	media, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedMedia, 0, 10)
+	media, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedMedia, "", 0, 10)
 	if len(media) != 1 || media[0].PK != img {
 		t.Errorf("media: %+v", media)
 	}
-	if _, _, err := repo.SharedPage(ctx, db, chat, "nope", 0, 10); err == nil {
+	if _, _, err := repo.SharedPage(ctx, db, chat, "nope", "", 0, 10); err == nil {
 		t.Error("unknown kind accepted")
+	}
+	// search: text and file names; % and _ are literal
+	doc := insert(t, db, chat, "DOC", 11, "")
+	db.ExecContext(ctx, `UPDATE messages SET kind = 'document' WHERE pk = ?`, doc)
+	repo.UpsertMedia(ctx, db, repo.MediaRow{MessagePK: doc, MediaType: "document", FileName: "Invoice_100%.pdf"})
+	if hits, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedLinks, "rocks", 0, 10); len(hits) != 1 {
+		t.Errorf("link search: %d", len(hits))
+	}
+	if hits, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedDocs, "invoice_100%", 0, 10); len(hits) != 1 {
+		t.Errorf("file name search: %d", len(hits))
+	}
+	if hits, _, _ := repo.SharedPage(ctx, db, chat, repo.SharedDocs, "invoice%1", 0, 10); len(hits) != 0 {
+		t.Errorf("%% matched as a wildcard: %d", len(hits))
 	}
 }
 

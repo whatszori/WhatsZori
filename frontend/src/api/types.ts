@@ -97,7 +97,7 @@ export interface ExportProgress {
   phase: 'collecting' | 'media' | 'writing' | 'done' | 'failed' | 'cancelled';
 }
 
-export type SharedKind = 'media' | 'docs' | 'links';
+export type SharedKind = 'media' | 'docs' | 'links' | 'audio';
 
 export interface AuthStatus {
   state: AuthState;

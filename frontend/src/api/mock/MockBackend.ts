@@ -984,6 +984,7 @@ export class MockBackend implements Backend {
       kind: SharedKind,
       beforePk: MessagePK | null,
       limit: number,
+      query?: string,
     ): Promise<MessagePage> => {
       await this.wait();
       const match = (m: Message) =>
@@ -991,9 +992,14 @@ export class MockBackend implements Backend {
           ? (m.kind === 'image' || m.kind === 'video') && !!m.media && !m.media.round
           : kind === 'docs'
             ? m.kind === 'document'
-            : /https?:\/\/|www\./.test(m.text);
+            : kind === 'audio'
+              ? m.kind === 'voice'
+              : /https?:\/\/|www\./.test(m.text);
+      const q = (query ?? '').trim().toLowerCase();
+      const hit = (m: Message) =>
+        !q || m.text.toLowerCase().includes(q) || !!m.media?.fileName?.toLowerCase().includes(q);
       const all = (this.db.messages.get(jid) ?? [])
-        .filter((m) => match(m) && !m.contentUnknown)
+        .filter((m) => match(m) && hit(m) && !m.contentUnknown)
         .reverse();
       const start = beforePk ? all.findIndex((m) => m.pk === beforePk) + 1 : 0;
       const page = all.slice(start, start + limit);
