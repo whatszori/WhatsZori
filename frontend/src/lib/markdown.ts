@@ -18,59 +18,82 @@ const SPACE = /\s/;
 // what may sit right outside a marker: space, punctuation, symbols
 const EDGE = /[\s\p{P}\p{S}]/u;
 
-function emphasis(s: string): Inline[] {
+// a pair of markers in [from, to) of s, with the pairs inside it
+interface Pair {
+  a: number;
+  b: number;
+  k: 'b' | 'i' | 's';
+  inner: Pair[];
+}
+
+function urlTest(s: string) {
   // markers inside links don't count (example.com/a_b_c)
   const urls: [number, number][] = [];
   for (const m of s.matchAll(URL_RE)) urls.push([m.index, m.index + m[0].length]);
-  const inUrl = (i: number) => urls.some(([a, b]) => i >= a && i < b);
+  return (i: number) => urls.some(([a, b]) => i >= a && i < b);
+}
 
-  const out: Inline[] = [];
-  let buf = '';
-  let i = 0;
-  while (i < s.length) {
+function scan(s: string, from: number, to: number, inUrl: (i: number) => boolean): Pair[] {
+  const out: Pair[] = [];
+  let i = from;
+  while (i < to) {
     const ch = s[i];
     const kind = MARKS[ch];
     const opens =
       kind &&
       !inUrl(i) &&
-      (i === 0 || (EDGE.test(s[i - 1]) && s[i - 1] !== ch)) &&
-      i + 1 < s.length &&
+      (i === from || (EDGE.test(s[i - 1]) && s[i - 1] !== ch)) &&
+      i + 1 < to &&
       !SPACE.test(s[i + 1]) &&
       s[i + 1] !== ch;
     if (opens) {
       let close = -1;
-      for (let j = i + 2; j < s.length; j++) {
+      for (let j = i + 2; j < to; j++) {
         if (s[j] === '\n') break;
         if (
           s[j] === ch &&
           !inUrl(j) &&
           !SPACE.test(s[j - 1]) &&
-          (j + 1 === s.length || (EDGE.test(s[j + 1]) && s[j + 1] !== ch))
+          (j + 1 === to || (EDGE.test(s[j + 1]) && s[j + 1] !== ch))
         ) {
           close = j;
           break;
         }
       }
       if (close > 0) {
-        if (buf) out.push({ t: 'text', v: buf });
-        buf = '';
-        out.push({ t: kind, c: emphasis(s.slice(i + 1, close)) });
+        out.push({ a: i, b: close, k: kind, inner: scan(s, i + 1, close, inUrl) });
         i = close + 1;
         continue;
       }
     }
-    buf += ch;
     i++;
   }
-  if (buf) out.push({ t: 'text', v: buf });
   return out;
 }
+
+function build(s: string, from: number, to: number, pairs: Pair[]): Inline[] {
+  const out: Inline[] = [];
+  let last = from;
+  for (const p of pairs) {
+    if (p.a > last) out.push({ t: 'text', v: s.slice(last, p.a) });
+    out.push({ t: p.k, c: build(s, p.a + 1, p.b, p.inner) });
+    last = p.b + 1;
+  }
+  if (last < to) out.push({ t: 'text', v: s.slice(last, to) });
+  return out;
+}
+
+function emphasis(s: string): Inline[] {
+  return build(s, 0, s.length, scan(s, 0, s.length, urlTest(s)));
+}
+
+const CODE_RE = /```([^\n]+?)```|`([^`\n]+)`/g;
 
 // inline: code first (nothing inside it is formatting), then emphasis around it
 export function parseInline(s: string): Inline[] {
   const out: Inline[] = [];
   let last = 0;
-  for (const m of s.matchAll(/```([^\n]+?)```|`([^`\n]+)`/g)) {
+  for (const m of s.matchAll(CODE_RE)) {
     if (m.index > last) out.push(...emphasis(s.slice(last, m.index)));
     out.push({ t: 'code', v: m[1] ?? m[2] });
     last = m.index + m[0].length;
@@ -156,4 +179,57 @@ export function toWhatsApp(text: string): string {
             .replace(/(^|[^\w])__(?=\S)([^_\n]*?\S)__(?=$|[^\w])/g, '$1_$2_'),
     )
     .join('');
+}
+
+// The text as typed, every character kept, with classes for the composer's live preview:
+// mk (a marker), b, i, s, code.
+export interface SourceSpan {
+  v: string;
+  cls: string;
+}
+
+export function sourceSpans(text: string): SourceSpan[] {
+  const n = text.length;
+  const cls: string[][] = Array.from({ length: n }, () => []);
+  const add = (a: number, b: number, c: string) => {
+    for (let i = a; i < b; i++) cls[i].push(c);
+  };
+  const inUrl = urlTest(text);
+  const plain: [number, number][] = [];
+  let last = 0;
+  // code blocks over lines, then inline code; nothing inside is formatting
+  for (const m of text.matchAll(/```[\s\S]+?```|`[^`\n]+`/g)) {
+    const f = m[0].startsWith('```') ? 3 : 1;
+    const a = m.index;
+    const b = a + m[0].length;
+    plain.push([last, a]);
+    add(a, a + f, 'mk');
+    add(b - f, b, 'mk');
+    add(a + f, b - f, 'code');
+    last = b;
+  }
+  plain.push([last, n]);
+  const mark = (pairs: Pair[]) => {
+    for (const p of pairs) {
+      add(p.a, p.a + 1, 'mk');
+      add(p.b, p.b + 1, 'mk');
+      add(p.a + 1, p.b, p.k);
+      mark(p.inner);
+    }
+  };
+  for (const [a, b] of plain) mark(scan(text, a, b, inUrl));
+  // line starts: quotes and list markers
+  let at = 0;
+  for (const line of text.split('\n')) {
+    const m = line.match(/^(?:> ?|[-*•] |\d{1,3}\. )/);
+    if (m && !cls[at]?.includes('code')) add(at, at + m[0].length, 'mk');
+    at += line.length + 1;
+  }
+  const out: SourceSpan[] = [];
+  for (let i = 0; i < n; i++) {
+    const c = cls[i].join(' ');
+    if (out.length && out[out.length - 1].cls === c) out[out.length - 1].v += text[i];
+    else out.push({ v: text[i], cls: c });
+  }
+  return out;
 }

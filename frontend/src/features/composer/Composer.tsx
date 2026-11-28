@@ -17,7 +17,8 @@ import { toastError } from '../../stores/toasts';
 import { VoiceRecorder, canRecord } from './VoiceRecorder';
 import { EmojiPicker } from '../emoji/EmojiPicker';
 import { encodeMentions, useMentionPicker } from './mentions';
-import { toWhatsApp } from '../../lib/markdown';
+import { hasFormatting, toWhatsApp } from '../../lib/markdown';
+import { LivePreview } from './LivePreview';
 import './Composer.css';
 
 const MAX_LINES = 8;
@@ -86,6 +87,7 @@ export function Composer({ chat }: { chat: Chat }) {
   const state = useUI((s) => composerFor(s, jid));
   const items = useMessages((s) => s.byChat[jid]?.items);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const [emoji, setEmoji] = useState<PopoverAnchor | null>(null);
   const closeEmoji = useCallback(() => setEmoji(null), []);
   const typing = useTypingSignal(jid);
@@ -111,6 +113,7 @@ export function Composer({ chat }: { chat: Chat }) {
     const max = lh * MAX_LINES + 16;
     el.style.height = `${Math.min(el.scrollHeight, max)}px`;
     el.style.overflowY = el.scrollHeight > max ? 'auto' : 'hidden';
+    if (previewRef.current) previewRef.current.scrollTop = el.scrollTop;
   }, [text]);
 
   const ui = useUI.getState();
@@ -237,24 +240,34 @@ export function Composer({ chat }: { chat: Chat }) {
             tooltipPlacement="top"
             onClick={() => void useAttach.getState().pick(jid)}
           />
-          <textarea
-            ref={ref}
-            className="wz-composer__input"
-            rows={1}
-            placeholder={chat.isGroup ? `Message ${chat.name}` : 'Write a message'}
-            aria-label="Message"
-            value={text}
-            onChange={(e) => {
-              ui.setDraft(jid, e.target.value);
-              mentions.update(e.target.value, e.target.selectionStart);
-              if (e.target.value && !state.editing) typing.typed();
-              else typing.stop();
-            }}
-            onKeyDown={onKeyDown}
-            onSelect={(e) => mentions.update(e.currentTarget.value, e.currentTarget.selectionStart)}
-            onBlur={() => mentions.update('', null)}
-            spellCheck
-          />
+          <div
+            className={`wz-composer__field${hasFormatting(text) ? ' wz-composer__field--live' : ''}`}
+          >
+            <textarea
+              ref={ref}
+              className="wz-composer__input"
+              rows={1}
+              placeholder={chat.isGroup ? `Message ${chat.name}` : 'Write a message'}
+              aria-label="Message"
+              value={text}
+              onChange={(e) => {
+                ui.setDraft(jid, e.target.value);
+                mentions.update(e.target.value, e.target.selectionStart);
+                if (e.target.value && !state.editing) typing.typed();
+                else typing.stop();
+              }}
+              onKeyDown={onKeyDown}
+              onSelect={(e) =>
+                mentions.update(e.currentTarget.value, e.currentTarget.selectionStart)
+              }
+              onBlur={() => mentions.update('', null)}
+              onScroll={(e) => {
+                if (previewRef.current) previewRef.current.scrollTop = e.currentTarget.scrollTop;
+              }}
+              spellCheck
+            />
+            <LivePreview ref={previewRef} text={text} />
+          </div>
           <PluginSlot name="composer.actions" props={{ chatJid: jid, insertText: insert }} />
           <IconButton
             label="Emoji"

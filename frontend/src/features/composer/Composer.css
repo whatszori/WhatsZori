@@ -209,3 +209,58 @@
   color: var(--wz-text-muted);
   font-size: var(--wz-font-size-xs);
 }
+
+/* ---- live formatting preview: a layer over the textarea ---- */
+
+.wz-composer__field {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.wz-composer__field--live .wz-composer__input {
+  color: transparent;
+  caret-color: var(--wz-text-primary);
+}
+
+.wz-composer__field--live .wz-composer__input::selection {
+  color: transparent;
+}
+
+.wz-composer__preview {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* the textarea's box: same border, padding and type, so every glyph lands on its twin */
+  padding: 9px var(--wz-space-3);
+  border: 1px solid transparent;
+  color: var(--wz-text-primary);
+  font-size: var(--wz-font-size-md);
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  pointer-events: none;
+}
+
+.wz-lp-mk {
+  color: var(--wz-text-muted);
+}
+
+.wz-lp-b {
+  -webkit-text-stroke: 0.04em currentColor;
+}
+
+.wz-lp-i {
+  color: color-mix(in srgb, var(--wz-accent-text) 75%, var(--wz-text-primary));
+}
+
+.wz-lp-s {
+  text-decoration: line-through;
+}
+
+.wz-lp-code {
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--wz-text-primary) 9%, transparent);
+}

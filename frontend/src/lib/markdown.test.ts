@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlocks, parseInline, plainText, toWhatsApp } from './markdown';
+import { parseBlocks, parseInline, plainText, sourceSpans, toWhatsApp } from './markdown';
 
 describe('parseInline', () => {
   it('reads bold, italic, strike and code', () => {
@@ -63,5 +63,18 @@ describe('toWhatsApp', () => {
   });
   it('leaves code and snake case alone', () => {
     expect(toWhatsApp('`**x**` a__b__c')).toBe('`**x**` a__b__c');
+  });
+});
+
+describe('sourceSpans', () => {
+  it('keeps every character and marks the markers', () => {
+    const text = '> hi *bold* and `c` _x_';
+    const spans = sourceSpans(text);
+    expect(spans.map((s) => s.v).join('')).toBe(text);
+    const cls = (v: string) => spans.find((s) => s.v === v)?.cls;
+    expect(cls('bold')).toBe('b');
+    expect(cls('c')).toBe('code');
+    expect(cls('x')).toBe('i');
+    expect(spans[0]).toEqual({ v: '> ', cls: 'mk' });
   });
 });
