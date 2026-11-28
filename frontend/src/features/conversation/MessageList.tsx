@@ -157,7 +157,10 @@ export function MessageList({ chat }: { chat: Chat }) {
       if (cancelled || !ok) return;
       requestAnimationFrame(() => {
         const current = buildRows(useMessages.getState().byChat[jid]?.items ?? []);
-        const i = current.findIndex((r) => r.type === 'msg' && r.key === focus.pk);
+        const i = current.findIndex(
+          (r) =>
+            r.type === 'msg' && (r.key === focus.pk || !!r.album?.some((x) => x.pk === focus.pk)),
+        );
         if (i < 0) return;
         virtualizer.scrollToIndex(i, { align: 'center' });
         setHighlight(focus.pk);
@@ -242,6 +245,7 @@ export function MessageList({ chat }: { chat: Chat }) {
                 ) : (
                   <Bubble
                     message={row.message}
+                    album={row.album}
                     showSender={chat.isGroup && row.groupStart}
                     groupStart={row.groupStart}
                     groupEnd={row.groupEnd}

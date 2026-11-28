@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { RoundVideo } from './RoundVideo';
 import { FileText, Image as ImageIcon, Pause, Play } from 'lucide-react';
-import { backend, type JID, type MediaInfo, type MessageKind, type MessagePK } from '../../api';
+import {
+  backend,
+  type JID,
+  type MediaInfo,
+  type Message,
+  type MessageKind,
+  type MessagePK,
+} from '../../api';
+import type { PopoverAnchor } from '../../ui';
 import { formatDuration, formatFileSize } from '../../lib/format';
 import { useUI } from '../../stores/ui';
 
@@ -276,4 +284,65 @@ export function MediaBlock({
   if (kind === 'document') return <Document pk={pk} media={media} />;
   if (kind === 'voice') return <Voice pk={pk} media={media} />;
   return null;
+}
+
+// Photos and videos sent together: a grid of up to four, the last tile saying how many more.
+// A click opens the viewer on that one, paging through the album; right-click is that one's menu.
+export function Album({
+  items,
+  onMenu,
+}: {
+  items: Message[];
+  onMenu: (m: Message, anchor: PopoverAnchor) => void;
+}) {
+  const shown = items.slice(0, 4);
+  const more = items.length - shown.length;
+  return (
+    <div
+      className={`wz-album wz-album--${shown.length}`}
+      role="group"
+      aria-label={`Album, ${items.length} items`}
+    >
+      {shown.map((m, i) => {
+        const full = backend.media.url(m.pk);
+        const thumb = backend.media.url(m.pk, true);
+        const video = m.kind === 'video';
+        const last = i === shown.length - 1 && more > 0;
+        return (
+          <button
+            key={m.pk}
+            type="button"
+            className="wz-album__tile"
+            style={thumb ? { backgroundImage: `url("${thumb}")` } : undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              useUI.getState().openViewer(m.chatJid, m.pk, items);
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onMenu(m, e.currentTarget.getBoundingClientRect());
+            }}
+            aria-label={`${video ? 'Video' : 'Photo'} ${i + 1} of ${items.length}`}
+          >
+            {full && !video && (
+              <img src={full} alt="" draggable={false} loading="lazy" decoding="async" />
+            )}
+            {!full && !thumb && !last && (
+              <ImageIcon className="wz-media__icon" size={24} strokeWidth={1.5} />
+            )}
+            {video && (
+              <span className="wz-media__play">
+                <Play size={18} strokeWidth={1.75} />
+              </span>
+            )}
+            {video && m.media?.duration != null && !last && (
+              <span className="wz-media__label">{formatDuration(m.media.duration)}</span>
+            )}
+            {last && <span className="wz-album__more">+{more + 1}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
 }

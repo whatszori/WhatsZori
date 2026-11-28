@@ -652,3 +652,62 @@ button.wz-bubble__edited:hover {
   left: 0;
   color: var(--wz-text-secondary);
 }
+
+/* ---- albums ---- */
+
+.wz-album {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  width: 300px;
+  max-width: 100%;
+  margin: -2px -6px 4px;
+  overflow: hidden;
+  border-radius: calc(var(--wz-radius-bubble) - 3px);
+}
+
+.wz-album--3 .wz-album__tile:first-child {
+  grid-column: span 2;
+  aspect-ratio: 2 / 1;
+}
+
+.wz-album__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--wz-text-primary) 7%, transparent) center / cover no-repeat;
+  color: var(--wz-text-muted);
+  cursor: pointer;
+}
+
+.wz-album__tile img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wz-album__tile:hover img,
+.wz-album__tile:hover {
+  filter: brightness(0.94);
+}
+
+.wz-album__tile .wz-media__play {
+  position: relative;
+}
+
+.wz-album__more {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 600;
+}

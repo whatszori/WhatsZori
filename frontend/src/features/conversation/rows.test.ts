@@ -38,3 +38,26 @@ describe('buildRows', () => {
     expect(flags).toEqual(['10', '01', '11', '11', '11']);
   });
 });
+
+describe('albums', () => {
+  const photo = (pk: string, seconds: number, text = '', sender = 'a'): Message => ({
+    ...m(pk, 0, sender),
+    timestamp: base + seconds * 1000,
+    kind: 'image',
+    text,
+    media: { width: 10, height: 10 },
+  });
+
+  it('groups photos sent together, the caption on the last', () => {
+    const rows = buildRows([photo('1', 0), photo('2', 20), photo('3', 40, 'look'), photo('4', 50)]);
+    const msgs = rows.filter((r) => r.type === 'msg');
+    expect(msgs.map((r) => r.key)).toEqual(['3', '4']);
+    expect(msgs[0].type === 'msg' && msgs[0].album?.map((x) => x.pk)).toEqual(['1', '2', '3']);
+    expect(msgs[1].type === 'msg' && msgs[1].album).toBeUndefined();
+  });
+
+  it('keeps apart other senders, long gaps and lone photos', () => {
+    const rows = buildRows([photo('1', 0), photo('2', 10, '', 'b'), photo('3', 200, '', 'b')]);
+    expect(rows.filter((r) => r.type === 'msg' && r.album).length).toBe(0);
+  });
+});

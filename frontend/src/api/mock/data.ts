@@ -812,6 +812,9 @@ const TAILS: Record<string, Tail> = {
     build: (k) => {
       const dima = k.p('Дмитрий Соколов');
       k.add(dima, 150, { text: 'Смотри, где мы были в выходные' });
+      k.add(dima, 149.9, k.photo(1067, 1600));
+      k.add(dima, 149.8, k.photo(1600, 1067));
+      k.add(dima, 149.7, k.photo(1600, 1200));
       k.add(dima, 149.5, k.photo(1600, 1067));
       const lake = k.add(dima, 149, k.photo(1600, 1067, 'Озеро в 7 утра, ни души'));
       k.add(dima, 148.5, k.photo(1080, 1440));

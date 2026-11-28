@@ -9,7 +9,7 @@ import { ErrorBoundary } from '../../plugin-core/ErrorBoundary';
 import { formatters, useRegistry } from '../../plugin-core/registry';
 import type { PopoverAnchor } from '../../ui';
 import { Marked } from '../search/MessageHits';
-import { MediaBlock } from './Media';
+import { Album, MediaBlock } from './Media';
 import { BusinessFooter, BusinessHeader } from './Business';
 import { ContactCards, EventCard } from './Cards';
 import { LocationCard } from './Location';
@@ -29,6 +29,8 @@ export interface BubbleHandlers {
 
 interface BubbleProps extends BubbleHandlers {
   message: Message;
+  // photos and videos sent together with this one (the last of them)
+  album?: Message[];
   showSender: boolean;
   groupEnd: boolean;
   groupStart: boolean;
@@ -247,6 +249,7 @@ function Meta({
 
 export const Bubble = memo(function Bubble({
   message: m,
+  album,
   showSender,
   groupStart,
   groupEnd,
@@ -300,7 +303,15 @@ export const Bubble = memo(function Bubble({
         .filter(Boolean)
         .join(' ')}
       data-pk={m.pk}
-      onClick={selecting ? () => useUI.getState().toggleSelected(m.chatJid, m.pk) : undefined}
+      onClick={
+        selecting
+          ? () => {
+              const ui = useUI.getState();
+              // an album is selected as a whole
+              for (const x of album ?? [m]) ui.toggleSelected(x.chatJid, x.pk);
+            }
+          : undefined
+      }
       role={selecting ? 'checkbox' : undefined}
       aria-checked={selecting ? selected : undefined}
     >
@@ -351,7 +362,9 @@ export const Bubble = memo(function Bubble({
                   <span className="wz-quote__text">{plainText(m.replyTo.text) || 'Message'}</span>
                 </button>
               )}
-              {onceCard ? (
+              {album ? (
+                <Album items={album} onMenu={onMenu} />
+              ) : onceCard ? (
                 <ViewOnce m={m} />
               ) : (
                 hasMedia && (
