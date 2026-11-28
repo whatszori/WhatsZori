@@ -787,6 +787,40 @@ const TAILS: Record<string, Tail> = {
           live: false,
         },
       });
+      k.add(k.me, 26, {
+        kind: 'contact',
+        text: '',
+        contacts: [
+          {
+            name: 'Серёга Лодочник',
+            org: 'Прокат лодок «Залив»',
+            phones: [
+              {
+                number: '+7 921 555-01-23',
+                label: 'cell',
+                waid: '79215550123',
+                jid: '79215550123@s.whatsapp.net',
+              },
+            ],
+            emails: [],
+          },
+        ],
+      });
+      k.add(dima, 20, {
+        kind: 'event',
+        text: '',
+        event: {
+          name: 'Выезд на озеро',
+          description: 'Берём палатки, мангал и гитару. Сбор у метро.',
+          start: Date.now() + 3 * 86_400_000,
+          end: Date.now() + 5 * 86_400_000,
+          place: 'Домики у озера, Выборгский район',
+          lat: 60.7096,
+          lon: 28.7489,
+          canceled: false,
+          call: false,
+        },
+      });
       k.add(dima, 4, {
         kind: 'location',
         text: 'Еду, буду через 20 минут',

@@ -58,6 +58,8 @@ const (
 	KindSticker  MessageKind = "sticker"
 	KindPoll     MessageKind = "poll"
 	KindLocation MessageKind = "location"
+	KindContact  MessageKind = "contact"
+	KindEvent    MessageKind = "event"
 )
 
 type MessageStatus string
@@ -243,6 +245,39 @@ type ReceiptPerson struct {
 	PlayedAt int64 `json:"playedAt"`
 }
 
+// a shared contact (one vCard)
+type ContactCard struct {
+	Name   string         `json:"name"`
+	Org    string         `json:"org,omitempty"`
+	Phones []ContactPhone `json:"phones"`
+	Emails []string       `json:"emails"`
+}
+
+type ContactPhone struct {
+	Number string `json:"number"`
+	// home, cell, work, ...
+	Label string `json:"label,omitempty"`
+	// the WhatsApp number, when the phone said it's on WhatsApp
+	WAID string `json:"waid,omitempty"`
+	JID  string `json:"jid,omitempty"`
+}
+
+// an event (WhatsApp's "Event" in groups and chats)
+type EventInfo struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	// ms; End 0 = no end time
+	Start    int64   `json:"start"`
+	End      int64   `json:"end,omitempty"`
+	Place    string  `json:"place,omitempty"`
+	Lat      float64 `json:"lat,omitempty"`
+	Lon      float64 `json:"lon,omitempty"`
+	JoinLink string  `json:"joinLink,omitempty"`
+	Canceled bool    `json:"canceled"`
+	// a scheduled call rather than a meeting
+	Call bool `json:"call"`
+}
+
 type ReplyRef struct {
 	PK         string      `json:"pk"`
 	SenderName string      `json:"senderName"`
@@ -290,6 +325,10 @@ type Message struct {
 	Mentions []Mention `json:"mentions,omitempty"`
 	// a pin or a live location
 	Location *LocationInfo `json:"location,omitempty"`
+	// shared contacts
+	Contacts []ContactCard `json:"contacts,omitempty"`
+	// an event
+	Event *EventInfo `json:"event,omitempty"`
 }
 
 type PollOption struct {

@@ -123,7 +123,48 @@ export interface Attachment {
 }
 
 export type MessageKind =
-  'text' | 'image' | 'video' | 'document' | 'voice' | 'sticker' | 'poll' | 'location';
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'document'
+  | 'voice'
+  | 'sticker'
+  | 'poll'
+  | 'location'
+  | 'contact'
+  | 'event';
+
+// a shared contact (one vCard)
+export interface ContactCard {
+  name: string;
+  org?: string;
+  phones: ContactPhone[];
+  emails: string[];
+}
+
+export interface ContactPhone {
+  number: string;
+  // home, cell, work, ...
+  label?: string;
+  // set when the phone said the number is on WhatsApp
+  waid?: string;
+  jid?: JID;
+}
+
+// an event; times in ms, end 0/absent = no end time
+export interface EventInfo {
+  name: string;
+  description?: string;
+  start: number;
+  end?: number;
+  place?: string;
+  lat?: number;
+  lon?: number;
+  joinLink?: string;
+  canceled: boolean;
+  // a scheduled call rather than a meeting
+  call: boolean;
+}
 
 // a pin or a live location
 export interface LocationInfo {
@@ -281,6 +322,9 @@ export interface Message {
   mentions?: Mention[];
   // a pin or a live location
   location?: LocationInfo;
+  // shared contacts
+  contacts?: ContactCard[];
+  event?: EventInfo;
 }
 
 export type ChangeKind = '' | 'deleted' | 'edited';

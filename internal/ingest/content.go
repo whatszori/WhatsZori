@@ -120,6 +120,10 @@ func extract(msg *waE2E.Message) content {
 		m := msg.GetContactsArrayMessage()
 		c.kind, ctx = repo.KindContact, m
 		c.body = fmt.Sprintf("👤 %d contacts", len(m.GetContacts()))
+	case msg.EventMessage != nil:
+		m := msg.GetEventMessage()
+		c.kind, ctx = repo.KindEvent, m
+		c.body = "📅 " + firstNonEmpty(m.GetName(), "Event")
 	case msg.PollCreationMessage != nil || msg.PollCreationMessageV2 != nil || msg.PollCreationMessageV3 != nil:
 		m := msg.GetPollCreationMessage()
 		if m == nil {

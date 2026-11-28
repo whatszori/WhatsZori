@@ -9,6 +9,7 @@ import { formatters, useRegistry } from '../../plugin-core/registry';
 import type { PopoverAnchor } from '../../ui';
 import { Marked } from '../search/MessageHits';
 import { MediaBlock } from './Media';
+import { ContactCards, EventCard } from './Cards';
 import { LocationCard } from './Location';
 import { Poll } from './Poll';
 import { ViewOnce } from './ViewOnce';
@@ -262,6 +263,11 @@ export const Bubble = memo(function Bubble({
                 hasMedia && (
                   <MediaBlock chatJid={m.chatJid} pk={m.pk} kind={m.kind} media={m.media!} />
                 )
+              )}
+              {m.contacts && m.contacts.length > 0 && !m.deleted && <ContactCards m={m} />}
+              {m.event && !m.deleted && <EventCard m={m} />}
+              {(m.contacts?.length || m.event) && !m.deleted && !m.text && (
+                <span className="wz-bubble__poll-meta" aria-hidden="true" />
               )}
               {m.location && !m.deleted && <LocationCard m={m} />}
               {m.location && !m.deleted && !m.text && (

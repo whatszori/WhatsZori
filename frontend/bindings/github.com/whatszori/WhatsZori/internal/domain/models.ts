@@ -144,6 +144,31 @@ export interface Contact {
     "phone": string;
 }
 
+/**
+ * a shared contact (one vCard)
+ */
+export interface ContactCard {
+    "name": string;
+    "org"?: string;
+    "phones": ContactPhone[] | null;
+    "emails": string[] | null;
+}
+
+export interface ContactPhone {
+    "number": string;
+
+    /**
+     * home, cell, work, ...
+     */
+    "label"?: string;
+
+    /**
+     * the WhatsApp number, when the phone said it's on WhatsApp
+     */
+    "waid"?: string;
+    "jid"?: string;
+}
+
 export interface DeletedInfo {
     "byJid": string;
     "byName": string;
@@ -153,6 +178,30 @@ export interface DeletedInfo {
 export interface EditVersion {
     "text": string;
     "at": number;
+}
+
+/**
+ * an event (WhatsApp's "Event" in groups and chats)
+ */
+export interface EventInfo {
+    "name": string;
+    "description"?: string;
+
+    /**
+     * ms; End 0 = no end time
+     */
+    "start": number;
+    "end"?: number;
+    "place"?: string;
+    "lat"?: number;
+    "lon"?: number;
+    "joinLink"?: string;
+    "canceled": boolean;
+
+    /**
+     * a scheduled call rather than a meeting
+     */
+    "call": boolean;
 }
 
 export interface ExportOptions {
@@ -377,6 +426,16 @@ export interface Message {
      * a pin or a live location
      */
     "location"?: LocationInfo | null;
+
+    /**
+     * shared contacts
+     */
+    "contacts"?: ContactCard[] | null;
+
+    /**
+     * an event
+     */
+    "event"?: EventInfo | null;
 }
 
 /**
@@ -396,6 +455,8 @@ export enum MessageKind {
     KindSticker = "sticker",
     KindPoll = "poll",
     KindLocation = "location",
+    KindContact = "contact",
+    KindEvent = "event",
 };
 
 export interface MessagePage {

@@ -315,6 +315,19 @@ func Preview(m domain.Message) string {
 		return "Message"
 	}
 	switch m.Kind {
+	case domain.KindContact:
+		if len(m.Contacts) == 1 {
+			return "👤 " + m.Contacts[0].Name
+		}
+		if len(m.Contacts) > 1 {
+			return fmt.Sprintf("👤 %d contacts", len(m.Contacts))
+		}
+		return "👤 Contact"
+	case domain.KindEvent:
+		if m.Event != nil {
+			return "📅 " + m.Event.Name
+		}
+		return "📅 Event"
 	case domain.KindLocation:
 		if m.Location != nil && m.Location.Live {
 			return with("📍 Live location")

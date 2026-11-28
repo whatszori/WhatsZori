@@ -50,6 +50,7 @@ const (
 	KindSticker  = "sticker"
 	KindLocation = "location"
 	KindContact  = "contact"
+	KindEvent    = "event"
 	KindPoll     = "poll"
 	KindUnknown  = "unknown"
 )

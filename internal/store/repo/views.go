@@ -28,6 +28,10 @@ func UIKind(kind string) domain.MessageKind {
 		return domain.KindPoll
 	case KindLocation:
 		return domain.KindLocation
+	case KindContact:
+		return domain.KindContact
+	case KindEvent:
+		return domain.KindEvent
 	}
 	return domain.KindText
 }
@@ -198,6 +202,18 @@ func (v View) Messages(ctx context.Context, q DBTX, rows []MessageRow) ([]domain
 			Reactions:      []domain.Reaction{},
 			Mentions:       mentionsFor(m.PK),
 			Location:       locationInfo(m),
+		}
+		if !m.IsDeleted {
+			switch m.Kind {
+			case KindContact:
+				if cards := contactCards(m.Raw); len(cards) > 0 {
+					dto.Contacts, dto.Text = cards, ""
+				}
+			case KindEvent:
+				if ev := eventInfo(m.Raw); ev != nil {
+					dto.Event, dto.Text = ev, ""
+				}
+			}
 		}
 		if dto.Location != nil && !m.IsDeleted {
 			// the bubble draws the place; the text is only what the sender wrote with it
