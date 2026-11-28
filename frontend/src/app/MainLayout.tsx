@@ -15,7 +15,13 @@ import { isDemo } from '../api';
 import { useHotkeys } from '../lib/hotkeys';
 import { buildChatList, navigationOrder } from '../stores/chat-selectors';
 import { useChats } from '../stores/chats';
-import { SIDEBAR_MAX, SIDEBAR_MIN, useUI } from '../stores/ui';
+import {
+  SIDEBAR_COLLAPSE_AT,
+  SIDEBAR_COMPACT,
+  SIDEBAR_MAX,
+  SIDEBAR_MIN,
+  useUI,
+} from '../stores/ui';
 import { ConnectionBanner } from './ConnectionBanner';
 import { SafeModeBanner } from './SafeModeBanner';
 import { PluginViewHost } from '../plugin-core/host';
@@ -23,12 +29,22 @@ import './MainLayout.css';
 
 function Resizer() {
   const width = useUI((s) => s.sidebarWidth);
-  const setWidth = useUI((s) => s.setSidebarWidth);
+  const compact = useUI((s) => s.sidebarCompact);
   const start = useRef<{ x: number; w: number } | null>(null);
+  // dragging past the narrowest list turns it into a column of avatars, and back
+  const setWidth = (w: number) => {
+    const ui = useUI.getState();
+    if (w < SIDEBAR_COLLAPSE_AT) {
+      ui.setSidebarCompact(true);
+      return;
+    }
+    ui.setSidebarCompact(false);
+    ui.setSidebarWidth(w);
+  };
 
   const onPointerDown = (e: RPointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
-    start.current = { x: e.clientX, w: width };
+    start.current = { x: e.clientX, w: compact ? SIDEBAR_COMPACT : width };
     document.body.classList.add('wz-resizing');
   };
   const onPointerMove = (e: RPointerEvent) => {
@@ -40,8 +56,8 @@ function Resizer() {
     document.body.classList.remove('wz-resizing');
   };
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') setWidth(width - 16);
-    else if (e.key === 'ArrowRight') setWidth(width + 16);
+    if (e.key === 'ArrowLeft') setWidth(compact ? 0 : width - 16);
+    else if (e.key === 'ArrowRight') setWidth(compact ? SIDEBAR_MIN : width + 16);
     else return;
     e.preventDefault();
   };
@@ -60,7 +76,7 @@ function Resizer() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      onDoubleClick={() => setWidth(340)}
+      onDoubleClick={() => setWidth(compact ? width : 340)}
       onKeyDown={onKeyDown}
     />
   );
@@ -99,7 +115,8 @@ function useGlobalShortcuts() {
 }
 
 export function MainLayout() {
-  const width = useUI((s) => s.sidebarWidth);
+  const compact = useUI((s) => s.sidebarCompact);
+  const width = useUI((s) => (s.sidebarCompact ? SIDEBAR_COMPACT : s.sidebarWidth));
   const view = useUI((s) => s.view);
   const activeChat = useUI((s) => s.activeChat);
   const railPanel = useUI((s) => s.railPanel);
@@ -128,7 +145,7 @@ export function MainLayout() {
       );
     return (
       <div
-        className="wz-app wz-app--rail"
+        className={`wz-app wz-app--rail${compact ? ' wz-app--compact' : ''}`}
         style={{ ['--wz-sidebar-width' as string]: `${width}px` }}
       >
         <ConnectionBanner />
@@ -157,7 +174,10 @@ export function MainLayout() {
   }
 
   return (
-    <div className="wz-app" style={{ ['--wz-sidebar-width' as string]: `${width}px` }}>
+    <div
+      className={`wz-app${compact ? ' wz-app--compact' : ''}`}
+      style={{ ['--wz-sidebar-width' as string]: `${width}px` }}
+    >
       <ConnectionBanner />
       <SafeModeBanner />
       <div className="wz-app__body">

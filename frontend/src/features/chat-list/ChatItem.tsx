@@ -6,6 +6,7 @@ import { Avatar, Badge, type PopoverAnchor } from '../../ui';
 import { StatusTicks } from '../conversation/StatusTicks';
 import { toPluginChat } from '../conversation/plugin-adapters';
 import { PluginSlot } from '../../plugin-core/slots';
+import { useUI } from '../../stores/ui';
 
 interface ChatItemProps {
   chat: Chat;
@@ -36,6 +37,7 @@ export const ChatItem = memo(function ChatItem({
   onOpen,
   onMenu,
 }: ChatItemProps) {
+  const compact = useUI((s) => s.sidebarCompact);
   const last = chat.lastMessage;
   const typingLine = typingText(chat, typing);
 
@@ -74,6 +76,7 @@ export const ChatItem = memo(function ChatItem({
       aria-current={active ? 'true' : undefined}
       onClick={() => onOpen(chat.jid)}
       onContextMenu={openMenu}
+      title={compact ? chat.name : undefined}
     >
       <Avatar
         name={chat.name}
@@ -82,6 +85,11 @@ export const ChatItem = memo(function ChatItem({
         group={chat.isGroup}
         online={chat.online}
       />
+      {compact && chat.unread > 0 && (
+        <span className={`wz-chat-item__corner${chat.muted ? ' wz-chat-item__corner--muted' : ''}`}>
+          {chat.unread > 99 ? '99+' : chat.unread}
+        </span>
+      )}
       <span className="wz-chat-item__body">
         <span className="wz-chat-item__top">
           <span className="wz-chat-item__name">{chat.name}</span>

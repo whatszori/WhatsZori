@@ -12,6 +12,7 @@ import {
   Settings,
   SquarePen,
   X,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { backend } from '../../api';
 import { PluginSlot } from '../../plugin-core/slots';
@@ -95,6 +96,12 @@ export function ChatListPane({ rail = false }: { rail?: boolean }) {
   return (
     <div className={`wz-chat-pane${searching ? ' wz-chat-pane--searching' : ''}`}>
       <header className="wz-chat-pane__header">
+        <IconButton
+          label="Show the full chat list"
+          className="wz-chat-pane__expand"
+          icon={<PanelLeftOpen size={20} />}
+          onClick={() => useUI.getState().setSidebarCompact(false)}
+        />
         {showArchived ? (
           <>
             <IconButton

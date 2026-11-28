@@ -36,7 +36,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
       .load()
       .then(() => {
         const s = useSettings.getState().settings;
-        useUI.setState({ sidebarWidth: clampSidebar(s.ui.sidebarWidth) });
+        useUI.setState({
+          sidebarWidth: clampSidebar(s.ui.sidebarWidth),
+          sidebarCompact: !!s.ui.sidebarCompact,
+        });
       });
     void useConnection.getState().init();
     void useUserThemes.getState().load();

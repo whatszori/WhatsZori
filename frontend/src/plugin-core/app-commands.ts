@@ -62,6 +62,12 @@ const APP: Command[] = [
     run: () => useUI.getState().openSettings('themes'),
   },
   {
+    id: 'compact-list',
+    title: 'Chat list: only avatars / full',
+    keywords: ['sidebar', 'narrow', 'compact', 'collapse'],
+    run: () => useUI.getState().setSidebarCompact(!useUI.getState().sidebarCompact),
+  },
+  {
     id: 'changes',
     title: 'Deleted & edited messages',
     keywords: ['history'],

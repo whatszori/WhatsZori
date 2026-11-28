@@ -510,6 +510,8 @@ export interface AppSettings {
   userTheme: string | null;
   ui: {
     sidebarWidth: number;
+    // the chat list as a column of avatars
+    sidebarCompact?: boolean;
   };
 }
 

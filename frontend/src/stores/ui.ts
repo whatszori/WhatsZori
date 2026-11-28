@@ -32,6 +32,10 @@ export interface ComposerState {
 export const SIDEBAR_MIN = 260;
 export const SIDEBAR_MAX = 480;
 
+// the chat list's width as a column of avatars, and how narrow a drag goes before it turns into one
+export const SIDEBAR_COMPACT = 76;
+export const SIDEBAR_COLLAPSE_AT = 200;
+
 export const clampSidebar = (w: number) =>
   Number.isFinite(w) ? Math.round(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, w))) : 340;
 
@@ -55,6 +59,8 @@ interface UIState {
   activeChat: JID | null;
   railPanel: RailPanel;
   sidebarWidth: number;
+  // the chat list shrunk to a column of avatars
+  sidebarCompact: boolean;
   // message to scroll to and flash; `nonce` lets the same pk be re-triggered
   focusMessage: { jid: JID; pk: MessagePK; nonce: number } | null;
   composer: Record<JID, ComposerState>;
@@ -93,6 +99,7 @@ interface UIState {
   closeStatus(): void;
   setSettingsSection(section: SettingsSection): void;
   setSidebarWidth(w: number): void;
+  setSidebarCompact(on: boolean): void;
   jumpTo(jid: JID, pk: MessagePK): void;
   setInfoMessage(v: { jid: JID; pk: MessagePK } | null): void;
   openViewer(jid: JID, pk: MessagePK, items?: Message[]): void;
@@ -120,6 +127,7 @@ export const useUI = create<UIState>((set, get) => {
     activeChat: null,
     railPanel: 'chats',
     sidebarWidth: DEFAULT_SETTINGS.ui.sidebarWidth,
+    sidebarCompact: false,
     focusMessage: null,
     composer: {},
     infoMessage: null,
@@ -167,6 +175,11 @@ export const useUI = create<UIState>((set, get) => {
     openStatus: () => set({ view: 'status', railPanel: 'chats' }),
     closeStatus: () => set({ view: 'chats' }),
     setSettingsSection: (settingsSection) => set({ settingsSection }),
+    setSidebarCompact(on) {
+      if (on === get().sidebarCompact) return;
+      set({ sidebarCompact: on });
+      useSettings.getState().update((s) => ({ ...s, ui: { ...s.ui, sidebarCompact: on } }));
+    },
     setSidebarWidth(w) {
       const width = clampSidebar(w);
       if (width === get().sidebarWidth) return;
